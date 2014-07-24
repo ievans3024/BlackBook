@@ -1,10 +1,155 @@
 <!DOCTYPE html>
 <html>
-<head lang="en">
+<head>
     <meta charset="UTF-8">
-    <title></title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}BlackBook{% endblock %}</title>
+    {% block styles %}
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap.min.css') }}">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap-theme.min.css') }}">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/BlackBook.css') }}">
+    {% endblock %}
 </head>
 <body>
+{% block header %}
+    <div class="navbar navbar-inverse navbar-top" role="navigation">
+        <div class="navbar-header">
+            <a href="/" class="navbar-brand">BlackBook</a>
+            <!--<span class="navbar-brand tagline">My contact list</span>-->
+        </div>
+        <div class="navbar-form navbar-left">
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#new-entry">
+                <span>New Contact</span>
+                <span class="glyphicon glyphicon-plus"></span>
+            </button>
+        </div>
+        <form id="contact-search" class="navbar-form navbar-right" role="form">
+            <div class="form-group">
+                <input id="search" class="form-control" type="text" placeholder="Search for a contact">
+            </div>
+        </form>
+    </div>
+{% endblock %}
+    <div class="container-fluid">
+        <div class="row">
+{% block entrylist %}
+            <div id="current-entry" class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+                {# currently selected entry here #}
+            </div>
+            <hr class="hidden-sm hidden-md hidden-lg col-xs-12">
+            <div id="entries" class="col-xs-12 col-sm-6 col-md-8 col-lg-9">
+                <div class="entry-nav">
+                    <span class="pages"></span>
+                    <span>Per Page: </span>
+                    <select class="per-page">
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+                <div class="entry" ng-repeat="contact in contactList">
+                    <h3 class="name"></h3>
+                    <p class="phone"></p>
+                </div>
+            </div>
+{% endblock %}
+        </div>
+    </div>
+{% block newform %}
+    <form id="new-contact-entry">
+        <div id="new-entry" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">New Contact</h4>
+                </div>
+                <div class="modal-body container-fluid">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <input class="form-control" type="text" placeholder="First Name" maxlength="100" id="first-name" name="first-name">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <input class="form-control" type="text" placeholder="Last Name" maxlength="100" id="last-name" name="last-name">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                            <input class="form-control" type="text" placeholder="Email" maxlength="100" id="email" name="email">
+                        </div>
+                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                            <input class="form-control" type="text" placeholder="Type (e.g. Primary)" maxlength="20" id="email-type" name="email-type">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                            <input class="form-control" type="text" placeholder="Phone Number" maxlength="100" id="phone-number" name="phone-number">
+                        </div>
+                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                            <input class="form-control" type="text" placeholder="Type (e.g., Home)" maxlength="20" id="phone-number-type" name="phone-number-type">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <input class="form-control" type="text" placeholder="Address Line 1" maxlength="50" id="address-line-1" name="address-line-1">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <input class="form-control" type="text" placeholder="Address Line 2" maxlength="50" id="address-line-2" name="address-line-2">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-5 col-sm-5 col-md-5 col-lg-5">
+                            <input class="form-control" type="text" placeholder="City" maxlength="50" id="city" name="city">
+                        </div>
+                        <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                            <input class="form-control" type="text" placeholder="State" maxlength="2" id="state" name="state">
+                        </div>
+                        <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
+                            <input class="form-control" type="text" placeholder="Zipcode" maxlength="11" id="zip" name="zip">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <input class="form-control" type="text" placeholder="Country" maxlength="50" id="country" name="country">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+                            <input class="form-control btn btn-success" type="submit" value="Add">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div id="submit-status-box"></div>
+                    </div>
 
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+{% block dialog %}
+    <div id="status-dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body"><p></p></div>
+            <div class="modal-footer"><button type="button" class="btn btn-success" data-dismiss="modal">OK</button></div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/lib/jquery-2.1.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lib/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lib/angular.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/BlackBook.js') }}"></script>
+{% endblock %}
 </body>
 </html>

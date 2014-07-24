@@ -16,7 +16,7 @@ db = SQLAlchemy(app)
 
 
 @app.route('/')
-@app.route('/book')
+@app.route('/book/')
 def home():
     """Home Page, displays references to all entries"""
     return render_template('base.html')
