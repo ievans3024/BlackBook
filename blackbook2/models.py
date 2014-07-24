@@ -1,7 +1,7 @@
 __author__ = 'ievans3024'
 
 
-from blackbook2 import app, db
+from blackbook2 import db
 
 
 class Person(db.Model):
