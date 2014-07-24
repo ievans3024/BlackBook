@@ -45,5 +45,5 @@ def api_search():
 
 
 if __name__ == '__main__':
-    whooshalchemy.whoosh_index(app, Person)  # TODO: figure out if this should be a cron job instead
+    whooshalchemy.whoosh_index(app, Person)  # TODO: figure out if this should be a scheduled task instead
     app.run()
