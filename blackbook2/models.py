@@ -1,6 +1,6 @@
 __author__ = 'ievans3024'
 
-import flask_whooshalchemy as whooshalchemy
+
 from blackbook2 import app, db
 
 
@@ -88,6 +88,3 @@ class PhoneNumber(db.Model):
         self.number_type = number_type
         self.number = number
         self.person_id = person_id
-
-
-whooshalchemy.whoosh_index(app, Person)

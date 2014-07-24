@@ -1,7 +1,11 @@
 __author__ = 'ievans3024'
 
+
+import flask_whooshalchemy as whooshalchemy
+
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
+from models import Person
 
 
 app = Flask(__name__)
@@ -41,4 +45,5 @@ def api_search():
 
 
 if __name__ == '__main__':
+    whooshalchemy.whoosh_index(app, Person)  # TODO: figure out if this should be a cron job instead
     app.run()
