@@ -32,6 +32,8 @@ class CollectionPlusJSON(object):
         return json.dumps(self.collection)
 
     def append_item(self, item):
+        if not isinstance(item, CollectionPlusJSONItem):
+            raise TypeError('Item supplied must be an instance of collection.CollectionPlusJSONItem')
         self.collection['items'].append(item)
 
     def append_link(self, uri, rel, prompt):
