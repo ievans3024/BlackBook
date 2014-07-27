@@ -1,7 +1,7 @@
 __author__ = 'ievans3024'
 
 
-import json
+from flask import json
 
 COLLECTION_JSON = 'application/vnd.collection+json'
 
