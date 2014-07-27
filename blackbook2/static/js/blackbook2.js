@@ -24,7 +24,11 @@ angular.module('BlackBook.services', []).factory(
         var contactAPI = {};
 
         contactAPI.getContactList = function() {
-            return $http.get('/api/entry/');
+            var headers = { 'Accept': 'application/vnd.collection+json' },
+            get = $http.get('/api/entry/', { headers: headers });
+            get.success(function(){
+                console.log(this.data);
+            });
         };
 
         contactAPI.getContact = function() {
