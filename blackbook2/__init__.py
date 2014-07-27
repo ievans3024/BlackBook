@@ -24,7 +24,7 @@ def home():
 
 @app.route('/api/')
 def api():
-    pass
+    pass  # TODO: return api root collection, with link to /api/entry/
 
 
 @app.route('/api/doc/')
@@ -35,7 +35,10 @@ def api_doc():
 @app.route('/api/entry/', methods=['GET', 'POST'])
 @app.route('/api/entry/<int:person_id>/', methods=['GET', 'DELETE', 'PATCH'])
 def api_entry(person_id=None):
-    pass
+    if person_id is None:
+        pass  # TODO: return paginated listing on get, process new contact request on post
+    else:
+        pass  # TODO: return person info on get, process delete request on delete, process modifications on patch
 
 
 @app.route('/api/search/')
