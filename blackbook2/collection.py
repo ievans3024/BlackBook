@@ -43,19 +43,23 @@ class CollectionPlusJSON(object):
 class CollectionPlusJSONItem(object):
 
     def __call__(self):
-        return [{'name': key, 'value': value} for (key, value) in self.properties.items()]
+        return {
+            'href': self.uri,
+            'data': [{'name': key, 'value': value} for (key, value) in self.data.items()]
+        }
 
     def __delitem__(self, key):
-        del self.properties[key]
+        del self.data[key]
 
-    def __init__(self, **kwargs):
-        self.properties = kwargs
+    def __init__(self, uri, **kwargs):
+        self.uri = uri
+        self.data = kwargs
 
     def __getitem__(self, item):
-        return self.properties[item]
+        return self.data[item]
 
     def __setitem__(self, key, value):
-        self.properties[key] = value
+        self.data[key] = value
 
     def __str__(self):
-        return json.dumps(self.get_pyobject())
+        return json.dumps(self.__call__())
