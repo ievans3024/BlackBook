@@ -1,8 +1,11 @@
 __author__ = 'ievans3024'
 
 
-from blackbook2 import db
+from flask_sqlalchemy import SQLAlchemy
+from blackbook2 import app
 from blackbook2.collection import CollectionPlusJSONItem
+
+db = SQLAlchemy(app)
 
 
 class Person(db.Model):

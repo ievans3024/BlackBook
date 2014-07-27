@@ -5,14 +5,11 @@ import flask_whooshalchemy as whooshalchemy
 
 from collection import CollectionPlusJSON, COLLECTION_JSON
 from flask import Flask, render_template, request, abort, Response
-from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
 
 app.config.from_pyfile('config.cfg', silent=True)
-
-db = SQLAlchemy(app)
 
 # this import needs db to exist first
 from models import Person
