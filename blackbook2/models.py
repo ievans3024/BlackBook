@@ -61,7 +61,7 @@ class Person(db.Model):
             'country': self.country
         })
 
-        return collection
+        return collection()
 
 
 class Email(db.Model):
