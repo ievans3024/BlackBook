@@ -2,6 +2,7 @@ __author__ = 'ievans3024'
 
 
 from blackbook2 import db
+from blackbook2.collection import CollectionPlusJSONItem
 
 
 class Person(db.Model):
@@ -47,21 +48,18 @@ class Person(db.Model):
         Get object for json parsing
         Returns object ready for json
         """
-        collection = {
-            'href': '/api/entry/%d/' % self.id,
-            'data': {
-                'first_name': self.first_name,
-                'last_name': self.last_name,
-                'emails': [],
-                'phone_numbers': [],
-                'address_line_1': self.address_line1,
-                'address_line_2': self.address_line2,
-                'city': self.city,
-                'state': self.state,
-                'zip_code': self.zip_code,
-                'country': self.country
-            }
-        }
+        collection = CollectionPlusJSONItem('/api/entry/%d/' % self.id, **{
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'emails': [],
+            'phone_numbers': [],
+            'address_line_1': self.address_line1,
+            'address_line_2': self.address_line2,
+            'city': self.city,
+            'state': self.state,
+            'zip_code': self.zip_code,
+            'country': self.country
+        })
 
         return collection
 
