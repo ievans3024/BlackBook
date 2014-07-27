@@ -3,23 +3,23 @@ __author__ = 'ievans3024'
 
 import json
 
-
-API_ROOT_URI = '/api/'
-API_SEARCH_URI = '/api/search/'
+COLLECTION_JSON = 'application/vnd.collection+json'
 
 
 class CollectionPlusJSON(object):
+
+    mimetype = COLLECTION_JSON
 
     def __init__(self):
         self.collection = {
             'collection': {
                 'version': '1.0',
-                'href': API_ROOT_URI,
+                'href': '/api/',
                 'items': [],
                 'links': [],
                 'queries': [
                     {
-                        'href': API_SEARCH_URI,
+                        'href': '/api/search/',
                         'rel': 'search',
                         'prompt': 'Find a specific entry',
                         'data': [{'name': 'query', 'value': ''}]

@@ -3,9 +3,9 @@ __author__ = 'ievans3024'
 
 import flask_whooshalchemy as whooshalchemy
 
-from flask import Flask, render_template
+from collection import CollectionPlusJSON, COLLECTION_JSON
+from flask import Flask, render_template, request, abort, Response
 from flask_sqlalchemy import SQLAlchemy
-from models import Person
 
 
 app = Flask(__name__)
@@ -13,6 +13,29 @@ app = Flask(__name__)
 app.config.from_pyfile('config.cfg', silent=True)
 
 db = SQLAlchemy(app)
+
+# this import needs db to exist first
+from models import Person
+
+
+def new_entry():
+    """Creates a new Person"""
+    pass
+
+
+def edit_entry(person_id):
+    """Edits Person by id"""
+    pass
+
+
+def delete_entry(person_id):
+    """Deletes person by id"""
+    pass
+
+
+def request_accepts(*mimetypes):
+    best = request.accept_mimetypes.best_match(mimetypes)
+    return request.accept_mimetypes[best] and request.accept_mimetypes[best] >= request.accept_mimetypes['text/html']
 
 
 @app.route('/')
@@ -24,7 +47,11 @@ def home():
 
 @app.route('/api/')
 def api():
-    pass  # TODO: return api root collection, with link to /api/entry/
+    if not request_accepts(COLLECTION_JSON):
+        abort(406)
+    response_data = CollectionPlusJSON()
+    response_data.append_link('/api/entry/', 'index', 'List all entries or add an entry')
+    return Response(str(response_data), mimetype=COLLECTION_JSON)
 
 
 @app.route('/api/doc/')
@@ -36,9 +63,25 @@ def api_doc():
 @app.route('/api/entry/<int:person_id>/', methods=['GET', 'DELETE', 'PATCH'])
 def api_entry(person_id=None):
     if person_id is None:
-        pass  # TODO: return paginated listing on get, process new contact request on post
+        if request.method == 'GET':
+            if not request_accepts(COLLECTION_JSON):
+                abort(406)
+            pass  # return paginated contact info
+        else:
+            if request.mimetype != COLLECTION_JSON:
+                abort(415)
+            pass  # assume POST? process new contact creation request
     else:
-        pass  # TODO: return person info on get, process delete request on delete, process modifications on patch
+        if request.method == 'GET':
+            if not request_accepts(COLLECTION_JSON):
+                abort(406)
+            pass  # return person info
+        elif request.method == 'DELETE':
+            pass  # process contact deletion request
+        else:
+            if request.mimetype != COLLECTION_JSON:
+                abort(415)
+            pass  # assume PATCH? process contact modification request
 
 
 @app.route('/api/search/')
