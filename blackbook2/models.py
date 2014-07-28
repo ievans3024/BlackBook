@@ -89,3 +89,78 @@ class PhoneNumber(db.Model):
         self.number_type = number_type
         self.number = number
         self.person_id = person_id
+
+
+def generate_test_db():
+
+    if not app.config.get('TESTING'):
+        raise RuntimeError('App config must have TESTING option set to True.')
+
+    from os.path import join
+    from random import choice
+    from tempfile import gettempdir
+
+    # TODO: Populate these with bullshit data
+
+    first_names = [
+
+    ]
+
+    last_names = [
+
+    ]
+
+    emails = [
+
+    ]
+
+    phone_numbers = [
+
+    ]
+
+    address_line1s = [
+
+    ]
+
+    address_line2s = [
+
+    ]
+
+    cities = [
+
+    ]
+
+    states = [
+
+    ]
+
+    zipcodes = [
+
+    ]
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{0}'.format(
+        join(gettempdir(), 'blackbook2', 'test.db').replace('\\', '\\')  # windows paths need two backslashes
+    )
+
+    db.create_all()
+
+    while first_names and last_names:
+        name = first_names.pop(first_names.index(choice(first_names)))
+        surname = last_names.pop(last_names.index(choice(last_names)))
+
+        db.session.add(Person(name, surname))
+
+    db.session.commit()  # Must commit to create persons before modifying them.
+
+    for person in Person.query.all():
+        person.emails = [Email('primary', emails.pop(emails.index(choice(emails))), person.id)]
+        person.phone_numbers = [
+            PhoneNumber('primary', phone_numbers.pop(phone_numbers.index(choice(phone_numbers))), person.id)
+        ]
+        person.address_line1 = address_line1s.pop(address_line1s.index(choice(address_line1s)))
+        person.address_line2 = address_line2s.pop(address_line2s.index(choice(address_line2s)))
+        person.city = cities.pop(cities.index(choice(cities)))
+        person.state = states.pop(states.index(choice(states)))
+        person.zip_code = zipcodes.pop(zipcodes.index(choice(zipcodes)))
+
+    db.session.commit()
