@@ -97,8 +97,6 @@ def generate_test_db():
     from random import choice
     from tempfile import gettempdir
 
-    # TODO: Populate these with bullshit data
-
     first_names = [
         'Alex', 'Andrea', 'Bryce', 'Brianna', 'Cole', 'Cathy', 'Derek', 'Danielle', 'Eric', 'Edith', 'Fred', 'Felicia',
         'Garrett', 'Gianna', 'Harold', 'Helga', 'Ira', 'Ingrid', 'Jonathan', 'Jacquelyn', 'Kerry', 'Karen', 'Larry',
