@@ -134,20 +134,27 @@ def generate_test_db():
     ]
 
     address_line2s = [
-
+        'Apt. B', 'Apt. 580', 'Apt. 350', None, None, 'Apt. 899', 'Apt. 149', None, None, 'Apt. N', 'Apt. 868',
+        'Apt. Y', None, 'Apt. 277', 'Apt. M', None, 'Apt. 927', None, None, None, 'Apt. W', None, 'Apt. U', 'Apt. 739',
+        'Apt. 113', None, 'Apt. O', 'Apt. 990', None, None, None, 'Apt. 245', 'Apt. 242', 'Apt. 569', None, None, None,
+        'Apt. 144', 'Apt. G', None, 'Apt. 960', 'Apt. X', None, 'Apt. 582', 'Apt. 955', 'Apt. H', 'Apt. 879', None
     ]
 
     cities = [
-
+        'Example City',
+        'Nowhere',
+        'Sigil',
+        'Pleasantville'
     ]
 
     states = [
-
+        'XY',
+        'XX',
+        'ZY',
+        'ZX'
     ]
 
-    zipcodes = [
-
-    ]
+    zipcodes = [str(n).zfill(5) for n in range(100)]
 
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{0}'.format(
         join(gettempdir(), 'blackbook2', 'test.db').replace('\\', '\\')  # windows paths need two backslashes
@@ -177,8 +184,8 @@ def generate_test_db():
         ]
         person.address_line1 = address_line1s.pop(address_line1s.index(choice(address_line1s)))
         person.address_line2 = address_line2s.pop(address_line2s.index(choice(address_line2s)))
-        person.city = cities.pop(cities.index(choice(cities)))
-        person.state = states.pop(states.index(choice(states)))
-        person.zip_code = zipcodes.pop(zipcodes.index(choice(zipcodes)))
+        person.city = choice(cities)
+        person.state = choice(states)
+        person.zip_code = choice(zipcodes)
 
     db.session.commit()
