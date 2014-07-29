@@ -1,6 +1,5 @@
 __author__ = 'ievans3024'
 
-
 from flask_sqlalchemy import SQLAlchemy
 from blackbook2 import app
 from blackbook2.collection import CollectionPlusJSONItem
@@ -9,7 +8,6 @@ db = SQLAlchemy(app)
 
 
 class Person(db.Model):
-
     __searchable__ = [
         'first_name',
         'last_name',
@@ -92,7 +90,6 @@ class PhoneNumber(db.Model):
 
 
 def generate_test_db():
-
     if not app.config.get('TESTING'):
         raise RuntimeError('App config must have TESTING option set to True.')
 
@@ -103,119 +100,27 @@ def generate_test_db():
     # TODO: Populate these with bullshit data
 
     first_names = [
-        'Alex',
-        'Andrea',
-        'Bryce',
-        'Brianna',
-        'Cole',
-        'Cathy',
-        'Derek',
-        'Danielle',
-        'Eric',
-        'Edith',
-        'Fred',
-        'Felicia',
-        'Garrett',
-        'Gianna',
-        'Harold',
-        'Helga',
-        'Ira',
-        'Ingrid',
-        'Jonathan',
-        'Jacquelyn',
-        'Kerry',
-        'Karen',
-        'Larry',
-        'Laura',
-        'Melvin',
-        'Margaret',
-        'Noel',
-        'Natalie',
-        'Otis',
-        'Olga',
-        'Peter',
-        'Pia',
-        'Quentin',
-        'Quinn',
-        'Reginald',
-        'Rachel',
-        'Steven',
-        'Samantha',
-        'Tyler',
-        'Tullia',
-        'Ulric',
-        'Uma',
-        'Vincent',
-        'Valerie',
-        'Wade',
-        'Wendy',
-        'Xavier',
-        'Xandra',
-        'Zach',
-        'Zoe'
+        'Alex', 'Andrea', 'Bryce', 'Brianna', 'Cole', 'Cathy', 'Derek', 'Danielle', 'Eric', 'Edith', 'Fred', 'Felicia',
+        'Garrett', 'Gianna', 'Harold', 'Helga', 'Ira', 'Ingrid', 'Jonathan', 'Jacquelyn', 'Kerry', 'Karen', 'Larry',
+        'Laura', 'Melvin', 'Margaret', 'Noel', 'Natalie', 'Otis', 'Olga', 'Peter', 'Pia', 'Quentin', 'Quinn',
+        'Reginald', 'Rachel', 'Steven', 'Samantha', 'Tyler', 'Tullia', 'Ulric', 'Uma', 'Vincent', 'Valerie', 'Wade',
+        'Wendy', 'Xavier', 'Xandra', 'Zach', 'Zoe'
     ]
 
     last_names = [
-        'Ashford',
-        'Aldred',
-        'Beckett',
-        'Blackford',
-        'Carey',
-        'Conaway',
-        'Delung',
-        'Doohan',
-        'Eagan',
-        'Eastman',
-        'Farley',
-        'Flores',
-        'Gandy',
-        'Grimes',
-        'Harkness',
-        'Hughley',
-        'Inman',
-        'Isley',
-        'Jager',
-        'Johannsen',
-        'Keatinge',
-        'Kaufman',
-        'Lachance',
-        'Lopez',
-        'Markley',
-        'Meeker',
-        'Norrell',
-        'Nunnelly',
-        'Oberman',
-        'Osmond',
-        'Puterbough',
-        'Pinkman',
-        'Quigly',
-        'Quayle',
-        'Romero',
-        'Rosenkranz',
-        'Smith',
-        'Stillman',
-        'Titsworth',
-        'Thomson',
-        'Umbrell',
-        'Underwood',
-        'Valentine',
-        'Voyer',
-        'Wheatley',
-        'Wetzel',
-        'Xerxes',
-        'Xin',
-        'Yancey',
-        'York',
-        'Zeeley',
-        'Zorn'
-    ]
-
-    emails = [
-
+        'Ashford', 'Aldred', 'Beckett', 'Blackford', 'Carey', 'Conaway', 'Delung', 'Doohan', 'Eagan', 'Eastman',
+        'Farley', 'Flores', 'Gandy', 'Grimes', 'Harkness', 'Hughley', 'Inman', 'Isley', 'Jager', 'Johannsen',
+        'Keatinge', 'Kaufman', 'Lachance', 'Lopez', 'Markley', 'Meeker', 'Norrell', 'Nunnelly', 'Oberman', 'Osmond',
+        'Puterbough', 'Pinkman', 'Quigly', 'Quayle', 'Romero', 'Rosenkranz', 'Smith', 'Stillman', 'Titsworth',
+        'Thomson', 'Umbrell', 'Underwood', 'Valentine', 'Voyer', 'Wheatley', 'Wetzel', 'Xerxes', 'Xin', 'Yancey',
+        'York', 'Zeeley', 'Zorn'
     ]
 
     phone_numbers = [
-
+        '8208', '6768', '4514', '3589', '2611', '2300', '8704', '6427', '1970', '6449', '2902', '0689',
+        '1695', '9713', '6905', '4483', '3876', '9844', '5312', '3451', '7077', '2009', '8568', '6801',
+        '9060', '4410', '3072', '4123', '6190', '8853', '1415', '6155', '7584', '9710', '1069', '9864',
+        '9944', '6118', '3151', '1504', '2391', '6684', '2697', '6541', '9924', '1167', '8599', '3120'
     ]
 
     address_line1s = [
@@ -253,9 +158,16 @@ def generate_test_db():
     db.session.commit()  # Must commit to create persons before modifying them.
 
     for person in Person.query.all():
-        person.emails = [Email('primary', emails.pop(emails.index(choice(emails))), person.id)]
+        person.emails = [
+            Email('primary', '{first}.{last}@example.com'.format(**{
+                'first': person.first_name,
+                'last': person.last_name
+            }), person.id)
+        ]
         person.phone_numbers = [
-            PhoneNumber('primary', phone_numbers.pop(phone_numbers.index(choice(phone_numbers))), person.id)
+            PhoneNumber('primary', '1-555-555-{0}'.format(
+                phone_numbers.pop(phone_numbers.index(choice(phone_numbers)))
+            ), person.id)
         ]
         person.address_line1 = address_line1s.pop(address_line1s.index(choice(address_line1s)))
         person.address_line2 = address_line2s.pop(address_line2s.index(choice(address_line2s)))
