@@ -54,8 +54,8 @@ class Person(db.Model):
         collection = CollectionPlusJSONItem('/api/entry/%d/' % self.id, **{
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'emails': [],
-            'phone_numbers': [],
+            'emails': [{email.email_type: email.email} for email in self.emails],
+            'phone_numbers': [{phone.number_type: phone.number} for phone in self.phone_numbers],
             'address_line_1': self.address_line1,
             'address_line_2': self.address_line2,
             'city': self.city,
