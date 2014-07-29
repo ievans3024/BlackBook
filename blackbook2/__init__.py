@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config.from_pyfile('config.cfg', silent=True)
 
 # this import needs db to exist first
-from models import Person
+from models import Person, generate_test_db
 
 
 def new_entry():
@@ -88,5 +88,6 @@ def api_search():
 
 
 if __name__ == '__main__':
+    generate_test_db()
     whooshalchemy.whoosh_index(app, Person)  # TODO: figure out if this should be a scheduled task instead
     app.run()
