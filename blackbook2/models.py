@@ -93,7 +93,8 @@ def generate_test_db():
     if not app.config.get('TESTING'):
         raise RuntimeError('App config must have TESTING option set to True.')
 
-    from os.path import join
+    from os import mkdir
+    from os.path import join, isdir
     from random import choice
     from tempfile import gettempdir
 
@@ -156,9 +157,15 @@ def generate_test_db():
 
     zipcodes = [str(n).zfill(5) for n in range(100)]
 
+    tempdir = join(gettempdir(), 'blackbook2')
+
+    if not isdir(tempdir):
+        mkdir(tempdir)
+
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{0}'.format(
-        join(gettempdir(), 'blackbook2', 'test.db').replace('\\', '\\')  # windows paths need two backslashes
+        join(tempdir, 'test.db').replace('\\', '\\')  # windows paths need two backslashes
     )
+
 
     db.create_all()
 
@@ -171,7 +178,6 @@ def generate_test_db():
     db.session.commit()  # Must commit to create persons before modifying them.
 
     for person in Person.query.all():
-        print(person.id, person.first_name, person.last_name)
         person.emails = [
             Email('primary', '{first}.{last}@example.com'.format(**{
                 'first': person.first_name,

@@ -63,7 +63,11 @@ def api_entry(person_id=None):
         if request.method == 'GET':
             if not request_accepts(COLLECTION_JSON):
                 abort(406)
-            pass  # return paginated contact info
+            # return paginated contact info
+            response_object = CollectionPlusJSON()
+            for person in Person.query.all():
+                response_object.append_item(person.get_collection_object())
+            return Response(str(response_object), mimetype=COLLECTION_JSON)
         else:
             if request.mimetype != COLLECTION_JSON:
                 abort(415)
@@ -88,6 +92,6 @@ def api_search():
 
 
 if __name__ == '__main__':
-    generate_test_db()
+    # generate_test_db()  # uncomment to generate test database
     whooshalchemy.whoosh_index(app, Person)  # TODO: figure out if this should be a scheduled task instead
     app.run()

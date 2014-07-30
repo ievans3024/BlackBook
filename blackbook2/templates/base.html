@@ -11,7 +11,7 @@
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/blackbook2.css') }}">
     {% endblock %}
 </head>
-<body>
+<body ng-app="BlackBook" ng-controller="contactsController">
 {% block header %}
     <div class="navbar navbar-inverse navbar-top" role="navigation">
         <div class="navbar-header">
