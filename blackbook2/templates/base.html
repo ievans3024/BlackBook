@@ -49,8 +49,8 @@
                     </select>
                 </div>
                 <div class="entry" ng-repeat="contact in contactList">
-                    <h3 class="name">[[contact.first_name]] [[contact.last_name]]</h3>
-                    <p class="phone"></p>
+                    <h3 class="name"><a ng-href="#" ng-click="">[[contact.first_name]] [[contact.last_name]]</a></h3> {# see AngularJS ngClick for clicking #}
+                    <p class="phone">[[contact.phone_numbers.primary]]</p>
                 </div>
             </div>
 {% endblock %}

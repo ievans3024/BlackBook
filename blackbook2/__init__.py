@@ -65,6 +65,7 @@ def api_entry(person_id=None):
                 abort(406)
             # return paginated contact info
             response_object = CollectionPlusJSON()
+            # TODO: Paginate query
             for person in Person.query.all():
                 response_object.append_item(person.get_collection_object())
             return Response(str(response_object), mimetype=COLLECTION_JSON)

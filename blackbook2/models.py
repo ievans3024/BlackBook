@@ -49,11 +49,20 @@ class Person(db.Model):
         Get object for json parsing
         Returns object ready for json
         """
+        phone_numbers = {}
+        emails = {}
+
+        for number in self.phone_numbers:
+            phone_numbers[number.number_type] = number.number
+
+        for email in self.emails:
+            emails[email.email_type] = email.email
+
         collection = CollectionPlusJSONItem('/api/entry/%d/' % self.id, **{
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'emails': [{email.email_type: email.email} for email in self.emails],
-            'phone_numbers': [{phone.number_type: phone.number} for phone in self.phone_numbers],
+            'emails': emails,
+            'phone_numbers': phone_numbers,
             'address_line_1': self.address_line1,
             'address_line_2': self.address_line2,
             'city': self.city,

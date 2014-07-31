@@ -45,6 +45,7 @@ angular.module('BlackBook.controllers', []).controller(
 
                 for (i; i<contact_count; i++) {
                     contact = {};
+                    contact.href = contact_items[i].href;
                     contact_item = contact_items[i].data;
                     contact_item_length = contact_item.length;
                     j = 0;
