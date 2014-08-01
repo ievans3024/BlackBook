@@ -66,6 +66,7 @@ def api_entry(person_id=None):
             # return paginated contact info
             response_object = CollectionPlusJSON()
             # TODO: Paginate query
+            # TODO: Trim listing down to more basic info, fetch details on individual entry
             for person in Person.query.all():
                 response_object.append_item(person.get_collection_object())
             return Response(str(response_object), mimetype=COLLECTION_JSON)
