@@ -17,8 +17,9 @@ angular.module('BlackBook.services', []).factory(
             return $http.get('/api/entry/', { headers: headers });
         };
 
-        contactAPI.getContact = function() {
-
+        contactAPI.getContact = function(href) {
+            var headers = { 'Accept': 'application/vnd.collection+json' };
+            return $http.get(href, { headers: headers}); // please note how this might be insecure
         };
 
         return contactAPI;
@@ -30,6 +31,7 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.selectedContact = null;
         $scope.contactList = [];
 
+        $scope.getContact = contactsService.getContact;
         contactsService.getContactList().then(
             function (response) {
                 // Success callback. Extract information and set it in $scope.
