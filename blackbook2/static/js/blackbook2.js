@@ -19,7 +19,7 @@ angular.module('BlackBook.services', []).factory(
 
         contactAPI.getContact = function(href) {
             var headers = { 'Accept': 'application/vnd.collection+json' };
-            return $http.get(href, { headers: headers}); // please note how this might be insecure
+            return $http.get(href, { headers: headers}).then(function(response){console.log(response.data.collection.items)}); // please note how this might be insecure
         };
 
         return contactAPI;
