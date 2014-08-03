@@ -44,7 +44,7 @@ class Person(db.Model):
         self.zip_code = zip_code
         self.country = country
 
-    def get_collection_object(self):
+    def get_collection_object(self, short=False):
         """
         Get object for json parsing
         Returns object ready for json
@@ -58,18 +58,27 @@ class Person(db.Model):
         for email in self.emails:
             emails[email.email_type] = email.email
 
-        collection = CollectionPlusJSONItem('/api/entry/%d/' % self.id, **{
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'emails': emails,
-            'phone_numbers': phone_numbers,
-            'address_line_1': self.address_line1,
-            'address_line_2': self.address_line2,
-            'city': self.city,
-            'state': self.state,
-            'zip_code': self.zip_code,
-            'country': self.country
-        })
+        if not short:
+            opts = {
+                'first_name': self.first_name,
+                'last_name': self.last_name,
+                'emails': emails,
+                'phone_numbers': phone_numbers,
+                'address_line_1': self.address_line1,
+                'address_line_2': self.address_line2,
+                'city': self.city,
+                'state': self.state,
+                'zip_code': self.zip_code,
+                'country': self.country
+            }
+        else:
+            opts = {
+                'first_name': self.first_name,
+                'last_name': self.last_name,
+                'phone_numbers': phone_numbers
+            }
+
+        collection = CollectionPlusJSONItem('/api/entry/%d/' % self.id, **opts)
 
         return collection()
 
