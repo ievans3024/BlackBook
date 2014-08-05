@@ -19,7 +19,7 @@ angular.module('BlackBook.services', []).factory(
 
         contactAPI.getContact = function(href) {
             var headers = { 'Accept': 'application/vnd.collection+json' };
-            return $http.get(href, { headers: headers}); // please note how this might be insecure
+            return $http.get(href, { headers: headers }); // please note how this might be insecure
         };
 
         return contactAPI;
@@ -52,7 +52,9 @@ angular.module('BlackBook.controllers', []).controller(
                 }
                 contacts.push(contact);
             }
-
+            if (contacts.length === 1) {
+                return contacts[0];
+            }
             return contacts;
         };
 
@@ -60,6 +62,7 @@ angular.module('BlackBook.controllers', []).controller(
             contactsService.getContact(href).then(
             function(response) {
                 $scope.selectedContact = $scope.processCollection(response);
+                console.log($scope.selectedContact);
             }
             );
         };

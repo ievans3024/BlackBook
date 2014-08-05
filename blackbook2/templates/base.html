@@ -35,7 +35,23 @@
         <div class="row">
 {% block entrylist %}
             <div id="current-entry" class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
-                {# currently selected entry here #}
+                <div>
+                    <h3 class="name">[[selectedContact.first_name]] [[selectedContact.last_name]]</h3>
+                    <span class="address-1">[[selectedContact.address_line_1]]</span>
+                    <span class="address-2">[[selectedContact.address_line_2]]</span>
+                    <span class="city">[[selectedContact.city]]</span>
+                    <span class="state">[[selectedContact.state]]</span>
+                    <span class="zip">[[selectedContact.zip]]</span>
+                    <span class="country">[[selectedContact.country]]</span>
+                    <div ng-if="selectedContact" class="telecom">
+                        <h4>Phone:</h4>
+                        <span class="phone-number" ng-repeat="number in selectedContact.phone_numbers">[[number]]</span>
+                    </div>
+                    <div ng-if="selectedContact" class="telecom">
+                        <h4>E-mail:</h4>
+                        <span class="email" ng-repeat="email in selectedContact.emails">[[email]]</span>
+                    </div>
+                </div>
             </div>
             <hr class="hidden-sm hidden-md hidden-lg col-xs-12">
             <div id="entries" class="col-xs-12 col-sm-6 col-md-8 col-lg-9">
@@ -49,7 +65,7 @@
                     </select>
                 </div>
                 <div class="entry" ng-repeat="contact in contactList">
-                    <h3 class="name" ng-click="getContact(contact.href)">[[contact.first_name]] [[contact.last_name]]</h3> {# see AngularJS ngClick for clicking #}
+                    <h3 class="name" ng-click="getContact(contact.href)">[[contact.first_name]] [[contact.last_name]]</h3>
                     <p class="phone">[[contact.phone_numbers.primary]]</p>
                 </div>
             </div>

@@ -198,8 +198,8 @@ def generate_test_db():
     for person in Person.query.all():
         person.emails = [
             Email('primary', '{first}.{last}@example.com'.format(**{
-                'first': person.first_name,
-                'last': person.last_name
+                'first': person.first_name.lower(),
+                'last': person.last_name.lower()
             }), person.id)
         ]
         person.phone_numbers = [
