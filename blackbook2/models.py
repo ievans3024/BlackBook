@@ -49,6 +49,9 @@ class Person(db.Model):
         Get object for json parsing
         Returns object ready for json
         """
+
+        # TODO: add pagination args
+
         phone_numbers = {}
         emails = {}
 
