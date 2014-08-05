@@ -35,6 +35,14 @@ def request_accepts(*mimetypes):
     return request.accept_mimetypes[best] and request.accept_mimetypes[best] >= request.accept_mimetypes['text/html']
 
 
+def paginate_results(response_object=None, query_object=None, page=1, per_page=5):
+    """
+
+    """
+    # TODO
+    pass
+
+
 @app.route('/')
 @app.route('/book/')
 def home():

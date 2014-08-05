@@ -39,10 +39,6 @@ class CollectionPlusJSON(object):
     def append_link(self, uri, rel, prompt):
         self.collection['links'].append({'href': uri, 'rel': rel, 'prompt': prompt})
 
-    def get_paginated(self, page=1, per_page=5):
-        # TODO
-        pass
-
 
 class CollectionPlusJSONItem(object):
 
