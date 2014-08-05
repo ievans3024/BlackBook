@@ -12,12 +12,7 @@ angular.module('BlackBook.services', []).factory(
 
         var contactAPI = {};
 
-        contactAPI.getContactList = function() {
-            var headers = { 'Accept': 'application/vnd.collection+json' };
-            return $http.get('/api/entry/', { headers: headers });
-        };
-
-        contactAPI.getContact = function(href) {
+        contactAPI.get = function(href) {
             var headers = { 'Accept': 'application/vnd.collection+json' };
             return $http.get(href, { headers: headers }); // please note how this might be insecure
         };
@@ -29,8 +24,13 @@ angular.module('BlackBook.services', []).factory(
 angular.module('BlackBook.controllers', []).controller(
     'contactsController', function($scope, contactsService) {
         $scope.selectedContact = null;
-        $scope.contactList = [];
-        $scope.listNavigation = [];
+        $scope.contactList = null;
+        $scope.listNavigation = null;
+
+        $scope.wipeVars = function () {
+            $scope.contactList = null;
+            $scope.listNavigation = null;
+        }
 
         $scope.processCollection = function (response) {
             var contacts = [],
@@ -60,19 +60,23 @@ angular.module('BlackBook.controllers', []).controller(
         };
 
         $scope.getContact = function(href) {
-            contactsService.getContact(href).then(
+            contactsService.get(href).then(
             function(response) {
                 $scope.selectedContact = $scope.processCollection(response);
             }
             );
         };
 
-        contactsService.getContactList().then(
-            function (response) {
+        $scope.getContactList = function (href) {
+            // TODO: This appends values instead of replacing. Might be using wrong directives/process
+            contactsService.get(href).then(
+            function(response) {
                 $scope.contactList = $scope.processCollection(response);
                 $scope.listNavigation = response.data.collection.links;
-                console.log($scope.listNavigation);
             }
-        );
+            );
+        }
+
+        $scope.getContactList('/api/entry/');
     }
 );

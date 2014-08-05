@@ -119,7 +119,11 @@ def api_entry(person_id=None):
             if not request_accepts(COLLECTION_JSON):
                 abort(406)
             # return paginated contact info
-            response_object = paginate_results(Person.query.order_by(Person.last_name))
+            response_object = paginate_results(
+                Person.query.order_by(Person.last_name),
+                page=(request.args.get('page') or 1),
+                per_page=(request.args.get('per_page') or 5)
+            )
             return Response(str(response_object), mimetype=COLLECTION_JSON)
         else:
             if request.mimetype != COLLECTION_JSON:

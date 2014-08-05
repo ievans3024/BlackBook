@@ -86,6 +86,7 @@ select.per-page {
 
 .entry-nav .pages a {
     border-color: #dddddd;
+    cursor: pointer;
 }
 
 .entry-nav .pages span {
