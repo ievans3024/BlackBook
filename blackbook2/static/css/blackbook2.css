@@ -1,0 +1,104 @@
+hr {
+    border-color: #444444;
+}
+
+.navbar {
+    border-radius: 0px;
+    padding-right: 1em;
+    padding-left: 1em;
+}
+
+.modal-dialog {
+    background: #ffffff;
+    border-radius: 5px;
+}
+
+#new-entry .row {
+    padding: 0;
+}
+
+#new-entry .row .col-sm-12,
+#new-entry .row .col-md-12,
+#new-entry .row .col-lg-12,
+#new-entry .row .col-sm-6,
+#new-entry .row .col-md-6,
+#new-entry .row .col-lg-6,
+#new-entry .row .col-sm-5,
+#new-entry .row .col-mg-5,
+#new-entry .row .col-lg-5,
+#new-entry .row .col-sm-4,
+#new-entry .row .col-md-4,
+#new-entry .row .col-lg-4,
+#new-entry .row .col-sm-3,
+#new-entry .row .col-md-3,
+#new-entry .row .col-lg-3 {
+    padding: .25em;
+}
+
+#entries {
+    float: left;
+}
+
+#current-entry {
+    float: right;
+}
+
+#current-entry span {
+    display: block;
+    margin: 0 .25em;
+    width: 100%;
+    float: left;
+}
+
+#current-entry .city,
+#current-entry .state,
+#current-entry .zip {
+    width: auto;
+}
+
+#entries .entry:hover {
+    cursor: pointer;
+}
+
+select.per-page {
+    padding: .25em .5em;
+    color: #000000;
+    background: #ffffff;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #aaaaaa;
+    border-radius: 5px;
+}
+
+.entry-nav .pages a,
+.entry-nav .pages span {
+    display: block;
+    float: left;
+    margin: 0 1em;
+    padding: .25em .5em;
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 5px;
+    text-decoration: none;
+    text-align: center;
+    color: #7f7f7f;
+}
+
+.entry-nav .pages a {
+    border-color: #dddddd;
+}
+
+.entry-nav .pages span {
+    color: #333333;
+    font-weight: bold;
+    border-color: #aaaaaa;
+}
+
+.city:after {
+    content: ','
+}
+
+.telecom {
+    float: left;
+    clear: both;
+}
