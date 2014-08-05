@@ -35,12 +35,56 @@ def request_accepts(*mimetypes):
     return request.accept_mimetypes[best] and request.accept_mimetypes[best] >= request.accept_mimetypes['text/html']
 
 
-def paginate_results(response_object=None, query_object=None, page=1, per_page=5):
+def paginate_results(query_object, response_object=CollectionPlusJSON(), page=1, per_page=5):
     """
+    Accepts a SQLAlchemy query object.
+    Model must provide get_collection_object() and return a dict with it
+    Returns a paginated CollectionPlusJSON instance
+    """
+    api_url_template = '/api/entry/?page={page}'
 
-    """
-    # TODO
-    pass
+    if (type(page) is not int) or (type(per_page) is not int):
+        try:
+            page = int(page)
+            per_page = int(per_page)
+        except (ValueError, TypeError):
+            abort(400)
+
+    if per_page != 5:
+        api_url_template += '&per_page={per}'
+
+    try:
+        result_pages = query_object.paginate(page, per_page=per_page)
+    except (ValueError, OverflowError):
+        abort(400)
+        
+    next_page = result_pages.next_num if result_pages.has_next else None
+    prev_page = result_pages.prev_num if result_pages.page > 1 else None
+    result = result_pages.items
+
+    if result_pages.page != 1:
+        response_object.append_link(api_url_template.format(page=1, per=per_page), 'first', 'First')
+
+    if prev_page:
+        response_object.append_link(api_url_template.format(page=prev_page, per=per_page), 'prev', 'Previous')
+
+    for page in result_pages.iter_pages():
+        if page == result_pages.page:
+            rel = 'self'
+        else:
+            rel = 'more'
+        response_object.append_link(api_url_template.format(page=page, per=per_page), rel, str(page))
+
+    if next_page:
+        response_object.append_link(api_url_template.format(page=next_page, per=per_page), 'next', 'Next')
+
+    if result_pages.page != result_pages.pages:
+        response_object.append_link(api_url_template.format(page=result_pages.pages, per=per_page), 'last', 'Last')
+
+    for item in result:
+        response_object.append_item(item.get_collection_object(short=True))
+
+    return response_object
 
 
 @app.route('/')
@@ -72,10 +116,7 @@ def api_entry(person_id=None):
             if not request_accepts(COLLECTION_JSON):
                 abort(406)
             # return paginated contact info
-            response_object = CollectionPlusJSON()
-            # TODO: Paginate query
-            for person in Person.query.all():
-                response_object.append_item(person.get_collection_object(short=True))
+            response_object = paginate_results(Person.query.order_by(Person.last_name))
             return Response(str(response_object), mimetype=COLLECTION_JSON)
         else:
             if request.mimetype != COLLECTION_JSON:

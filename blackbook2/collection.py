@@ -37,7 +37,7 @@ class CollectionPlusJSON(object):
         self.collection['collection']['items'].append(item)
 
     def append_link(self, uri, rel, prompt):
-        self.collection['links'].append({'href': uri, 'rel': rel, 'prompt': prompt})
+        self.collection['collection']['links'].append({'href': uri, 'rel': rel, 'prompt': prompt})
 
 
 class CollectionPlusJSONItem(object):
