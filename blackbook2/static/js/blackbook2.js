@@ -30,6 +30,7 @@ angular.module('BlackBook.controllers', []).controller(
     'contactsController', function($scope, contactsService) {
         $scope.selectedContact = null;
         $scope.contactList = [];
+        $scope.listNavigation = [];
 
         $scope.processCollection = function (response) {
             var contacts = [],
@@ -69,6 +70,8 @@ angular.module('BlackBook.controllers', []).controller(
         contactsService.getContactList().then(
             function (response) {
                 $scope.contactList = $scope.processCollection(response);
+                $scope.listNavigation = response.data.collection.links;
+                console.log($scope.listNavigation);
             }
         );
     }

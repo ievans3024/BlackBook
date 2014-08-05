@@ -56,7 +56,9 @@
             <hr class="hidden-sm hidden-md hidden-lg col-xs-12">
             <div id="entries" class="col-xs-12 col-sm-6 col-md-8 col-lg-9">
                 <div class="entry-nav">
-                    <span class="pages"></span>
+                    <span class="pages">
+                        <a ng-repeat="nav in listNavigation" href="[[nav.href]]" rel="[[nav.rel]]">[[nav.prompt]]</a>
+                    </span>
                     <span>Per Page: </span>
                     <select class="per-page">
                         <option value="5" selected>5</option>

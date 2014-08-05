@@ -69,11 +69,14 @@ def paginate_results(query_object, response_object=CollectionPlusJSON(), page=1,
         response_object.append_link(api_url_template.format(page=prev_page, per=per_page), 'prev', 'Previous')
 
     for page in result_pages.iter_pages():
-        if page == result_pages.page:
-            rel = 'self'
+        if page is not None:
+            if page == result_pages.page:
+                rel = 'self'
+            else:
+                rel = 'more'
+            response_object.append_link(api_url_template.format(page=page, per=per_page), rel, str(page))
         else:
-            rel = 'more'
-        response_object.append_link(api_url_template.format(page=page, per=per_page), rel, str(page))
+            response_object.append_link('#', '', '...')
 
     if next_page:
         response_object.append_link(api_url_template.format(page=next_page, per=per_page), 'next', 'Next')
