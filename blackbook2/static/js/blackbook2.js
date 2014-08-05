@@ -62,7 +62,6 @@ angular.module('BlackBook.controllers', []).controller(
             contactsService.getContact(href).then(
             function(response) {
                 $scope.selectedContact = $scope.processCollection(response);
-                console.log($scope.selectedContact);
             }
             );
         };
