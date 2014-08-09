@@ -35,13 +35,15 @@ def request_accepts(*mimetypes):
     return request.accept_mimetypes[best] and request.accept_mimetypes[best] >= request.accept_mimetypes['text/html']
 
 
-def paginate_results(query_object, response_object=CollectionPlusJSON(), page=1, per_page=5):
+def paginate_results(query_object, response_object=None, page=1, per_page=5):
     """
     Accepts a SQLAlchemy query object.
     Model must provide get_collection_object() and return a dict with it
     Returns a paginated CollectionPlusJSON instance
     """
     api_url_template = '/api/entry/?page={page}'
+    if not response_object:
+        response_object = CollectionPlusJSON()
 
     if (type(page) is not int) or (type(per_page) is not int):
         try:
@@ -121,8 +123,8 @@ def api_entry(person_id=None):
             # return paginated contact info
             response_object = paginate_results(
                 Person.query.order_by(Person.last_name),
-                page=(request.args.get('page') or 1),
-                per_page=(request.args.get('per_page') or 5)
+                page=request.args.get('page') or 1,
+                per_page=request.args.get('per_page') or 5
             )
             return Response(str(response_object), mimetype=COLLECTION_JSON)
         else:
