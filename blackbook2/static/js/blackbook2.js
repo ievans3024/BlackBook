@@ -26,11 +26,7 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.selectedContact = null;
         $scope.contactList = null;
         $scope.listNavigation = null;
-
-        $scope.wipeVars = function () {
-            $scope.contactList = null;
-            $scope.listNavigation = null;
-        }
+        $scope.listPerPage = 5;
 
         $scope.processCollection = function (response) {
             var contacts = [],
@@ -68,13 +64,18 @@ angular.module('BlackBook.controllers', []).controller(
         };
 
         $scope.getContactList = function (href) {
-            // TODO: This appends values instead of replacing. Might be using wrong directives/process
             contactsService.get(href).then(
             function(response) {
                 $scope.contactList = $scope.processCollection(response);
                 $scope.listNavigation = response.data.collection.links;
             }
             );
+        }
+
+        $scope.refreshList = function () {
+
+            $scope.getContactList('/api/entry/?page=1&per_page=' + $scope.listPerPage);
+
         }
 
         $scope.getContactList('/api/entry/');
