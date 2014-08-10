@@ -97,7 +97,7 @@ select.per-page {
     content: ','
 }
 
-.telecom {
+.email, .phone-number {
     float: left;
     clear: both;
 }

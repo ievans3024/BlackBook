@@ -43,11 +43,11 @@
                     <span class="state">[[selectedContact.state]]</span>
                     <span class="zip">[[selectedContact.zip]]</span>
                     <span class="country">[[selectedContact.country]]</span>
-                    <div ng-if="selectedContact" class="telecom">
+                    <div ng-if="selectedContact" class="phone-number">
                         <h4>Phone:</h4>
                         <span class="phone-number" ng-repeat="number in selectedContact.phone_numbers">[[number]]</span>
                     </div>
-                    <div ng-if="selectedContact" class="telecom">
+                    <div ng-if="selectedContact" class="email">
                         <h4>E-mail:</h4>
                         <span class="email" ng-repeat="email in selectedContact.emails">[[email]]</span>
                     </div>
