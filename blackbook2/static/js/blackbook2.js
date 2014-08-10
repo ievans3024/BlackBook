@@ -17,6 +17,10 @@ angular.module('BlackBook.services', []).factory(
             return $http.get(href, { headers: headers }); // please note how this might be insecure
         };
 
+        contactAPI.delete = function(href) {
+            return $http.delete(href);
+        }
+
         return contactAPI;
     }
 );
@@ -74,6 +78,15 @@ angular.module('BlackBook.controllers', []).controller(
 
         $scope.refreshList = function () {
             $scope.getContactList('/api/entry/?page=1&per_page=' + $scope.listPerPage);
+        }
+
+        $scope.deleteContact = function (href) {
+            contactsService.delete(href).then(
+            function (response) {
+                $scope.selectedContact = null;
+                $scope.refreshList();
+            }
+            );
         }
 
         $scope.getContactList('/api/entry/');

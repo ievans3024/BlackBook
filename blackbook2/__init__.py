@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config.from_pyfile('config.cfg', silent=True)
 
 # this import needs db to exist first
-from models import Person, generate_test_db
+from models import Person, generate_test_db, db
 
 
 def new_entry():
@@ -27,7 +27,20 @@ def edit_entry(person_id):
 
 def delete_entry(person_id):
     """Deletes person by id"""
-    pass
+    try:
+        person = Person.query.get_or_404(person_id)
+
+        for email in person.emails:
+            db.session.delete(email)
+        for phone_number in person.phone_numbers:
+            db.session.delete(phone_number)
+        db.session.delete(person)
+        db.session.commit()
+
+    except Exception as e:
+        raise e
+    else:
+        return ('', 204)
 
 
 def request_accepts(*mimetypes):
@@ -141,7 +154,8 @@ def api_entry(person_id=None):
             response_object.append_item(person.get_collection_object())
             return Response(str(response_object), mimetype=COLLECTION_JSON)
         elif request.method == 'DELETE':
-            pass  # process contact deletion request
+            # process contact deletion request
+            delete_entry(person_id)
         else:
             if request.mimetype != COLLECTION_JSON:
                 abort(415)
