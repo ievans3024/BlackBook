@@ -70,7 +70,8 @@ select.per-page {
     border-radius: 5px;
 }
 
-.entry-nav .pages a{
+/* TODO: style these in a responsive way */
+.entry-nav .pages a {
     display: block;
     float: left;
     margin: 0 1em;
