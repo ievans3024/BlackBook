@@ -24,6 +24,7 @@
                 <span class="glyphicon glyphicon-plus"></span>
             </button>
         </div>
+        {# TODO: On change, populate contact list with search results #}
         <form id="contact-search" class="navbar-form navbar-right" role="form">
             <div class="form-group">
                 <input id="search" class="form-control" type="text" placeholder="Search for a contact">
@@ -35,6 +36,8 @@
         <div class="row">
 {% block entrylist %}
             <div id="current-entry" class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+                {# TODO: Make edit form dialog, add edit button #}
+                {# TODO: Make delete confirmation dialog, add delete button #}
                 <div>
                     <h3 class="name">[[selectedContact.first_name]] [[selectedContact.last_name]]</h3>
                     <span class="address-1">[[selectedContact.address_line_1]]</span>
@@ -75,6 +78,7 @@
         </div>
     </div>
 {% block newform %}
+    {# TODO: On submit, send post with new contact form. Append response status to status box #}
     <form id="new-contact-entry">
         <div id="new-entry" class="modal fade">
             <div class="modal-dialog">

@@ -73,9 +73,7 @@ angular.module('BlackBook.controllers', []).controller(
         }
 
         $scope.refreshList = function () {
-
             $scope.getContactList('/api/entry/?page=1&per_page=' + $scope.listPerPage);
-
         }
 
         $scope.getContactList('/api/entry/');
