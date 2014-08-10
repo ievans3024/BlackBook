@@ -70,8 +70,7 @@ select.per-page {
     border-radius: 5px;
 }
 
-.entry-nav .pages a,
-.entry-nav .pages span {
+.entry-nav .pages a{
     display: block;
     float: left;
     margin: 0 1em;
@@ -82,17 +81,15 @@ select.per-page {
     text-decoration: none;
     text-align: center;
     color: #7f7f7f;
-}
-
-.entry-nav .pages a {
     border-color: #dddddd;
     cursor: pointer;
 }
 
-.entry-nav .pages span {
+.entry-nav .pages a[rel="self"] {
     color: #333333;
     font-weight: bold;
     border-color: #aaaaaa;
+    cursor: default;
 }
 
 .city:after {
