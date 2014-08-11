@@ -36,7 +36,6 @@ def delete_entry(person_id):
             db.session.delete(phone_number)
         db.session.delete(person)
         db.session.commit()
-
     except Exception as e:
         raise e
     else:
