@@ -79,7 +79,13 @@
                     </select>
                 </div>
                 <div class="entry" ng-repeat="contact in contactList">
-                    <h3 class="name" ng-click="getContact(contact.href)">[[contact.first_name]] [[contact.last_name]]</h3>
+                    <h3 class="name" ng-click="getContact(contact.href)">
+                        [[contact.first_name]] [[contact.last_name]]
+                        <button class="btn btn-xs btn-link" type="button" data-toggle="modal" data-target="#delete-confirm"
+                            aria-hideen="true" ng-click="$parent.deletedContact = contact">
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </button>
+                    </h3>
                     <p class="phone">[[contact.phone_numbers.primary]]</p>
                 </div>
             </div>

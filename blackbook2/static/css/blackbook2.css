@@ -67,6 +67,14 @@ hr {
     cursor: pointer;
 }
 
+#entries .entry h3 button.btn-link {
+    color: #aaaaaa;
+}
+
+#entries .entry h3 button.btn-link:hover {
+    color: #777777;
+}
+
 select.per-page {
     padding: .25em .5em;
     color: #000000;
