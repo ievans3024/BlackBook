@@ -27,19 +27,14 @@ def edit_entry(person_id):
 
 def delete_entry(person_id):
     """Deletes person by id"""
-    try:
-        person = Person.query.get_or_404(person_id)
+    person = Person.query.get_or_404(person_id)
 
-        for email in person.emails:
-            db.session.delete(email)
-        for phone_number in person.phone_numbers:
-            db.session.delete(phone_number)
-        db.session.delete(person)
-        db.session.commit()
-    except Exception as e:
-        raise e
-    else:
-        return ('', 204)
+    for email in person.emails:
+        db.session.delete(email)
+    for phone_number in person.phone_numbers:
+        db.session.delete(phone_number)
+    db.session.delete(person)
+    db.session.commit()
 
 
 def request_accepts(*mimetypes):
@@ -154,7 +149,12 @@ def api_entry(person_id=None):
             return Response(str(response_object), mimetype=COLLECTION_JSON)
         elif request.method == 'DELETE':
             # process contact deletion request
-            delete_entry(person_id)
+            try:
+                delete_entry(person_id)
+            except Exception as e:
+                raise e
+            else:
+                return ('', 204)
         else:
             if request.mimetype != COLLECTION_JSON:
                 abort(415)

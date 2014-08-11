@@ -44,8 +44,8 @@
                         <button type="button" class="btn btn-xs btn-default">
                             <span class="glyphicon glyphicon-pencil"></span> Edit
                         </button>
-                        <button type="button" class="btn btn-xs btn-default"
-                                ng-click="deleteContact(selectedContact.href)">
+                        <button type="button" class="btn btn-xs btn-default" data-toggle="modal"
+                                data-target="#delete-confirm" ng-click="$parent.deletedContact = selectedContact">
                             <span class="glyphicon glyphicon-trash"></span> Delete
                         </button>
                     </div>
@@ -163,6 +163,25 @@
             </div>
         </div>
     </form>
+{% endblock %}
+{% block deleteconfirm %}
+    <div id="delete-confirm" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Confirm Delete</h4>
+            </div>
+            <div class="modal-body">
+                <p>Delete [[ deletedContact.first_name ]] [[ deletedContact.last_name ]]?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"
+                        ng-click="$parent.deletedContact = null">Cancel</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                        ng-click="deleteContact(deletedContact.href)">OK</button>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 {% block dialog %}
     <div id="status-dialog" class="modal fade">

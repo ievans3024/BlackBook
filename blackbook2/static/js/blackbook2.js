@@ -31,6 +31,7 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.contactList = null;
         $scope.listNavigation = null;
         $scope.listPerPage = 5;
+        $scope.deletedContact = null;
 
         $scope.processCollection = function (response) {
             var contacts = [],
@@ -84,6 +85,7 @@ angular.module('BlackBook.controllers', []).controller(
             contactsService.delete(href).then(
             function (response) {
                 $scope.selectedContact = null;
+                $scope.deletedContact = null;
                 $scope.refreshList();
             }
             );
