@@ -67,11 +67,11 @@ hr {
     cursor: pointer;
 }
 
-#entries .entry h3 button.btn-link {
+button.btn-link {
     color: #aaaaaa;
 }
 
-#entries .entry h3 button.btn-link:hover {
+button.btn-link:hover {
     color: #777777;
 }
 
