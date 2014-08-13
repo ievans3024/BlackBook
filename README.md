@@ -9,7 +9,7 @@ This is a small Flask app using AngularJS and Bootstrap to create a contacts boo
 This project is a small pet learning project I put together to document my experimentation with:
 
 * Creating a restful web api
-* Creating an frontend client for said api
+* Creating a frontend client for said api
 * Creating a single-page application that is mobile-friendly.
 * Information modeling
 
