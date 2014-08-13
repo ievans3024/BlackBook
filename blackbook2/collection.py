@@ -11,6 +11,8 @@ class CollectionPlusJSON(object):
     mimetype = COLLECTION_JSON
 
     def __init__(self):
+        # TODO: accept params to specify in collection
+        # TODO: accept params to specify what kind of collection see: http://amundsen.com/media-types/collection/format/
         self.collection = {
             'collection': {
                 'version': '1.0',
@@ -24,7 +26,8 @@ class CollectionPlusJSON(object):
                         'prompt': 'Find a specific entry',
                         'data': [{'name': 'query', 'value': ''}]
                     }
-                ]
+                ],
+                'template': {}
             }
         }
 
@@ -41,6 +44,8 @@ class CollectionPlusJSON(object):
 
 
 class CollectionPlusJSONItem(object):
+
+    # TODO: make href optional (non-existent if not specified)
 
     def __call__(self):
         return {

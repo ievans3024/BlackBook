@@ -123,6 +123,7 @@ def api_doc():
 @app.route('/api/entry/', methods=['GET', 'POST'])
 @app.route('/api/entry/<int:person_id>/', methods=['GET', 'DELETE', 'PATCH'])
 def api_entry(person_id=None):
+    API_HREF = '/api/entry/'
     if person_id is None:
         if request.method == 'GET':
             if not request_accepts(COLLECTION_JSON):
@@ -133,6 +134,7 @@ def api_entry(person_id=None):
                 page=request.args.get('page') or 1,
                 per_page=request.args.get('per_page') or 5
             )
+            response_object['collection']['href'] = API_HREF
             return Response(str(response_object), mimetype=COLLECTION_JSON)
         else:
             if request.mimetype != COLLECTION_JSON:
@@ -144,6 +146,7 @@ def api_entry(person_id=None):
                 abort(406)
             # return person info
             response_object = CollectionPlusJSON()
+            response_object['collection']['href'] = API_HREF
             person = Person.query.get_or_404(person_id)
             response_object.append_item(person.get_collection_object())
             return Response(str(response_object), mimetype=COLLECTION_JSON)

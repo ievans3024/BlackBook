@@ -27,13 +27,8 @@ angular.module('BlackBook.services', []).factory(
 
 angular.module('BlackBook.controllers', []).controller(
     'contactsController', function($scope, contactsService) {
-        $scope.selectedContact = null;
-        $scope.contactList = null;
-        $scope.listNavigation = null;
-        $scope.listPerPage = 5;
-        $scope.deletedContact = null;
 
-        $scope.processCollection = function (response) {
+        var processCollection = function (response) {
             var contacts = [],
             contact_items = response.data.collection.items,
             contact_count = contact_items.length;
@@ -60,10 +55,16 @@ angular.module('BlackBook.controllers', []).controller(
             return contacts;
         };
 
+        $scope.selectedContact = null;
+        $scope.contactList = null;
+        $scope.listNavigation = null;
+        $scope.listPerPage = 5;
+        $scope.deletedContact = null;
+
         $scope.getContact = function(href) {
             contactsService.get(href).then(
             function(response) {
-                $scope.selectedContact = $scope.processCollection(response);
+                $scope.selectedContact = processCollection(response);
             }
             );
         };
@@ -71,7 +72,7 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.getContactList = function (href) {
             contactsService.get(href).then(
             function(response) {
-                $scope.contactList = $scope.processCollection(response);
+                $scope.contactList = processCollection(response);
                 $scope.listNavigation = response.data.collection.links;
             }
             );

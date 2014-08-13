@@ -44,6 +44,29 @@ class Person(db.Model):
         self.zip_code = zip_code
         self.country = country
 
+    @staticmethod
+    def get_collection_template():
+        """
+        Get object for template
+        Returns object ready for json
+        """
+        opts = {
+            'first_name': '',
+            'last_name': '',
+            'emails': [{'email_type': '', 'email': ''}],
+            'phone_numbers': [{'number_type': '', 'number': ''}],
+            'address_line_1': '',
+            'address_line_2': '',
+            'city': '',
+            'state': '',
+            'zip_code': '',
+            'country': ''
+        }
+
+        collection = CollectionPlusJSONItem('', **opts)
+
+        return collection()
+
     def get_collection_object(self, short=False):
         """
         Get object for json parsing
