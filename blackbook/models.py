@@ -1,8 +1,8 @@
 __author__ = 'ievans3024'
 
 from flask_sqlalchemy import SQLAlchemy
-from blackbook2 import app
-from blackbook2.collection import CollectionPlusJSONItem
+from blackbook import app
+from blackbook.collection import CollectionPlusJSONItem
 
 db = SQLAlchemy(app)
 
@@ -198,7 +198,7 @@ def generate_test_db():
 
     zipcodes = [str(n).zfill(5) for n in range(100)]
 
-    tempdir = join(gettempdir(), 'blackbook2')
+    tempdir = join(gettempdir(), 'blackbook')
 
     if not isdir(tempdir):
         mkdir(tempdir)
