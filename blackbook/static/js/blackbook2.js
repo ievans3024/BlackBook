@@ -28,31 +28,31 @@ angular.module('BlackBook.services', []).factory(
 angular.module('BlackBook.controllers', []).controller(
     'contactsController', function($scope, contactsService) {
 
-        var processCollection = function (response) {
-            var contacts = [],
-            contact_items = response.data.collection.items,
-            contact_count = contact_items.length;
+        var extractCollectionItems = function (response) {
+            var data = [],
+            data_items = response.data.collection.items,
+            data_count = data_items.length;
             i = 0,
-            contact = null,
-            contact_item = null,
-            contact_item_length = 0,
+            data_object = null,
+            data_object_item = null,
+            data_object_item_length = 0,
             j = 0;
 
             for (i; i<contact_count; i++) {
-                contact = {};
-                contact.href = contact_items[i].href;
-                contact_item = contact_items[i].data;
-                contact_item_length = contact_item.length;
+                data_object = {};
+                data_object.href = data_items[i].href;
+                data_object_item = data_items[i].data;
+                data_object_item_length = data_object_item.length;
                 j = 0;
-                for (j; j<contact_item.length; j++) {
-                    contact[contact_item[j].name] = contact_item[j].value;
+                for (j; j<data_object_item_length; j++) {
+                    data_object[data_object_item[j].name] = data_object_item[j].value;
                 }
-                contacts.push(contact);
+                contacts.push(data_object);
             }
-            if (contacts.length === 1) {
-                return contacts[0];
+            if (data.length === 1) {
+                return data[0];
             }
-            return contacts;
+            return data;
         };
 
         $scope.selectedContact = null;
@@ -64,7 +64,7 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.getContact = function(href) {
             contactsService.get(href).then(
             function(response) {
-                $scope.selectedContact = processCollection(response);
+                $scope.selectedContact = extractCollectionItems(response);
             }
             );
         };
@@ -72,7 +72,7 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.getContactList = function (href) {
             contactsService.get(href).then(
             function(response) {
-                $scope.contactList = processCollection(response);
+                $scope.contactList = extractCollectionItems(response);
                 $scope.listNavigation = response.data.collection.links;
             }
             );
