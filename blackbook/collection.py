@@ -1,5 +1,6 @@
 __author__ = 'ievans3024'
-
+# Based on Collection+JSON format by Mike Amundsen
+# See http://amundsen.com/media-types/collection/format/
 
 from flask import json
 
@@ -10,13 +11,12 @@ class CollectionPlusJSON(object):
 
     mimetype = COLLECTION_JSON
 
-    def __init__(self):
+    def __init__(self, version=1.0, href='/api/'):
         # TODO: accept params to specify in collection
-        # TODO: accept params to specify what kind of collection see: http://amundsen.com/media-types/collection/format/
         self.collection = {
             'collection': {
-                'version': '1.0',
-                'href': '/api/',
+                'version': str(version),
+                'href': href,
                 'items': [],
                 'links': [],
                 'queries': [
@@ -27,7 +27,10 @@ class CollectionPlusJSON(object):
                         'data': [{'name': 'query', 'value': ''}]
                     }
                 ],
-                'template': {}
+                'template': {
+                    'data': []
+                },
+                'error': {}
             }
         }
 
@@ -47,16 +50,20 @@ class CollectionPlusJSONItem(object):
 
     # TODO: make href optional (non-existent if not specified)
 
-    def __call__(self):
-        return {
-            'href': self.uri,
-            'data': [{'name': key, 'value': value} for (key, value) in self.data.items()]
-        }
+    def get_dict(self):
+        package = {}
+
+        if self.uri:
+            package['href'] = self.uri
+
+        package['data'] = [{'name': key, 'value': value} for (key, value) in self.data.items()]
+
+        return package
 
     def __delitem__(self, key):
         del self.data[key]
 
-    def __init__(self, uri, **kwargs):
+    def __init__(self, uri=None, **kwargs):
         self.uri = uri
         self.data = kwargs
 
@@ -67,4 +74,4 @@ class CollectionPlusJSONItem(object):
         self.data[key] = value
 
     def __str__(self):
-        return json.dumps(self.__call__())
+        return json.dumps(self.get_dict())
