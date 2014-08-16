@@ -123,7 +123,7 @@ def api_doc():
 @app.route('/api/entry/', methods=['GET', 'POST'])
 @app.route('/api/entry/<int:person_id>/', methods=['GET', 'DELETE', 'PATCH'])
 def api_entry(person_id=None):
-    API_HREF = '/api/entry/'
+    api_href = '/api/entry/'
     if person_id is None:
         if request.method == 'GET':
             if not request_accepts(COLLECTION_JSON):
@@ -132,10 +132,10 @@ def api_entry(person_id=None):
             response_object = paginate_results(
                 Person.query.order_by(Person.last_name),
                 page=request.args.get('page') or 1,
-                per_page=request.args.get('per_page') or 5
+                per_page=request.args.get('per_page') or 5,
+                response_object=CollectionPlusJSON(href=api_href)
             )
-            response_object['collection']['href'] = API_HREF
-            return Response(str(response_object), mimetype=COLLECTION_JSON)
+            return Response(str(response_object), mimetype=response_object.mimetype)
         else:
             if request.mimetype != COLLECTION_JSON:
                 abort(415)
@@ -145,11 +145,10 @@ def api_entry(person_id=None):
             if not request_accepts(COLLECTION_JSON):
                 abort(406)
             # return person info
-            response_object = CollectionPlusJSON()
-            response_object['collection']['href'] = API_HREF
+            response_object = CollectionPlusJSON(href=api_href)
             person = Person.query.get_or_404(person_id)
             response_object.append_item(person.get_collection_object())
-            return Response(str(response_object), mimetype=COLLECTION_JSON)
+            return Response(str(response_object), mimetype=response_object.mimetype)
         elif request.method == 'DELETE':
             # process contact deletion request
             try:
