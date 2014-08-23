@@ -38,7 +38,7 @@ angular.module('BlackBook.controllers', []).controller(
             data_object_item_length = 0,
             j = 0;
 
-            for (i; i<contact_count; i++) {
+            for (i; i<data_count; i++) {
                 data_object = {};
                 data_object.href = data_items[i].href;
                 data_object_item = data_items[i].data;
@@ -47,7 +47,7 @@ angular.module('BlackBook.controllers', []).controller(
                 for (j; j<data_object_item_length; j++) {
                     data_object[data_object_item[j].name] = data_object_item[j].value;
                 }
-                contacts.push(data_object);
+                data.push(data_object);
             }
             if (data.length === 1) {
                 return data[0];
