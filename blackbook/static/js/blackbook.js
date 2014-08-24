@@ -28,6 +28,8 @@ angular.module('BlackBook.services', []).factory(
 angular.module('BlackBook.controllers', []).controller(
     'contactsController', function($scope, contactsService) {
 
+    // TODO: Create separate controllers for featured contact, pagination, contact list, and create/edit/delete
+
         var extractCollectionItems = function (response) {
             var data = [],
             data_items = response.data.collection.items,
