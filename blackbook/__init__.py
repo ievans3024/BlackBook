@@ -121,26 +121,29 @@ def api_doc():
 
 
 @app.route('/api/entry/', methods=['GET', 'POST'])
+def api_entries():
+    api_href = '/api/entry/'
+    if request.method == 'GET':
+        if not request_accepts(COLLECTION_JSON):
+            abort(406)
+        # return paginated contact info
+        response_object = paginate_results(
+            Person.query.order_by(Person.last_name),
+            page=request.args.get('page') or 1,
+            per_page=request.args.get('per_page') or 5,
+            response_object=CollectionPlusJSON(href=api_href)
+        )
+        return Response(str(response_object), mimetype=response_object.mimetype)
+    else:
+        if request.mimetype != COLLECTION_JSON:
+            abort(415)
+        pass  # assume POST? process new contact creation request
+
+
 @app.route('/api/entry/<int:person_id>/', methods=['GET', 'DELETE', 'PATCH'])
 def api_entry(person_id=None):
-    api_href = '/api/entry/'
-    if person_id is None:
-        if request.method == 'GET':
-            if not request_accepts(COLLECTION_JSON):
-                abort(406)
-            # return paginated contact info
-            response_object = paginate_results(
-                Person.query.order_by(Person.last_name),
-                page=request.args.get('page') or 1,
-                per_page=request.args.get('per_page') or 5,
-                response_object=CollectionPlusJSON(href=api_href)
-            )
-            return Response(str(response_object), mimetype=response_object.mimetype)
-        else:
-            if request.mimetype != COLLECTION_JSON:
-                abort(415)
-            pass  # assume POST? process new contact creation request
-    else:
+    if isinstance(person_id, int):
+        api_href = '/api/entry/%d' % person_id
         if request.method == 'GET':
             if not request_accepts(COLLECTION_JSON):
                 abort(406)
@@ -161,6 +164,8 @@ def api_entry(person_id=None):
             if request.mimetype != COLLECTION_JSON:
                 abort(415)
             pass  # assume PATCH? process contact modification request
+    else:
+        abort(404)  # TODO: Create response body with collection+json 404 error body
 
 
 @app.route('/api/search/')
