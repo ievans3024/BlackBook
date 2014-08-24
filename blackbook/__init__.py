@@ -175,6 +175,6 @@ def api_search():
 
 
 if __name__ == '__main__':
-    # generate_test_db()  # uncomment to generate test database
+    generate_test_db()  # uncomment to generate test database
     whooshalchemy.whoosh_index(app, Person)  # TODO: figure out if this should be a scheduled task instead
     app.run()
