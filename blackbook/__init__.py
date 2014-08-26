@@ -15,12 +15,17 @@ app.config.from_pyfile('config.cfg', silent=True)
 from models import Person, generate_test_db, db
 
 
-def new_entry():
+def new_entry(form_data):
     """Creates a new Person"""
-    pass
+    person = Person()
+
+    db.session.add(person)
+    db.session.commit()
+    
+    return person.get_collection_object()
 
 
-def edit_entry(person_id):
+def edit_entry(person_id, form_object):
     """Edits Person by id"""
     pass
 
@@ -123,9 +128,9 @@ def api_doc():
 @app.route('/api/entry/', methods=['GET', 'POST'])
 def api_entries():
     api_href = '/api/entry/'
+    if not request_accepts(COLLECTION_JSON):
+        abort(406)
     if request.method == 'GET':
-        if not request_accepts(COLLECTION_JSON):
-            abort(406)
         # return paginated contact info
         response_object = paginate_results(
             Person.query.order_by(Person.last_name),
@@ -137,33 +142,41 @@ def api_entries():
     else:
         if request.mimetype != COLLECTION_JSON:
             abort(415)
-        pass  # assume POST? process new contact creation request
+        try:
+            # TODO: Form validation
+            created_entry = new_entry(request.data)
+        except Exception as e:
+            raise e
+        else:
+            response_object = CollectionPlusJSON(href=created_entry.collection.get('collection').get('href'))
+            return Response(str(created_entry), mimetype=response_object.mimetype), 201
 
 
 @app.route('/api/entry/<int:person_id>/', methods=['GET', 'DELETE', 'PATCH'])
 def api_entry(person_id=None):
     if isinstance(person_id, int):
         api_href = '/api/entry/%d' % person_id
-        if request.method == 'GET':
-            if not request_accepts(COLLECTION_JSON):
-                abort(406)
-            # return person info
-            response_object = CollectionPlusJSON(href=api_href)
-            person = Person.query.get_or_404(person_id)
-            response_object.append_item(person.get_collection_object())
-            return Response(str(response_object), mimetype=response_object.mimetype)
-        elif request.method == 'DELETE':
-            # process contact deletion request
-            try:
-                delete_entry(person_id)
-            except Exception as e:
-                raise e
-            else:
-                return ('', 204)
+        if not request_accepts(COLLECTION_JSON):
+            abort(406)
         else:
-            if request.mimetype != COLLECTION_JSON:
-                abort(415)
-            pass  # assume PATCH? process contact modification request
+            if request.method == 'GET':
+                # return person info
+                response_object = CollectionPlusJSON(href=api_href)
+                person = Person.query.get_or_404(person_id)
+                response_object.append_item(person.get_collection_object())
+                return Response(str(response_object), mimetype=response_object.mimetype)
+            elif request.method == 'DELETE':
+                # process contact deletion request
+                try:
+                    delete_entry(person_id)
+                except Exception as e:
+                    raise e
+                else:
+                    return '', 204
+            else:
+                if request.mimetype != COLLECTION_JSON:
+                    abort(415)
+                pass  # assume PATCH? process contact modification request
     else:
         abort(404)  # TODO: Create response body with collection+json 404 error body
 
