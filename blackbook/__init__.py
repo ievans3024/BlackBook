@@ -1,20 +1,20 @@
 __author__ = 'ievans3024'
 
-
 import flask_whooshalchemy as whooshalchemy
-
 from collection import CollectionPlusJSON, COLLECTION_JSON
 from flask import Flask, render_template, request, abort, Response
 
 
 app = Flask(__name__)
 
-app.config.from_pyfile('config.cfg', silent=True)
+app.config.from_pyfile('config.py', silent=True)
 
 # this import needs db to exist first
-from models import Person, generate_test_db, db
+if app.config.get('DATABASE_HANDLER') in ('sqlite', 'mysql', 'postgresql'):
+    from blackbook.database.sqlalchemy import Person, generate_test_db, db
 
 
+# TODO: Move these functions into database package
 def new_entry(form_data):
     """Creates a new Person"""
     person = Person()
