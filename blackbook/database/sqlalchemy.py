@@ -187,10 +187,10 @@ class SQLDatabase(Database):
 
         for person in self.models['Person'].query.all():
             person.emails = [
-                self.models['Email']('primary', '{first}.{last}@example.com'.format(**{
-                    'first': person.first_name.lower(),
-                    'last': person.last_name.lower()
-                }), person.id)
+                self.models['Email']('primary', '{first}.{last}@example.com'.format(
+                    first=person.first_name.lower(),
+                    last=person.last_name.lower()
+                ), person.id)
             ]
             person.phone_numbers = [
                 self.models['PhoneNumber']('primary', '1-555-555-{0}'.format(
