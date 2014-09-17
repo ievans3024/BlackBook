@@ -6,7 +6,9 @@ class Database(object):
 
     def __init__(self, app):
         """Constructor for Database"""
-        pass
+        self.app = app
+        self.database = {}
+        self.models = {}
 
     def new(self):
         pass
