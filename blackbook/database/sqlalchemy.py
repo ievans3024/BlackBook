@@ -1,7 +1,7 @@
 __author__ = 'ievans3024'
 
 from flask_sqlalchemy import SQLAlchemy
-from blackbook.collection import CollectionPlusJSONItem
+from blackbook.collection import CollectionPlusJSON, CollectionPlusJSONItem
 from blackbook.database import Database
 
 
@@ -149,17 +149,35 @@ class SQLAlchemyDatabase(Database):
 
         self.database.session.commit()
 
-        return person.get_collection_object()
+        response_object = CollectionPlusJSON(href=person.get_collection_object().get('href'))
+
+        return response_object
 
     def update(self, id, data):
         pass
 
-    def read(self, id):
-        """Reads a person by id"""
+    def read(self, id=None, page=1, per_page=5, endpoint_uri='/api/'):
+        """Reads a person by id, fetches paginated list if id is not provided"""
 
-        person = self.models['Person'].query.get_or_404(id)
+        response_object = CollectionPlusJSON(href=endpoint_uri)
 
-        return person.get_collection_object()
+        if id is None:
+
+            people = self.models['Person'].query.order_by(self.models['Person'].last_name)
+
+            for person in people:
+
+                response_object.append_item(person.get_collection_object(short=True))
+
+            response_object.paginate(page=page, per_page=per_page)
+
+        else:
+
+            person = self.models['Person'].query.get_or_404(id)
+
+            response_object.append_item(person.get_collection_object())
+
+        return response_object
 
     def delete(self, id):
         """Deletes person by id"""
@@ -179,6 +197,7 @@ class SQLAlchemyDatabase(Database):
         self.database.session.commit()
 
     def search(self, data):
+        # TODO: requires python 2 until Flask-WhooshAlchemy supports python 3
         pass
 
     def generate_test_db(self):

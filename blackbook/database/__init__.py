@@ -16,7 +16,7 @@ class Database(object):
     def update(self, id, data):
         pass
 
-    def read(self, id):
+    def read(self, id=None):
         pass
 
     def delete(self, id):

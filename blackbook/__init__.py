@@ -20,64 +20,6 @@ def request_accepts(*mimetypes):
     return request.accept_mimetypes[best] and request.accept_mimetypes[best] >= request.accept_mimetypes['text/html']
 
 
-def paginate_results(query_object, response_object=None, page=1, per_page=5):
-    """
-    Accepts a SQLAlchemy query object.
-    Model must provide get_collection_object() and return a dict with it
-    Returns a paginated CollectionPlusJSON instance
-    """
-    # TODO: create pagination method for CollectionPlusJSON class
-    api_url_template = '/api/entry/?page={page}'
-    if not response_object:
-        response_object = CollectionPlusJSON()
-
-    if (type(page) is not int) or (type(per_page) is not int):
-        try:
-            page = int(page)
-            per_page = int(per_page)
-        except (ValueError, TypeError):
-            abort(400)
-
-    if per_page != 5:
-        api_url_template += '&per_page={per}'
-
-    try:
-        result_pages = query_object.paginate(page, per_page=per_page)
-    except (ValueError, OverflowError):
-        abort(400)
-        
-    next_page = result_pages.next_num if result_pages.has_next else None
-    prev_page = result_pages.prev_num if result_pages.page > 1 else None
-    result = result_pages.items
-
-    if result_pages.page != 1:
-        response_object.append_link(api_url_template.format(page=1, per=per_page), 'first', 'First')
-
-    if prev_page:
-        response_object.append_link(api_url_template.format(page=prev_page, per=per_page), 'prev', 'Previous')
-
-    for page in result_pages.iter_pages():
-        if page is not None:
-            if page == result_pages.page:
-                rel = 'self'
-            else:
-                rel = 'more'
-            response_object.append_link(api_url_template.format(page=page, per=per_page), rel, str(page))
-        else:
-            response_object.append_link('#', '', '...')
-
-    if next_page:
-        response_object.append_link(api_url_template.format(page=next_page, per=per_page), 'next', 'Next')
-
-    if result_pages.page != result_pages.pages:
-        response_object.append_link(api_url_template.format(page=result_pages.pages, per=per_page), 'last', 'Last')
-
-    for item in result:
-        response_object.append_item(item.get_collection_object(short=True))
-
-    return response_object
-
-
 @app.route('/')
 @app.route('/book/')
 def home():
@@ -106,11 +48,10 @@ def api_entries():
         abort(406)
     if request.method == 'GET':
         # return paginated contact info
-        response_object = paginate_results(
-            Person.query.order_by(Person.last_name),
+        response_object = db.read(
             page=request.args.get('page') or 1,
             per_page=request.args.get('per_page') or 5,
-            response_object=CollectionPlusJSON(href=api_href)
+            endpoint_uri=api_href
         )
         return Response(str(response_object), mimetype=response_object.mimetype)
     else:
@@ -118,12 +59,11 @@ def api_entries():
             abort(415)
         try:
             # TODO: Form validation
-            created_entry = new_entry(request.data)
+            created_entry = db.create(request.data)
         except Exception as e:
             raise e
         else:
-            response_object = CollectionPlusJSON(href=created_entry.collection.get('collection').get('href'))
-            return Response(str(created_entry), mimetype=response_object.mimetype), 201
+            return Response(str(created_entry), mimetype=created_entry.mimetype), 201
 
 
 @app.route('/api/entry/<int:person_id>/', methods=['GET', 'DELETE', 'PATCH'])
@@ -135,14 +75,17 @@ def api_entry(person_id=None):
         else:
             if request.method == 'GET':
                 # return person info
-                response_object = CollectionPlusJSON(href=api_href)
-                person = Person.query.get_or_404(person_id)
-                response_object.append_item(person.get_collection_object())
+                response_object = db.read(
+                    id=person_id,
+                    page=request.args.get('page') or 1,
+                    per_page=request.args.get('per_page') or 5,
+                    endpoint_uri=api_href
+                )
                 return Response(str(response_object), mimetype=response_object.mimetype)
             elif request.method == 'DELETE':
                 # process contact deletion request
                 try:
-                    delete_entry(person_id)
+                    db.delete(person_id)
                 except Exception as e:
                     raise e
                 else:
@@ -152,16 +95,15 @@ def api_entry(person_id=None):
                     abort(415)
                 pass  # assume PATCH? process contact modification request
     else:
-        abort(404)  # TODO: Create response body with collection+json 404 error body
+        abort(404)
 
 
 @app.route('/api/search/')
 def api_search():
-    # TODO: requires python 2 until Flask-WhooshAlchemy supports python 3
     pass
 
 
 if __name__ == '__main__':
-    generate_test_db()  # uncomment to generate test database
-    whooshalchemy.whoosh_index(app, Person)  # TODO: figure out if this should be a scheduled task instead
+    # db.generate_test_db()  # uncomment to generate test database
+    # whooshalchemy.whoosh_index(app, Person)  # TODO: figure out if this should be a scheduled task instead
     app.run()
