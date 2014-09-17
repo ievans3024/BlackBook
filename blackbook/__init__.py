@@ -11,35 +11,7 @@ app.config.from_pyfile('config.py', silent=True)
 
 # this import needs db to exist first
 if app.config.get('DATABASE_HANDLER') in ('sqlite', 'mysql', 'postgresql'):
-    from blackbook.database.sqlalchemy import Person, generate_test_db, db
-
-
-# TODO: Move these functions into database package
-def new_entry(form_data):
-    """Creates a new Person"""
-    person = Person()
-
-    db.session.add(person)
-    db.session.commit()
-    
-    return person.get_collection_object()
-
-
-def edit_entry(person_id, form_object):
-    """Edits Person by id"""
-    pass
-
-
-def delete_entry(person_id):
-    """Deletes person by id"""
-    person = Person.query.get_or_404(person_id)
-
-    for email in person.emails:
-        db.session.delete(email)
-    for phone_number in person.phone_numbers:
-        db.session.delete(phone_number)
-    db.session.delete(person)
-    db.session.commit()
+    from blackbook.database.sqlalchemy import SQLAlchemyDatabase
 
 
 def request_accepts(*mimetypes):

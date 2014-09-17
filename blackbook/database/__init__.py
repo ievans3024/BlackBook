@@ -10,19 +10,19 @@ class Database(object):
         self.database = {}
         self.models = {}
 
-    def new(self):
+    def create(self, data):
         pass
 
-    def edit(self):
+    def update(self, id, data):
         pass
 
-    def get(self):
+    def read(self, id):
         pass
 
-    def delete(self):
+    def delete(self, id):
         pass
 
-    def search(self):
+    def search(self, data):
         pass
 
     def generate_test_db(self):

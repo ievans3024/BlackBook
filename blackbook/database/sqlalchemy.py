@@ -140,22 +140,49 @@ class SQLDatabase(Database):
             'PhoneNumber': PhoneNumber
         }
 
-    def new(self):
+    def create(self, data):
+        """Creates a new person"""
+
+        person = self.models['Person']()
+
+        self.database.session.add(person)
+
+        self.database.session.commit()
+
+        return person.get_collection_object()
+
+    def update(self, id, data):
         pass
 
-    def edit(self):
-        pass
+    def read(self, id):
+        """Reads a person by id"""
 
-    def get(self):
-        pass
+        person = self.models['Person'].query.get_or_404(id)
 
-    def delete(self):
-        pass
+        return person.get_collection_object()
 
-    def search(self):
+    def delete(self, id):
+        """Deletes person by id"""
+
+        person = self.models['Person'].query.get_or_404(id)
+
+        for email in person.emails:
+
+            self.database.session.delete(email)
+
+        for phone_number in person.phone_numbers:
+
+            self.database.session.delete(phone_number)
+
+        self.database.session.delete(person)
+
+        self.database.session.commit()
+
+    def search(self, data):
         pass
 
     def generate_test_db(self):
+        """Generates a test/sample database. Uses sqlite in a temp directory"""
         if not self.app.config.get('TESTING'):
             raise RuntimeError('App config must have TESTING option set to True.')
 
