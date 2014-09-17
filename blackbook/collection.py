@@ -49,8 +49,9 @@ class CollectionPlusJSON(object):
 class CollectionPlusJSONItem(object):
 
     # TODO: make href optional (non-existent if not specified)
+    # TODO: make this subclass dict with some fancy extras for proper Collection+JSON form
 
-    def get_dict(self):
+    def __dict__(self):
         package = {}
 
         if self.uri:

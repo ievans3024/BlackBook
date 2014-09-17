@@ -5,7 +5,7 @@ from blackbook.collection import CollectionPlusJSONItem
 from blackbook.database import Database
 
 
-class SQLDatabase(Database):
+class SQLAlchemyDatabase(Database):
     """SQL database wrapper"""
 
     def __init__(self, app):

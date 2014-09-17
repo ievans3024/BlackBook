@@ -12,6 +12,7 @@ app.config.from_pyfile('config.py', silent=True)
 # this import needs db to exist first
 if app.config.get('DATABASE_HANDLER') in ('sqlite', 'mysql', 'postgresql'):
     from blackbook.database.sqlalchemy import SQLAlchemyDatabase
+    db = SQLAlchemyDatabase(app)
 
 
 def request_accepts(*mimetypes):
@@ -25,6 +26,7 @@ def paginate_results(query_object, response_object=None, page=1, per_page=5):
     Model must provide get_collection_object() and return a dict with it
     Returns a paginated CollectionPlusJSON instance
     """
+    # TODO: create pagination method for CollectionPlusJSON class
     api_url_template = '/api/entry/?page={page}'
     if not response_object:
         response_object = CollectionPlusJSON()
