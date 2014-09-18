@@ -2,13 +2,20 @@ __author__ = 'ievans3024'
 # Based on Collection+JSON format by Mike Amundsen
 # See http://amundsen.com/media-types/collection/format/
 
-from flask import json
+# Prefer json provided by flask
+try:
+    from flask import json
+except ImportError:
+    import json
+
 from math import ceil
 
 COLLECTION_JSON = 'application/vnd.collection+json'
 
 
 class CollectionPlusJSON(object):
+
+    # TODO: Make this subclass dict with some fancy extras
 
     mimetype = COLLECTION_JSON
 
@@ -146,33 +153,52 @@ class CollectionPlusJSON(object):
             )
 
 
-class CollectionPlusJSONItem(object):
+class CollectionPlusJSONItem(dict):
 
-    # TODO: make href optional (non-existent if not specified)
-    # TODO: make this subclass dict with some fancy extras for proper Collection+JSON form
+    def __contains__(self, item):
 
-    def __dict__(self):
-        package = {}
+        if item in self.data:
 
-        if self.uri:
-            package['href'] = self.uri
+            return True
 
-        package['data'] = [{'name': key, 'value': value} for (key, value) in self.data.items()]
+        else:
 
-        return package
+            return False
 
     def __delitem__(self, key):
+
         del self.data[key]
 
     def __init__(self, uri=None, **kwargs):
-        self.uri = uri
+
+        if uri is not None:
+            self.href = uri
+
         self.data = kwargs
 
+        super(dict, self).__init__(href=uri, data=self.data)
+
     def __getitem__(self, item):
+
         return self.data[item]
 
     def __setitem__(self, key, value):
+
         self.data[key] = value
 
     def __str__(self):
-        return json.dumps(self.get_dict())
+
+        return json.dumps(self.__dict__)
+
+    __repr__ = __str__
+
+    def get(self, k, d=None):
+
+        if k in self.data:
+
+            return self.data[k]
+
+        else:
+
+            return d
+

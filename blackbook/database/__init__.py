@@ -1,14 +1,112 @@
 __author__ = 'ievans3024'
 
+from blackbook.collection import CollectionPlusJSONItem
+
 
 class Database(object):
     """Database wrapper, base class"""
 
     def __init__(self, app):
         """Constructor for Database"""
+
+        class Person(object):
+
+            def __init__(self, first_name, last_name, emails=[], phone_numbers=[],
+                         address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
+
+                self.first_name = str(first_name)
+                self.last_name = str(last_name)
+                self.emails = emails
+                self.phone_numbers = phone_numbers
+                self.address_line1 = str(address_line1)
+                self.address_line2 = str(address_line2)
+                self.city = str(city)
+                self.state = str(state)
+                self.zip_code = str(zip_code)
+                self.country = str(country)
+
+            @staticmethod
+            def get_collection_template():
+                """
+                Get object for template
+                Returns object ready for json
+                """
+                opts = {
+                    'first_name': '',
+                    'last_name': '',
+                    'emails': [{'email_type': '', 'email': ''}],
+                    'phone_numbers': [{'number_type': '', 'number': ''}],
+                    'address_line_1': '',
+                    'address_line_2': '',
+                    'city': '',
+                    'state': '',
+                    'zip_code': '',
+                    'country': ''
+                }
+
+                collection = CollectionPlusJSONItem('', **opts)
+
+                return collection.get_dict()
+
+            def get_collection_object(self, short=False):
+                """
+                Get object for json parsing
+                Returns object ready for json
+                """
+                phone_numbers = {}
+                emails = {}
+
+                for number in self.phone_numbers:
+                    phone_numbers[number.number_type] = number.number
+
+                for email in self.emails:
+                    emails[email.email_type] = email.email
+
+                if not short:
+                    opts = {
+                        'first_name': self.first_name,
+                        'last_name': self.last_name,
+                        'emails': [email.__dict__ for email in self.emails],
+                        'phone_numbers': [phone_number.__dict__ for phone_number in self.phone_numbers],
+                        'address_line_1': self.address_line1,
+                        'address_line_2': self.address_line2,
+                        'city': self.city,
+                        'state': self.state,
+                        'zip_code': self.zip_code,
+                        'country': self.country
+                    }
+                else:
+                    opts = {
+                        'first_name': self.first_name,
+                        'last_name': self.last_name,
+                        'phone_numbers': [phone_number.__dict__ for phone_number in self.phone_numbers]
+                    }
+
+                collection = CollectionPlusJSONItem('/api/entry/%d/' % self.id, **opts)
+
+                return collection.__dict__
+
+        class Email(object):
+
+            def __init__(self, email_type, email):
+
+                self.email_type = email_type
+                self.email = email
+
+        class PhoneNumber(object):
+
+            def __init__(self, number_type, number):
+
+                self.number_type = number_type
+                self.number = number
+
         self.app = app
         self.database = {}
-        self.models = {}
+        self.models = {
+            'Person': Person,
+            'Email': Email,
+            'PhoneNumber': PhoneNumber
+        }
 
     def create(self, data):
         pass
