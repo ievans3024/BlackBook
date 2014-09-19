@@ -62,25 +62,22 @@ class Database(object):
                 for email in self.emails:
                     emails[email.email_type] = email.email
 
+                opts = {
+                    'first_name': self.first_name,
+                    'last_name': self.last_name,
+                    'phone_numbers': [phone_number.__dict__ for phone_number in self.phone_numbers]
+                }
+                
                 if not short:
-                    opts = {
-                        'first_name': self.first_name,
-                        'last_name': self.last_name,
+                    opts = dict(opts, **{
                         'emails': [email.__dict__ for email in self.emails],
-                        'phone_numbers': [phone_number.__dict__ for phone_number in self.phone_numbers],
                         'address_line_1': self.address_line1,
                         'address_line_2': self.address_line2,
                         'city': self.city,
                         'state': self.state,
                         'zip_code': self.zip_code,
                         'country': self.country
-                    }
-                else:
-                    opts = {
-                        'first_name': self.first_name,
-                        'last_name': self.last_name,
-                        'phone_numbers': [phone_number.__dict__ for phone_number in self.phone_numbers]
-                    }
+                    })
 
                 collection = CollectionPlusJSONItem('/api/entry/%d/' % self.id, **opts)
 
