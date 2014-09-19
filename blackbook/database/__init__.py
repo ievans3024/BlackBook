@@ -44,7 +44,7 @@ class Database(object):
                     'country': ''
                 }
 
-                collection = CollectionPlusJSONItem('', **opts)
+                collection = CollectionPlusJSONItem(uri='', **opts)
 
                 return collection.get_dict()
 
@@ -79,7 +79,7 @@ class Database(object):
                         'country': self.country
                     })
 
-                collection = CollectionPlusJSONItem('/api/entry/%d/' % self.id, **opts)
+                collection = CollectionPlusJSONItem(uri='/api/entry/%d/' % self.id, **opts)
 
                 return collection.__dict__
 
