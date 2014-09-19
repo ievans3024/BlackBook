@@ -46,7 +46,7 @@ class Database(object):
 
                 collection = CollectionPlusJSONItem(uri='', **opts)
 
-                return collection.get_dict()
+                return collection
 
             def get_collection_object(self, short=False):
                 """
@@ -81,7 +81,7 @@ class Database(object):
 
                 collection = CollectionPlusJSONItem(uri='/api/entry/%d/' % self.id, **opts)
 
-                return collection.__dict__
+                return collection
 
         class Email(object):
 
