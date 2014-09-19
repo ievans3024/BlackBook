@@ -67,9 +67,9 @@ class Database(object):
                     'last_name': self.last_name,
                     'phone_numbers': [phone_number.__dict__ for phone_number in self.phone_numbers]
                 }
-                
+
                 if not short:
-                    opts = dict(opts, **{
+                    opts.update({
                         'emails': [email.__dict__ for email in self.emails],
                         'address_line_1': self.address_line1,
                         'address_line_2': self.address_line2,
