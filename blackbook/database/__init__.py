@@ -5,123 +5,171 @@ from blackbook.collection import CollectionPlusJSONItem
 
 class Database(object):
     """Database wrapper, base class"""
+     # TODO: Force usage of self.models['ModelName'] and make these private members?
+    class Person(object):
+        def __init__(self):
+            raise NotImplementedError()
+
+        def get_collection_object(self):
+            raise NotImplementedError()
+
+        @staticmethod
+        def get_collection_template():
+            """
+            Get object for template
+            Returns object ready for json
+            """
+            opts = {
+                'first_name': '',
+                'last_name': '',
+                'emails': [{'email_type': '', 'email': ''}],
+                'phone_numbers': [{'number_type': '', 'number': ''}],
+                'address_line_1': '',
+                'address_line_2': '',
+                'city': '',
+                'state': '',
+                'zip_code': '',
+                'country': ''
+            }
+
+            collection = CollectionPlusJSONItem(uri='', **opts)
+
+            return collection
+
+    class Email(object):
+        def __init__(self):
+            raise NotImplementedError()
+
+    class PhoneNumber(object):
+        def __init__(self):
+            raise NotImplementedError()
 
     def __init__(self, app):
-        """Constructor for Database"""
+        raise NotImplementedError()
 
-        class Person(object):
+    def create(self, data):
+        raise NotImplementedError()
 
-            def __init__(self, first_name, last_name, emails=[], phone_numbers=[],
-                         address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
+    def update(self, id, data):
+        raise NotImplementedError()
 
-                self.first_name = str(first_name)
-                self.last_name = str(last_name)
-                self.emails = emails
-                self.phone_numbers = phone_numbers
-                self.address_line1 = str(address_line1)
-                self.address_line2 = str(address_line2)
-                self.city = str(city)
-                self.state = str(state)
-                self.zip_code = str(zip_code)
-                self.country = str(country)
+    def read(self, id=None):
+        raise NotImplementedError()
 
-            @staticmethod
-            def get_collection_template():
-                """
-                Get object for template
-                Returns object ready for json
-                """
-                opts = {
-                    'first_name': '',
-                    'last_name': '',
-                    'emails': [{'email_type': '', 'email': ''}],
-                    'phone_numbers': [{'number_type': '', 'number': ''}],
-                    'address_line_1': '',
-                    'address_line_2': '',
-                    'city': '',
-                    'state': '',
-                    'zip_code': '',
-                    'country': ''
+    def delete(self, id):
+        raise NotImplementedError()
+
+    def search(self, data):
+        raise NotImplementedError()
+
+    def generate_test_db(self):
+        raise NotImplementedError()
+
+
+class FlatDatabase(Database):
+    """A Basic Database that operates in memory and stores as json in user-configurable directory"""
+    class Person(Database.Person):
+
+        def __init__(self, first_name, last_name, emails=[], phone_numbers=[],
+                     address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
+
+            if type(emails) != list:
+                raise TypeError('emails must be a list')
+            if type(phone_numbers) != list:
+                raise TypeError('phone_numbers must be a list')
+
+            for email in emails:
+                if not isinstance(email, FlatDatabase.Email):
+                    raise TypeError('emails must contain instances of Database().models["Email"]')
+
+            for phone_number in phone_numbers:
+                if not isinstance(phone_number, FlatDatabase.PhoneNumber):
+                    raise TypeError('phone_numbers must contain instances of Database().models["PhoneNumber"]')
+
+            self.first_name = str(first_name)
+            self.last_name = str(last_name)
+            self.emails = emails
+            self.phone_numbers = phone_numbers
+            self.address_line1 = str(address_line1)
+            self.address_line2 = str(address_line2)
+            self.city = str(city)
+            self.state = str(state)
+            self.zip_code = str(zip_code)
+            self.country = str(country)
+
+        def get_collection_object(self, short=False):
+            """
+            Get object for json parsing
+            Returns object ready for json
+            """
+            phone_numbers = [
+                {
+                    'number_type': phone_number.number_type,
+                    'number': phone_number.number
                 }
+                for phone_number in self.phone_numbers
+            ]
 
-                collection = CollectionPlusJSONItem(uri='', **opts)
-
-                return collection
-
-            def get_collection_object(self, short=False):
-                """
-                Get object for json parsing
-                Returns object ready for json
-                """
-                phone_numbers = {}
-                emails = {}
-
-                for number in self.phone_numbers:
-                    phone_numbers[number.number_type] = number.number
-
-                for email in self.emails:
-                    emails[email.email_type] = email.email
-
+            if not short:
                 opts = {
                     'first_name': self.first_name,
                     'last_name': self.last_name,
-                    'phone_numbers': [phone_number.__dict__ for phone_number in self.phone_numbers]
+                    'emails': [{'email_type': email.email_type, 'email': email.email} for email in self.emails],
+                    'phone_numbers': phone_numbers,
+                    'address_line_1': self.address_line1,
+                    'address_line_2': self.address_line2,
+                    'city': self.city,
+                    'state': self.state,
+                    'zip_code': self.zip_code,
+                    'country': self.country
+                }
+            else:
+                opts = {
+                    'first_name': self.first_name,
+                    'last_name': self.last_name,
+                    'phone_numbers': phone_numbers
                 }
 
-                if not short:
-                    opts.update({
-                        'emails': [email.__dict__ for email in self.emails],
-                        'address_line_1': self.address_line1,
-                        'address_line_2': self.address_line2,
-                        'city': self.city,
-                        'state': self.state,
-                        'zip_code': self.zip_code,
-                        'country': self.country
-                    })
+            collection = CollectionPlusJSONItem(uri='/api/entry/%d/' % self.id, **opts)
 
-                collection = CollectionPlusJSONItem(uri='/api/entry/%d/' % self.id, **opts)
+            return collection
 
-                return collection
+    class Email(Database.Email):
+        def __init__(self, email_type, email):
+            self.email_type = email_type
+            self.email = email
 
-        class Email(object):
+    class PhoneNumber(Database.PhoneNumber):
+        def __init__(self, number_type, number):
+            self.number_type = number_type
+            self.number = number
 
-            def __init__(self, email_type, email):
-
-                self.email_type = email_type
-                self.email = email
-
-        class PhoneNumber(object):
-
-            def __init__(self, number_type, number):
-
-                self.number_type = number_type
-                self.number = number
-
+    def __init__(self, app):
         self.app = app
         self.database = {}
         self.models = {
-            'Person': Person,
-            'Email': Email,
-            'PhoneNumber': PhoneNumber
+            'Person': FlatDatabase.Person,
+            'Email': FlatDatabase.Email,
+            'PhoneNumber': FlatDatabase.PhoneNumber
         }
 
     def create(self, data):
-        pass
+        raise NotImplementedError()
 
     def update(self, id, data):
-        pass
+        raise NotImplementedError()
 
     def read(self, id=None):
-        pass
+        raise NotImplementedError()
 
     def delete(self, id):
-        pass
+        raise NotImplementedError()
 
     def search(self, data):
-        pass
+        raise NotImplementedError()
 
     def generate_test_db(self):
-        pass
+        raise NotImplementedError()
 
 test_first_names = [
     'Alex', 'Andrea', 'Bryce', 'Brianna', 'Cole', 'Cathy', 'Derek', 'Danielle', 'Eric', 'Edith', 'Fred', 'Felicia',

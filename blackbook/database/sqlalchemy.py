@@ -68,29 +68,28 @@ class SQLAlchemyDatabase(Database):
                     'country': ''
                 }
 
-                collection = CollectionPlusJSONItem('', **opts)
+                collection = CollectionPlusJSONItem(uri='', **opts)
 
-                return collection.get_dict()
+                return collection
 
             def get_collection_object(self, short=False):
                 """
                 Get object for json parsing
                 Returns object ready for json
                 """
-                phone_numbers = {}
-                emails = {}
-
-                for number in self.phone_numbers:
-                    phone_numbers[number.number_type] = number.number
-
-                for email in self.emails:
-                    emails[email.email_type] = email.email
+                phone_numbers = [
+                    {
+                        'number_type': phone_number.number_type,
+                        'number': phone_number.number
+                    }
+                    for phone_number in self.phone_numbers
+                ]
 
                 if not short:
                     opts = {
                         'first_name': self.first_name,
                         'last_name': self.last_name,
-                        'emails': emails,
+                        'emails': [{'email_type': email.email_type, 'email': email.email} for email in self.emails],
                         'phone_numbers': phone_numbers,
                         'address_line_1': self.address_line1,
                         'address_line_2': self.address_line2,
@@ -106,9 +105,9 @@ class SQLAlchemyDatabase(Database):
                         'phone_numbers': phone_numbers
                     }
 
-                collection = CollectionPlusJSONItem('/api/entry/%d/' % self.id, **opts)
+                collection = CollectionPlusJSONItem(uri='/api/entry/%d/' % self.id, **opts)
 
-                return collection.get_dict()
+                return collection
 
         class Email(db.Model):
             id = db.Column(db.Integer, primary_key=True)
