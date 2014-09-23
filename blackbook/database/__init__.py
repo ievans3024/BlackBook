@@ -1,6 +1,6 @@
 __author__ = 'ievans3024'
 
-from blackbook.collection import CollectionPlusJSONItem
+from blackbook.collection import CollectionPlusJSON, CollectionPlusJSONItem
 
 
 class Database(object):
@@ -70,9 +70,13 @@ class FlatDatabase(Database):
     """A Basic Database that operates in memory and stores as json in user-configurable directory"""
     class Person(Database.Person):
 
-        def __init__(self, first_name, last_name, emails=[], phone_numbers=[],
+        def __init__(self, id, first_name, last_name, emails=[], phone_numbers=[],
                      address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
 
+            try:
+                self.id = abs(int(id))
+            except (TypeError, ValueError) as e:
+                raise e
             if type(emails) != list:
                 raise TypeError('emails must be a list')
             if type(phone_numbers) != list:
@@ -154,16 +158,43 @@ class FlatDatabase(Database):
         }
 
     def create(self, data):
-        raise NotImplementedError()
+        """Creates a person"""
+        # TODO: Unpack data and supply correctly to Person.__init__()
+        person = self.models['Person'](**data)
+        if not self.database:
+            self.database[0] = person
+        response_object = CollectionPlusJSON(href=person.get_collection_object().get('href'))
+        return response_object
 
     def update(self, id, data):
         raise NotImplementedError()
 
     def read(self, id=None):
-        raise NotImplementedError()
+        person = self.database.get(id)
+        if person:
+            response_object = CollectionPlusJSON(href=person.get_collection_object().get('href'))
+        else:
+            response_object = CollectionPlusJSON()  # TODO: common responses as constants?
+            response_object['error'] = {
+                'title': 'Not Found',
+                'code': '404',
+                'message': 'There is no Person with that id in the database.'
+            }
+        return response_object
 
     def delete(self, id):
-        raise NotImplementedError()
+        person = self.database.get(id)
+        if person:
+            del self.database[id]
+        else:
+            response_object = CollectionPlusJSON()
+            response_object['error'] = {
+                'title': 'Not Found',
+                'code': '404',
+                'message': 'There is no Person with that id in the database.'
+            }
+        return response_object
+
 
     def search(self, data):
         raise NotImplementedError()

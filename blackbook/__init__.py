@@ -5,6 +5,8 @@ from collection import CollectionPlusJSON, COLLECTION_JSON
 from flask import Flask, render_template, request, abort, Response
 
 
+# TODO: Learn how to use global object (g)
+
 app = Flask(__name__)
 
 app.config.from_pyfile('config.py', silent=True)

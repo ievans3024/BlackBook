@@ -141,15 +141,10 @@ class SQLAlchemyDatabase(Database):
 
     def create(self, data):
         """Creates a new person"""
-
         person = self.models['Person']()
-
         self.database.session.add(person)
-
         self.database.session.commit()
-
         response_object = CollectionPlusJSON(href=person.get_collection_object().get('href'))
-
         return response_object
 
     def update(self, id, data):
@@ -157,42 +152,25 @@ class SQLAlchemyDatabase(Database):
 
     def read(self, id=None, page=1, per_page=5, endpoint_uri='/api/'):
         """Reads a person by id, fetches paginated list if id is not provided"""
-
         response_object = CollectionPlusJSON(href=endpoint_uri)
-
         if id is None:
-
             people = self.models['Person'].query.order_by(self.models['Person'].last_name)
-
             for person in people:
-
                 response_object.append_item(person.get_collection_object(short=True))
-
             response_object.paginate(page=page, per_page=per_page)
-
         else:
-
             person = self.models['Person'].query.get_or_404(id)
-
             response_object.append_item(person.get_collection_object())
-
         return response_object
 
     def delete(self, id):
         """Deletes person by id"""
-
         person = self.models['Person'].query.get_or_404(id)
-
         for email in person.emails:
-
             self.database.session.delete(email)
-
         for phone_number in person.phone_numbers:
-
             self.database.session.delete(phone_number)
-
         self.database.session.delete(person)
-
         self.database.session.commit()
 
     def search(self, data):
