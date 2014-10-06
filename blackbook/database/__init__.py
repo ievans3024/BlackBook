@@ -5,7 +5,16 @@ from blackbook.collection import CollectionPlusJSON, CollectionPlusJSONItem
 
 class Database(object):
     """Database wrapper, base class"""
-     # TODO: Force usage of self.models['ModelName'] and make these private members?
+
+    HTTP_404 = CollectionPlusJSON(
+        error={
+            'title': 'Not Found',
+            'code': '404',
+            'message': 'There is no Person with that id in the database.'
+        }
+    )
+
+    # TODO: Force usage of self.models['ModelName'] and make these private members?
     class Person(object):
         def __init__(self):
             raise NotImplementedError()
@@ -174,12 +183,7 @@ class FlatDatabase(Database):
         if person:
             response_object = CollectionPlusJSON(href=person.get_collection_object().get('href'))
         else:
-            response_object = CollectionPlusJSON()  # TODO: common responses as constants?
-            response_object['error'] = {
-                'title': 'Not Found',
-                'code': '404',
-                'message': 'There is no Person with that id in the database.'
-            }
+            response_object = Database.HTTP_404
         return response_object
 
     def delete(self, id):
@@ -187,12 +191,7 @@ class FlatDatabase(Database):
         if person:
             del self.database[id]
         else:
-            response_object = CollectionPlusJSON()
-            response_object['error'] = {
-                'title': 'Not Found',
-                'code': '404',
-                'message': 'There is no Person with that id in the database.'
-            }
+            response_object = Database.HTTP_404
         return response_object
 
 

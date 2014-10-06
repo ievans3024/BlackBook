@@ -67,14 +67,9 @@ class CollectionPlusJSON(dict):
     def __getitem__(self, key):
         return self.collection[key]
 
-    def __init__(self, version=1.0, href='/api/'):
-        # TODO: accept params to specify in collection?
-        self.collection = {
-            'version': str(version),
-            'href': href,
-            'items': [],
-            'links': [],
-            'queries': [
+    def __init__(
+            self, version=1.0, href='/api/', items=[], links=[], error={},
+            queries=[
                 {
                     'href': '/api/search/',
                     'rel': 'search',
@@ -82,10 +77,19 @@ class CollectionPlusJSON(dict):
                     'data': [{'name': 'query', 'value': ''}]
                 }
             ],
-            'template': {
+            template={
                 'data': []
-            },
-            'error': {}
+            }
+    ):
+        # TODO: accept params to specify in collection?
+        self.collection = {
+            'version': str(version),
+            'href': href,
+            'items': items,
+            'links': links,
+            'queries': queries,
+            'template': template,
+            'error': error
         }
         super(CollectionPlusJSON, self).__init__(collection=self.collection)
 
