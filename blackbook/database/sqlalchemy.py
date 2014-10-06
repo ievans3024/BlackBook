@@ -150,9 +150,9 @@ class SQLAlchemyDatabase(Database):
     def update(self, id, data):
         pass
 
-    def read(self, id=None, page=1, per_page=5, endpoint_uri='/api/'):
+    def read(self, id=None, page=1, per_page=5):
         """Reads a person by id, fetches paginated list if id is not provided"""
-        response_object = CollectionPlusJSON(href=endpoint_uri)
+        response_object = CollectionPlusJSON()
         if id is None:
             people = self.models['Person'].query.order_by(self.models['Person'].last_name)
             for person in people:

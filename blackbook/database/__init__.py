@@ -178,12 +178,18 @@ class FlatDatabase(Database):
     def update(self, id, data):
         raise NotImplementedError()
 
-    def read(self, id=None):
-        person = self.database.get(id)
-        if person:
-            response_object = CollectionPlusJSON(href=person.get_collection_object().get('href'))
+    def read(self, id=None, page=1, per_page=5):
+        response_object = CollectionPlusJSON()
+        if id is None:
+            items = sorted(self.database)[((page - 1) * per_page):(page * per_page)]
+            for key in items:
+                response_object.append_item(self.database[key].get_collection_object(short=True))
         else:
-            response_object = Database.HTTP_404
+            person = self.database.get(id)
+            if person:
+                response_object.append_item(person.get_collection_object())
+            else:
+                response_object = Database.HTTP_404
         return response_object
 
     def delete(self, id):
