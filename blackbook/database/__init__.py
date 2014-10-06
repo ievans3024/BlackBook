@@ -4,15 +4,26 @@ from blackbook.collection import CollectionPlusJSON, CollectionPlusJSONItem
 
 
 class Database(object):
-    """Database wrapper, base class"""
+    """
+A base class for database wrappers.
 
-    HTTP_404 = CollectionPlusJSON(
-        error={
-            'title': 'Not Found',
-            'code': '404',
-            'message': 'There is no Person with that id in the database.'
-        }
-    )
+    Consider this class to be a skeleton to model database wrappers from. Docstrings in this class provide helpful
+    information for writing subclasses that will behave in a consistent way for the flask app to interface with.
+
+    This system allows developers to abstract away quirks for their particular database interface without having to
+    heavily modify the application logic directly. This also allows the application to be easily extended to support
+    more database types as it is developed.
+    """
+
+    HTTP_ERRORS = {
+        404: CollectionPlusJSON(
+            error={
+                'title': 'Not Found',
+                'code': '404',
+                'message': 'There is no Person with that id in the database.'
+            }
+        )
+    }
 
     # TODO: Force usage of self.models['ModelName'] and make these private members?
     class Person(object):
@@ -54,15 +65,52 @@ class Database(object):
             raise NotImplementedError()
 
     def __init__(self, app):
+        """
+Database constructor
+    Subclasses implementing this should create the following:
+
+    self.app (from app argument)
+    self.database
+    self.models (a dict where keys are model names as strings and values are model classes)
+        """
         raise NotImplementedError()
 
     def create(self, data):
+        """
+Creates a Person entry in the database
+
+    Argument "data" should contain a copy of the dict returned by Database.Person.get_collection_template()
+    with values filled out appropriately. Implementations should assume that the data will come in this format
+    (see Database.Person.get_collection_template)
+
+    Implementations should return the created Person represented as a CollectionPlusJSON instance.
+        """
         raise NotImplementedError()
 
     def update(self, id, data):
+        """
+Modifies an existing Person entry in the database
+
+    Argument "id" should match the id of the database entry (implementations should determine how to find and compare
+    these values.)
+
+    Argument "data" should contain a copy of the dict returned by Database.Person.get_collection_template() with values
+    filled out appropriately. Implementations should assume that the data will come in this format
+    (see Database.Person.get_collection_template)
+
+    Implementations should return the updated Person represented as a CollectionPlusJSON instance.
+        """
         raise NotImplementedError()
 
-    def read(self, id=None):
+    def read(self, id=None, page=1, per_page=5):
+        """
+Reads an entry from the database by id, returns a paginated listing of all entries where id is not provided.
+
+    Implementations should return the Person entry represented as a CollectionPlusJSON instance when id is provided.
+
+    Implementations should return a CollectionPlusJSON instance containing all existing Person entries, using the
+    instance's paginate() method, passing page and per_page arguments to it appropriately.
+        """
         raise NotImplementedError()
 
     def delete(self, id):
@@ -174,7 +222,13 @@ class FlatDatabase(Database):
         return response_object
 
     def update(self, id, data):
-        raise NotImplementedError()
+        person = self.database.get(id)
+        if person:
+            # TODO: Unpack data and write changes to person, create response object containing new data
+            pass
+        else:
+            response_object = Database.HTTP_ERRORS[404]
+        return response_object
 
     def read(self, id=None, page=1, per_page=5):
         response_object = CollectionPlusJSON()
@@ -187,7 +241,7 @@ class FlatDatabase(Database):
             if person:
                 response_object.append_item(person.get_collection_object())
             else:
-                response_object = Database.HTTP_404
+                response_object = Database.HTTP_ERRORS[404]
         return response_object
 
     def delete(self, id):
