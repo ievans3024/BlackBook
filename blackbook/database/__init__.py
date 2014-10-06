@@ -27,17 +27,37 @@ A base class for database wrappers.
 
     # TODO: Force usage of self.models['ModelName'] and make these private members?
     class Person(object):
-        def __init__(self):
+        def __init__(self, id, first_name, last_name, emails=[], phone_numbers=[],
+                     address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
+            """
+            Person constructor
+            :param id: The id to assign this Person
+            :param first_name: This Person's first name.
+            :param last_name: This Person's last name.
+            :param emails: A list of this Person's emails as Email instances (optional)
+            :param phone_numbers: A list of this Person's phone numbers as PhoneNumber instances (optional)
+            :param address_line1: The first line of this Person's physical address (optional)
+            :param address_line2: The second line of this Person's physical address (optional)
+            :param city: The city this Person is located in (optional)
+            :param state: The state this Person is located in (optional)
+            :param zip_code: The zip code this Person is located in (optional)
+            :param country: The country this Person is located in (optional)
+            :return:
+            """
             raise NotImplementedError()
 
         def get_collection_object(self):
+            """
+            Get the CollectionPlusJSON representation of this Person.
+            :return: This Person, represented as a CollectionPlusJSON instance.
+            """
             raise NotImplementedError()
 
         @staticmethod
         def get_collection_template():
             """
-            Get object for template
-            Returns object ready for json
+            Get the empty template for ReSTful API usage.
+            :return: A template for Person data represented as a CollectionPlusJSONItem instance.
             """
             opts = {
                 'first_name': '',
@@ -57,69 +77,86 @@ A base class for database wrappers.
             return collection
 
     class Email(object):
-        def __init__(self):
+        def __init__(self, email_type, email):
+            """
+            Email constructor
+            :param email_type: The classification of this Email (e.g., "home", "work", etc.)
+            :param email: The email address that this Email represents
+            :return:
+            """
             raise NotImplementedError()
 
     class PhoneNumber(object):
-        def __init__(self):
+        def __init__(self, number_type, number):
+            """
+            PhoneNumber constructor
+            :param number_type: The classification of this PhoneNumber (e.g., "home", "work", etc.)
+            :param number: The phone number that this PhoneNumber represents
+            :return:
+            """
             raise NotImplementedError()
 
     def __init__(self, app):
         """
-Database constructor
-    Subclasses implementing this should create the following:
-
-    self.app (from app argument)
-    self.database
-    self.models (a dict where keys are model names as strings and values are model classes)
+        Database wrapper constructor
+        Implementations should create self.app (containing "app" param,) self.database, and self.models
+        :param app: An instance of Flask
+        :return:
         """
         raise NotImplementedError()
 
     def create(self, data):
         """
-Creates a Person entry in the database
-
-    Argument "data" should contain a copy of the dict returned by Database.Person.get_collection_template()
-    with values filled out appropriately. Implementations should assume that the data will come in this format
-    (see Database.Person.get_collection_template)
-
-    Implementations should return the created Person represented as a CollectionPlusJSON instance.
+        Create a new Person entry
+        :param data: A dict containing data for the new Person entry. See Database.Person.get_collection_template
+        :return: The Person entry created, represented as a CollectionPlusJSON instance.
         """
         raise NotImplementedError()
 
     def update(self, id, data):
         """
-Modifies an existing Person entry in the database
-
-    Argument "id" should match the id of the database entry (implementations should determine how to find and compare
-    these values.)
-
-    Argument "data" should contain a copy of the dict returned by Database.Person.get_collection_template() with values
-    filled out appropriately. Implementations should assume that the data will come in this format
-    (see Database.Person.get_collection_template)
-
-    Implementations should return the updated Person represented as a CollectionPlusJSON instance.
+        Update an existing Person entry
+        Implementations should return Database.HTTP_ERRORS[404] if Person with id does not exist.
+        :param id: The id of the existing person entry to update.
+        :param data: A dict containing data to update the Person entry with. See Database.Person.get_collection_template
+        :return: The Person entry updated, represented as a CollectionPlusJSON instance.
         """
         raise NotImplementedError()
 
     def read(self, id=None, page=1, per_page=5):
         """
-Reads an entry from the database by id, returns a paginated listing of all entries where id is not provided.
-
-    Implementations should return the Person entry represented as a CollectionPlusJSON instance when id is provided.
-
-    Implementations should return a CollectionPlusJSON instance containing all existing Person entries, using the
-    instance's paginate() method, passing page and per_page arguments to it appropriately.
+        Read an existing Person entry, or read paginated list of all Person entries
+        Implementations should use CollectionPlusJSON.paginate to paginate the list of Person entries
+        :param id: The id of the existing person entry to read. (optional, default is None)
+        :param page: The page of the paginated listing to get. (optional, default is 1, ignored if id is provided)
+        :param per_page: The number of entries to list per page. (optional, default is 5, ignored if id is provided)
+        :return: CollectionPlusJSON instance representing the Person or list of Person entries.
         """
         raise NotImplementedError()
 
     def delete(self, id):
+        """
+        Delete an existing Person entry
+        :param id: The id of the existing Person entry to delete
+        :return: The Person that was deleted, represented as a CollectionPlusJSON instance
+        """
         raise NotImplementedError()
 
     def search(self, data):
+        """
+        Search the database records for certain criteria
+        :param data: A dict containing query data. This should match the format of CollectionPlusJSON "queries" section.
+        :return: The matching entries represented as a CollectionPlusJSON instance.
+        """
         raise NotImplementedError()
 
     def generate_test_db(self):
+        """
+        Generate test data to demonstrate or test the application.
+        This method should create a separate, temporary database, instead of overwriting production data.
+        :raises: RunTimeError if app config key 'TESTING' does not have a value of True.
+        :return:
+        """
         raise NotImplementedError()
 
 
@@ -251,7 +288,6 @@ class FlatDatabase(Database):
         else:
             response_object = Database.HTTP_404
         return response_object
-
 
     def search(self, data):
         raise NotImplementedError()
