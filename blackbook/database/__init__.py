@@ -82,10 +82,8 @@ class FlatDatabase(Database):
         def __init__(self, id, first_name, last_name, emails=[], phone_numbers=[],
                      address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
 
-            try:
-                self.id = abs(int(id))
-            except (TypeError, ValueError) as e:
-                raise e
+            self.id = abs(int(id))
+
             if type(emails) != list:
                 raise TypeError('emails must be a list')
             if type(phone_numbers) != list:
@@ -181,9 +179,9 @@ class FlatDatabase(Database):
     def read(self, id=None, page=1, per_page=5):
         response_object = CollectionPlusJSON()
         if id is None:
-            items = sorted(self.database)[((page - 1) * per_page):(page * per_page)]
-            for key in items:
-                response_object.append_item(self.database[key].get_collection_object(short=True))
+            for k, v in self.database.items():
+                response_object.append_item(v.get_collection_object(short=True))
+            response_object.paginate(page=page, per_page=per_page)
         else:
             person = self.database.get(id)
             if person:
