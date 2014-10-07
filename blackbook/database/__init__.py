@@ -251,18 +251,41 @@ class FlatDatabase(Database):
 
     def create(self, data):
         """Creates a person"""
-        # TODO: Unpack data and supply correctly to Person.__init__()
-        person = self.models['Person'](**data)
+        try:
+            id = sorted(self.database)[-1] + 1
+        except IndexError:
+            id = 0
+
+        fname = data.get('first_name')
+        lname = data.get('last_name')
+
+        del data['first_name']
+        del data['last_name']
+
+        person = self.models['Person'](id, fname, lname, **data)
         if not self.database:
             self.database[0] = person
-        response_object = CollectionPlusJSON(href=person.get_collection_object().get('href'))
+
+        response_object = CollectionPlusJSON()
+        response_object.append_item(person.get_collection_object())
+
         return response_object
 
     def update(self, id, data):
         person = self.database.get(id)
         if person:
-            # TODO: Unpack data and write changes to person, create response object containing new data
-            pass
+            updated = dict(person.get_collection_object().__dict__, **data)
+            fname = updated.get('first_name')
+            lname = updated.get('last_name')
+
+            del updated['first_name']
+            del updated['last_name']
+
+            person = self.models['Person'](id, fname, lname, **updated)
+            self.database[id] = person
+
+            response_object = CollectionPlusJSON()
+            response_object.append_item(person.get_collection_object())
         else:
             response_object = Database.HTTP_ERRORS[404]
         return response_object
