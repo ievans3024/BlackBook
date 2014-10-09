@@ -92,6 +92,10 @@ class FlatDatabase(Database):
             'PhoneNumber': FlatDatabase.PhoneNumber
         }
         try:
+            FileNotFoundError
+        except NameError:
+            FileNotFoundError = IOError  # python2/3 compatibility hack -- for open() errors -- better way to do this?
+        try:
             self.__reload_db_file()
         except TypeError:
             raise RuntimeError('Database file not specified in config option FLAT_DATABASE_FILE')
