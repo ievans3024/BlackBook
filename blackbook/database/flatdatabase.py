@@ -173,7 +173,7 @@ class FlatDatabase(Database):
         return response_object
 
     def search(self, data):
-        raise NotImplementedError()
+        pass
 
     def generate_test_db(self):
         """Generates a test/sample database. Uses sqlite in a temp directory"""
