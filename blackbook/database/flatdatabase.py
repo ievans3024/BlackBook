@@ -95,7 +95,7 @@ class FlatDatabase(Database):
             self.__reload_db_file()
         except TypeError:
             raise RuntimeError('Database file not specified in config option FLAT_DATABASE_FILE')
-        except IOError, FileNotFoundError:
+        except (IOError, FileNotFoundError):
             self.database = {}
             self.__write_db_file()
 
