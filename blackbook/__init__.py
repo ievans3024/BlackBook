@@ -12,7 +12,10 @@ app = Flask(__name__)
 app.config.from_pyfile('config.py', silent=True)
 
 # this import needs db to exist first
-if app.config.get('DATABASE_HANDLER') in ('sqlite', 'mysql', 'postgresql'):
+if (not app.config.get('DATABASE_HANDLER')) or (app.config.get('DATABASE_HANDLER') == 'flatfile'):
+    from blackbook.database.flatdatabase import FlatDatabase
+    db = FlatDatabase(app)
+elif app.config.get('DATABASE_HANDLER') in ('sqlite', 'mysql', 'postgresql'):
     from blackbook.database.sqlalchemy import SQLAlchemyDatabase
     db = SQLAlchemyDatabase(app)
 
