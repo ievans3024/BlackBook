@@ -48,15 +48,13 @@ def api_doc():
 
 @app.route('/api/entry/', methods=['GET', 'POST'])
 def api_entries():
-    api_href = '/api/entry/'
     if not request_accepts(COLLECTION_JSON):
         abort(406)
     if request.method == 'GET':
         # return paginated contact info
         response_object = db.read(
             page=request.args.get('page') or 1,
-            per_page=request.args.get('per_page') or 5,
-            endpoint_uri=api_href
+            per_page=request.args.get('per_page') or 5
         )
         return Response(str(response_object), mimetype=response_object.mimetype)
     else:
@@ -74,7 +72,6 @@ def api_entries():
 @app.route('/api/entry/<int:person_id>/', methods=['GET', 'DELETE', 'PATCH'])
 def api_entry(person_id=None):
     if isinstance(person_id, int):
-        api_href = '/api/entry/%d' % person_id
         if not request_accepts(COLLECTION_JSON):
             abort(406)
         else:
@@ -83,8 +80,7 @@ def api_entry(person_id=None):
                 response_object = db.read(
                     id=person_id,
                     page=request.args.get('page') or 1,
-                    per_page=request.args.get('per_page') or 5,
-                    endpoint_uri=api_href
+                    per_page=request.args.get('per_page') or 5
                 )
                 return Response(str(response_object), mimetype=response_object.mimetype)
             elif request.method == 'DELETE':
