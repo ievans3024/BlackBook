@@ -105,7 +105,8 @@ def api_entry(person_id=None):
 
 @app.route('/api/search/')
 def api_search():
-    pass
+    # Coming soon!
+    abort(501)
 
 
 if __name__ == '__main__':
