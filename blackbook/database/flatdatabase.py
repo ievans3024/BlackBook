@@ -176,4 +176,54 @@ class FlatDatabase(Database):
         raise NotImplementedError()
 
     def generate_test_db(self):
-        raise NotImplementedError()
+        """Generates a test/sample database. Uses sqlite in a temp directory"""
+        if not self.app.config.get('TESTING'):
+            raise RuntimeError('App config must have TESTING option set to True.')
+
+        from os import mkdir
+        from os.path import join, isdir
+        from random import choice
+        from tempfile import gettempdir
+        from blackbook.database import test_address_line1s, test_address_line2s, test_cities, test_first_names, \
+            test_last_names, test_phone_numbers, test_states, test_zipcodes
+
+        tempdir = join(gettempdir(), 'blackbook')
+
+        if not isdir(tempdir):
+            mkdir(tempdir)
+
+        self.app.config['FLAT_DATABASE_FILE'] = '{0}'.format(
+            join(tempdir, 'test.json').replace('\\', '\\')  # windows paths need two backslashes
+        )
+
+        id = 0
+
+        while test_first_names and test_last_names:
+            name = test_first_names.pop(test_first_names.index(choice(test_first_names)))
+            surname = test_last_names.pop(test_last_names.index(choice(test_last_names)))
+            person = self.models['Person'](
+                id, name, surname,
+                emails=[
+                   self.models['Email']('primary', '{first}.{last}@example.com'.format(
+                       first=name.lower(), last=surname.lower()
+                   ))
+                ],
+                phone_numbers=[
+                   self.models['PhoneNumber']('primary', '1-555-555-{0}'.format(
+                       test_phone_numbers.pop(
+                           test_phone_numbers.index(choice(test_phone_numbers))
+                       )
+                   ))
+                ],
+                address_line1=test_address_line1s.pop(
+                   test_address_line1s.index(choice(test_address_line1s))
+                ),
+                address_line2=test_address_line2s.pop(
+                   test_address_line2s.index(choice(test_address_line2s))
+                ),
+                city=choice(test_cities),
+                state=choice(test_states),
+                zip_code=choice(test_zipcodes)
+            )
+            self.database[id] = person
+            id += 1
