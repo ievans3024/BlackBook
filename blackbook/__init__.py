@@ -60,13 +60,9 @@ def api_entries():
     else:
         if request.mimetype != COLLECTION_JSON:
             abort(415)
-        try:
-            # TODO: Form validation
-            created_entry = db.create(request.data)
-        except Exception as e:
-            raise e
-        else:
-            return Response(str(created_entry), mimetype=created_entry.mimetype), 201
+        # TODO: Form validation
+        created_entry = db.create(request.data)
+        return Response(str(created_entry), mimetype=created_entry.mimetype), 201
 
 
 @app.route('/api/entry/<int:person_id>/', methods=['GET', 'DELETE', 'PATCH'])

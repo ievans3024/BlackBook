@@ -31,6 +31,7 @@ angular.module('BlackBook.controllers', []).controller(
     // TODO: Create separate controllers for featured contact, pagination, contact list, and create/edit/delete
 
         var extractCollectionItems = function (response) {
+            console.log(response.data);
             var data = [],
             data_items = response.data.collection.items,
             data_count = data_items.length;
@@ -65,18 +66,18 @@ angular.module('BlackBook.controllers', []).controller(
 
         $scope.getContact = function(href) {
             contactsService.get(href).then(
-            function(response) {
-                $scope.selectedContact = extractCollectionItems(response);
-            }
+                function(response) {
+                    $scope.selectedContact = extractCollectionItems(response);
+                }
             );
         };
 
         $scope.getContactList = function (href) {
             contactsService.get(href).then(
-            function(response) {
-                $scope.contactList = extractCollectionItems(response);
-                $scope.listNavigation = response.data.collection.links;
-            }
+                function(response) {
+                    $scope.contactList = extractCollectionItems(response);
+                    $scope.listNavigation = response.data.collection.links;
+                }
             );
         }
 
@@ -86,11 +87,11 @@ angular.module('BlackBook.controllers', []).controller(
 
         $scope.deleteContact = function (href) {
             contactsService.delete(href).then(
-            function (response) {
-                $scope.selectedContact = null;
-                $scope.deletedContact = null;
-                $scope.refreshList();
-            }
+                function (response) {
+                    $scope.selectedContact = null;
+                    $scope.deletedContact = null;
+                    $scope.refreshList();
+                }
             );
         }
 

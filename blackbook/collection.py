@@ -97,7 +97,7 @@ class CollectionPlusJSON(dict):
         self.collection[key] = value
 
     def __str__(self):
-        return json.dumps(self.collection)
+        return json.dumps(self.__dict__)
 
     __repr__ = __str__
 
@@ -158,22 +158,22 @@ class CollectionPlusJSON(dict):
                 'Previous'
             )
 
-        if page - leading > 0:
-            self.append_link(
-                '',
-                'skip',
-                '&hellip;'
-            )
-
-        for lead_page in range(leading):
-            page_num = page - lead_page
-            if page_num > 0:
+            if page - leading > 0:
                 self.append_link(
-                    uri_template.format(endpoint_uri=self.collection.get('href'), page=page_num,
-                                        per_page=per_page),
-                    'more',
-                    str(page_num)
+                    '',
+                    'skip',
+                    '&hellip;'
                 )
+
+            for lead_page in range(leading):
+                page_num = page - lead_page
+                if page_num > 0:
+                    self.append_link(
+                        uri_template.format(endpoint_uri=self.collection.get('href'), page=page_num,
+                                            per_page=per_page),
+                        'more',
+                        str(page_num)
+                    )
 
         self.append_link(
             uri_template.format(endpoint_uri=self.collection.get('href'), page=page,
@@ -182,47 +182,48 @@ class CollectionPlusJSON(dict):
             str(page)
         )
 
-        for trail_page in range(trailing):
-            page_num = page + trail_page
-            if page_num < number_of_pages:
+        if page < number_of_pages:
+            for trail_page in range(1, trailing + 1):
+                page_num = page + trail_page
+                if page_num < number_of_pages:
+                    self.append_link(
+                        uri_template.format(endpoint_uri=self.collection.get('href'), page=page_num,
+                                            per_page=per_page),
+                        'more',
+                        str(page_num)
+                    )
+
+            if page + leading < number_of_pages:
                 self.append_link(
-                    uri_template.format(endpoint_uri=self.collection.get('href'), page=page_num,
-                                        per_page=per_page),
-                    'more',
-                    str(page_num)
+                    '',
+                    'skip',
+                    '&hellip;'
                 )
 
-        if page + leading < number_of_pages:
-            self.append_link(
-                '',
-                'skip',
-                '&hellip;'
-            )
+            if page < number_of_pages:
+                self.append_link(
+                    uri_template.format(endpoint_uri=self.collection.get('href'), page=page + 1,
+                                        per_page=per_page),
+                    'next',
+                    'Next'
+                )
 
-        if page < number_of_pages:
-            self.append_link(
-                uri_template.format(endpoint_uri=self.collection.get('href'), page=page + 1,
-                                    per_page=per_page),
-                'next',
-                'Next'
-            )
-
-            self.append_link(
-                uri_template.format(endpoint_uri=self.collection.get('href'), page=number_of_pages,
-                                    per_page=per_page),
-                'last',
-                'Last'
-            )
+                self.append_link(
+                    uri_template.format(endpoint_uri=self.collection.get('href'), page=number_of_pages,
+                                        per_page=per_page),
+                    'last',
+                    'Last'
+                )
 
     def remove_links(self, operator='and', **kwargs):
-        if operator == 'or':
+        if operator.lower() == 'or':
             if self.collection.get('links') is not None:
                 self.collection['links'] = [
                     link for link in self.collection.get('links') if not bool(
                         set(kwargs.items()).intersection(set(link.items()))
                     )
                 ]
-        elif operator == 'and':
+        elif operator.lower() == 'and':
             if self.collection.get('links') is not None:
                 self.collection['links'] = [
                     link for link in self.collection.get('links') if not all(
