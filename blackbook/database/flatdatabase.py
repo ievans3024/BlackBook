@@ -176,7 +176,7 @@ class FlatDatabase(Database):
         pass
 
     def generate_test_db(self):
-        """Generates a test/sample database. Uses sqlite in a temp directory"""
+        """Generates a test/sample database in a temp directory"""
         if not self.app.config.get('TESTING'):
             raise RuntimeError('App config must have TESTING option set to True.')
 
