@@ -56,11 +56,11 @@
                     <span class="country">[[selectedContact.country]]</span>
                     <div ng-if="selectedContact" class="phone-number">
                         <h4>Phone:</h4>
-                        <span class="phone-number" ng-repeat="number in selectedContact.phone_numbers">[[number]]</span>
+                        <span class="phone-number" ng-repeat="number in selectedContact.phone_numbers">[[number.number_type]]: [[number.number]]</span>
                     </div>
                     <div ng-if="selectedContact" class="email">
                         <h4>E-mail:</h4>
-                        <span class="email" ng-repeat="email in selectedContact.emails">[[email]]</span>
+                        <span class="email" ng-repeat="email in selectedContact.emails">[[email.email_type]]: [[email.email]]</span>
                     </div>
                 </div>
             </div>
@@ -85,7 +85,7 @@
                             <span class="glyphicon glyphicon-trash"></span>
                         </button>
                     </h3>
-                    <p class="phone">[[contact.phone_numbers.primary]]</p>
+                    <p ng-repeat="number in contact.phone_numbers" ng-if="number.number_type === 'primary'" class="phone">[[number.number]]</p>
                 </div>
             </div>
 {% endblock %}
