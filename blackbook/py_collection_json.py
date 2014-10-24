@@ -327,9 +327,9 @@ class CollectionPlusJSON(UserDict):
                         prompt='&hellip;'
                     ))
     
-                for lead_page in range(leading):
+                for lead_page in range(leading, 0, -1):
                     page_num = page - lead_page
-                    if page_num > 0:
+                    if page_num > 0 and page_num != page:
                         new_page.append_link(new_page.Link(
                             uri_template.format(endpoint_uri=endpoint, page=page_num, per_page=per_page),
                             'more',
