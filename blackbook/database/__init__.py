@@ -1,6 +1,6 @@
 __author__ = 'ievans3024'
 
-from blackbook.collection import CollectionPlusJSON, CollectionPlusJSONItem
+from blackbook.py_collection_json import CollectionPlusJSON
 
 
 class Database(object):
@@ -17,11 +17,7 @@ A base class for database wrappers.
 
     HTTP_ERRORS = {
         404: CollectionPlusJSON(
-            error={
-                'title': 'Not Found',
-                'code': '404',
-                'message': 'There is no Person with that id in the database.'
-            }
+            error=CollectionPlusJSON.Error("Not Found", "404", "There is no Person with that id in the database.")
         )
     }
 
@@ -101,7 +97,7 @@ A base class for database wrappers.
                 'country': ''
             }
 
-            collection = CollectionPlusJSONItem(uri='', **opts)
+            collection = CollectionPlusJSON.Item(uri='', **opts)
 
             return collection
 

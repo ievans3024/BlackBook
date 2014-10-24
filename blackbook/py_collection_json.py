@@ -101,8 +101,11 @@ class CollectionPlusJSON(UserDict):
                 for k, v in self.data.items():
                     to_append = {"name": k}
                     if hasattr(v, '__getitem__') and not isinstance(v, str):
-                        to_append["value"] = v[0]
-                        to_append["prompt"] = v[1]
+                        try:
+                            to_append["value"] = v[0]
+                            to_append["prompt"] = v[1]
+                        except IndexError:
+                            to_append["value"] = v
                     else:
                         to_append["value"] = v
                     data_list.append(to_append)

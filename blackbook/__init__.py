@@ -1,7 +1,7 @@
 __author__ = 'ievans3024'
 
-import flask_whooshalchemy as whooshalchemy
-from py_collection_json import CollectionPlusJSON, MIMETYPE as COLLECTION_JSON
+#import flask_whooshalchemy as whooshalchemy
+from blackbook.py_collection_json import CollectionPlusJSON, MIMETYPE as COLLECTION_JSON
 from flask import Flask, render_template, request, abort, Response
 
 
