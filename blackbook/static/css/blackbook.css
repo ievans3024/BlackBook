@@ -43,7 +43,7 @@ hr {
     float: right;
 }
 
-#current-entry > div > span {
+#current-entry >div >div >span {
     display: block;
     margin: 0 .25em;
     width: 100%;

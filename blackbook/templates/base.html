@@ -38,29 +38,31 @@
             <div id="current-entry" class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
                 {# TODO: Make edit form dialog, add edit button #}
                 <div>
-                    <h3 class="name">[[selectedContact.first_name]] [[selectedContact.last_name]]</h3>
-                    <div class="edit" ng-if="selectedContact">
-                        <button type="button" class="btn btn-xs btn-link">
-                            <span class="glyphicon glyphicon-pencil"></span> Edit
-                        </button>
-                        <button type="button" class="btn btn-xs btn-link" data-toggle="modal"
-                                data-target="#delete-confirm" ng-click="$parent.deletedContact = selectedContact">
-                            <span class="glyphicon glyphicon-trash"></span> Delete
-                        </button>
-                    </div>
-                    <span class="address-1">[[selectedContact.address_line_1]]</span>
-                    <span class="address-2">[[selectedContact.address_line_2]]</span>
-                    <span class="city">[[selectedContact.city]]</span>
-                    <span class="state">[[selectedContact.state]]</span>
-                    <span class="zip">[[selectedContact.zip]]</span>
-                    <span class="country">[[selectedContact.country]]</span>
-                    <div ng-if="selectedContact" class="phone-number">
-                        <h4>Phone:</h4>
-                        <span class="phone-number" ng-repeat="number in selectedContact.phone_numbers">[[number.number_type]]: [[number.number]]</span>
-                    </div>
-                    <div ng-if="selectedContact" class="email">
-                        <h4>E-mail:</h4>
-                        <span class="email" ng-repeat="email in selectedContact.emails">[[email.email_type]]: [[email.email]]</span>
+                    <div ng-if="selectedContact">
+                        <h3 class="name">[[selectedContact.first_name]] [[selectedContact.last_name]]</h3>
+                        <div class="edit">
+                            <button type="button" class="btn btn-xs btn-link">
+                                <span class="glyphicon glyphicon-pencil"></span> Edit
+                            </button>
+                            <button type="button" class="btn btn-xs btn-link" data-toggle="modal"
+                                    data-target="#delete-confirm" ng-click="$parent.deletedContact = selectedContact">
+                                <span class="glyphicon glyphicon-trash"></span> Delete
+                            </button>
+                        </div>
+                        <span class="address-1">[[selectedContact.address_line_1]]</span>
+                        <span class="address-2">[[selectedContact.address_line_2]]</span>
+                        <span class="city">[[selectedContact.city]]</span>
+                        <span class="state">[[selectedContact.state]]</span>
+                        <span class="zip">[[selectedContact.zip]]</span>
+                        <span class="country">[[selectedContact.country]]</span>
+                        <div class="phone-number">
+                            <h4>Phone:</h4>
+                            <span class="phone-number" ng-repeat="number in selectedContact.phone_numbers">[[number.number_type]]: [[number.number]]</span>
+                        </div>
+                        <div class="email">
+                            <h4>E-mail:</h4>
+                            <span class="email" ng-repeat="email in selectedContact.emails">[[email.email_type]]: [[email.email]]</span>
+                        </div>
                     </div>
                 </div>
             </div>
