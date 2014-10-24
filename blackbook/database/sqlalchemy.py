@@ -98,14 +98,7 @@ class SQLAlchemyDatabase(Database):
             people = self.models['Person'].query.order_by(self.models['Person'].last_name)
             for person in people:
                 response_object.append_item(person.get_collection_object(short=True))
-            response_pages = response_object.paginate(endpoint="/api/entry/", per_page=per_page)
-            page = int(page)
-            if (page <= len(response_pages)) and (page > 0):
-                response_object = response_pages[page - 1]
-            elif page > len(response_pages):
-                response_object = response_pages[-1]
-            elif page <= 0:
-                response_object = response_pages[0]
+            response_object = response_object.paginate(endpoint="/api/entry/", page=page, per_page=per_page)[0]
         else:
             person = self.models['Person'].query.get_or_404(id)
             response_object.append_item(person.get_collection_object())
