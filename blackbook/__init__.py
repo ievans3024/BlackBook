@@ -1,7 +1,7 @@
 __author__ = 'ievans3024'
 
 import flask_whooshalchemy as whooshalchemy
-from collection import CollectionPlusJSON, COLLECTION_JSON
+from py_collection_json import CollectionPlusJSON, MIMETYPE as COLLECTION_JSON
 from flask import Flask, render_template, request, abort, Response
 
 
@@ -38,7 +38,7 @@ def api():
         abort(406)
     response_data = CollectionPlusJSON()
     response_data.append_link('/api/entry/', 'index', 'List all entries or add an entry')
-    return Response(str(response_data), mimetype=COLLECTION_JSON)
+    return Response(str(response_data), mimetype=response_data.mimetype)
 
 
 @app.route('/api/doc/')

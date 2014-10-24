@@ -1,7 +1,8 @@
 __author__ = 'ievans3024'
 
+import json
 from blackbook.database import Database
-from blackbook.collection import json, CollectionPlusJSON, CollectionPlusJSONItem
+from blackbook.py_collection_json import CollectionPlusJSON
 
 
 class FlatDatabase(Database):
@@ -36,43 +37,6 @@ class FlatDatabase(Database):
             self.state = str(state)
             self.zip_code = str(zip_code)
             self.country = str(country)
-
-        def get_collection_object(self, short=False):
-            """
-            Get object for json parsing
-            Returns object ready for json
-            """
-            phone_numbers = [
-                {
-                    'number_type': phone_number.number_type,
-                    'number': phone_number.number
-                }
-                for phone_number in self.phone_numbers
-            ]
-
-            if not short:
-                opts = {
-                    'first_name': self.first_name,
-                    'last_name': self.last_name,
-                    'emails': [{'email_type': email.email_type, 'email': email.email} for email in self.emails],
-                    'phone_numbers': phone_numbers,
-                    'address_line_1': self.address_line1,
-                    'address_line_2': self.address_line2,
-                    'city': self.city,
-                    'state': self.state,
-                    'zip_code': self.zip_code,
-                    'country': self.country
-                }
-            else:
-                opts = {
-                    'first_name': self.first_name,
-                    'last_name': self.last_name,
-                    'phone_numbers': phone_numbers
-                }
-
-            collection = CollectionPlusJSONItem(uri='/api/entry/%d/' % self.id, **opts)
-
-            return collection
 
     class Email(Database.Email):
         def __init__(self, email_type, email):
@@ -132,7 +96,7 @@ class FlatDatabase(Database):
     def update(self, id, data):
         person = self.database.get(id)
         if person:
-            updated = dict(person.get_collection_object().__dict__, **data)
+            updated = dict(person.get_collection_object(as_dict=True), **data)
             fname = updated.get('first_name')
             lname = updated.get('last_name')
 
@@ -154,7 +118,13 @@ class FlatDatabase(Database):
         if id is None:
             for k, v in self.database.items():
                 response_object.append_item(v.get_collection_object(short=True))
-            response_object.paginate(page=page, per_page=per_page)
+            response_pages = response_object.paginate(per_page=per_page)
+            if (page <= len(response_pages)) and (page > 0):
+                response_object = response_pages[page - 1]
+            elif page > len(response_pages):
+                response_object = response_pages[-1]
+            elif page <= 0:
+                response_object = response_pages[0]
         else:
             person = self.database.get(id)
             if person:

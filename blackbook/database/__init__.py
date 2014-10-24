@@ -46,12 +46,41 @@ A base class for database wrappers.
             """
             raise NotImplementedError()
 
-        def get_collection_object(self):
-            """
-            Get the CollectionPlusJSON representation of this Person.
-            :return: This Person, represented as a CollectionPlusJSON instance.
-            """
-            raise NotImplementedError()
+        def get_collection_object(self, short=False, as_dict=False):
+            uri = '/api/entry/%d/' % self.id
+            phone_numbers = [
+                {
+                    'number_type': phone_number.number_type,
+                    'number': phone_number.number
+                }
+                for phone_number in self.phone_numbers
+            ]
+
+            if not short:
+                opts = {
+                    'first_name': self.first_name,
+                    'last_name': self.last_name,
+                    'emails': [{'email_type': email.email_type, 'email': email.email} for email in self.emails],
+                    'phone_numbers': phone_numbers,
+                    'address_line_1': self.address_line1,
+                    'address_line_2': self.address_line2,
+                    'city': self.city,
+                    'state': self.state,
+                    'zip_code': self.zip_code,
+                    'country': self.country
+                }
+            else:
+                opts = {
+                    'first_name': self.first_name,
+                    'last_name': self.last_name,
+                    'phone_numbers': phone_numbers
+                }
+            if as_dict:
+                collection = dict({'uri': uri}, **opts)
+            else:
+                collection = CollectionPlusJSON.Item(uri=uri, **opts)
+
+            return collection
 
         @staticmethod
         def get_collection_template():
