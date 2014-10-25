@@ -118,13 +118,7 @@ class FlatDatabase(Database):
         if id is None:
             for k, v in self.database.items():
                 response_object.append_item(v.get_collection_object(short=True))
-            response_pages = response_object.paginate(endpoint="/api/entry/", per_page=per_page)
-            if (page <= len(response_pages)) and (page > 0):
-                response_object = response_pages[page - 1]
-            elif page > len(response_pages):
-                response_object = response_pages[-1]
-            elif page <= 0:
-                response_object = response_pages[0]
+            response_object = response_object.paginate(endpoint="/api/entry/", page=page, per_page=per_page)[0]
         else:
             person = self.database.get(id)
             if person:
