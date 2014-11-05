@@ -2,6 +2,7 @@ __author__ = 'ievans3024'
 
 from flask_sqlalchemy import SQLAlchemy
 from blackbook.py_collection_json import CollectionPlusJSON
+from collection_json import Collection
 from blackbook.database import Database
 
 
@@ -93,16 +94,16 @@ class SQLAlchemyDatabase(Database):
 
     def read(self, id=None, page=1, per_page=5):
         """Reads a person by id, fetches paginated list if id is not provided"""
-        response_object = CollectionPlusJSON()
+        response = Collection(href='/api/')
         if id is None:
             people = self.models['Person'].query.order_by(self.models['Person'].last_name)
             for person in people:
-                response_object.append_item(person.get_collection_object(short=True))
-            response_object = response_object.paginate(endpoint="/api/entry/", page=page, per_page=per_page)[0]
+                response.items.append(person.get_collection_object(short=True))
+            response = self.paginate(response, endpoint="/api/entry/", page=page, per_page=per_page)[0]
         else:
             person = self.models['Person'].query.get_or_404(id)
-            response_object.append_item(person.get_collection_object())
-        return response_object
+            response.items.append(person.get_collection_object())
+        return response
 
     def delete(self, id):
         """Deletes person by id"""

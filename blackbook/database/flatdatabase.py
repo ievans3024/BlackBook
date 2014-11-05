@@ -2,7 +2,7 @@ __author__ = 'ievans3024'
 
 import json
 from blackbook.database import Database
-from blackbook.py_collection_json import CollectionPlusJSON
+from collection_json import Collection
 
 
 class FlatDatabase(Database):
@@ -21,11 +21,15 @@ class FlatDatabase(Database):
 
             for email in emails:
                 if not isinstance(email, FlatDatabase.Email):
-                    raise TypeError('emails must contain instances of Database().models["Email"]')
+                    raise TypeError(
+                        'phone_numbers must contain instances of %s' % FlatDatabase.Email.__class__.__name__
+                    )
 
             for phone_number in phone_numbers:
                 if not isinstance(phone_number, FlatDatabase.PhoneNumber):
-                    raise TypeError('phone_numbers must contain instances of Database().models["PhoneNumber"]')
+                    raise TypeError(
+                        'phone_numbers must contain instances of %s' % FlatDatabase.PhoneNumber.__class__.__name__
+                    )
 
             self.first_name = str(first_name)
             self.last_name = str(last_name)
@@ -88,10 +92,8 @@ class FlatDatabase(Database):
         person = self.models['Person'](id, fname, lname, **data)
         if not self.database:
             self.database[0] = person
-        response_object = CollectionPlusJSON()
-        response_object.append_item(person.get_collection_object())
         self.__write_db_file()
-        return response_object
+        return Collection(href='/api/', items=[person.get_collection_object()])
 
     def update(self, id, data):
         person = self.database.get(id)
@@ -105,36 +107,32 @@ class FlatDatabase(Database):
 
             person = self.models['Person'](id, fname, lname, **updated)
             self.database[id] = person
-
-            response_object = CollectionPlusJSON()
-            response_object.append_item(person.get_collection_object())
+            self.__write_db_file()
+            return Collection(href='/api/', items=[person.get_collection_object()])
         else:
-            response_object = Database.HTTP_ERRORS[404]
-        self.__write_db_file()
-        return response_object
+            return Collection(href='/api/', error=Database.HTTP_ERRORS[404])
 
     def read(self, id=None, page=1, per_page=5):
-        response_object = CollectionPlusJSON()
+        response = Collection(href='/api/')
         if id is None:
             for k, v in self.database.items():
-                response_object.append_item(v.get_collection_object(short=True))
-            response_object = response_object.paginate(endpoint="/api/entry/", page=page, per_page=per_page)[0]
+                response.items.append(v.get_collection_object(short=True))
+            response = self.paginate(response, endpoint="/api/entry/", page=page, per_page=per_page)[0]
         else:
             person = self.database.get(id)
             if person:
-                response_object.append_item(person.get_collection_object())
+                response.items.append(person.get_collection_object())
             else:
-                response_object = Database.HTTP_ERRORS[404]
-        return response_object
+                response = Collection(href='/api/', error=Database.HTTP_ERRORS[404])
+        return response
 
     def delete(self, id):
         person = self.database.get(id)
         if person:
             del self.database[id]
+            self.__write_db_file()
         else:
-            response_object = Database.HTTP_404
-        self.__write_db_file()
-        return response_object
+            return Database.HTTP_ERRORS[404]
 
     def search(self, data):
         pass
