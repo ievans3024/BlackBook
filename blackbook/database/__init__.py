@@ -79,24 +79,27 @@ A base class for database wrappers.
         def get_collection_template(as_dict=False):
             """
             Get the empty template for ReSTful API usage.
-            :return: A template for Person data represented as a CollectionPlusJSONItem instance.
+            :return: A template for Person data represented as a Template instance.
             """
-            data = {
-                'first_name': '',
-                'last_name': '',
-                'emails': [{'email_type': '', 'email': ''}],
-                'phone_numbers': [{'number_type': '', 'number': ''}],
-                'address_line_1': '',
-                'address_line_2': '',
-                'city': '',
-                'state': '',
-                'zip_code': '',
-                'country': ''
-            }
+            data = [
+                {'name': 'first_name', 'value': '', 'prompt': 'First Name'},
+                {'name': 'last_name', 'value': '', 'prompt': 'Last Name'},
+                {'name': 'emails', 'value': [{'email_type': '', 'email': ''}], 'prompt': 'Emails'},
+                {'name': 'phone_numbers', 'value': [{'number_type': '', 'number': ''}], 'prompt': 'Phone Numbers'},
+                {'name': 'address_line_1', 'value': '', 'prompt': 'Address Line 1'},
+                {'name': 'address_line_2', 'value': '', 'prompt': 'Address Line 2'},
+                {'name': 'city', 'value': '', 'prompt': 'City'},
+                {'name': 'state', 'value': '', 'prompt': 'State'},
+                {'name': 'zip_code', 'value': '', 'prompt': 'Zip Code'},
+                {'name': 'country', 'value': '', 'prompt': 'Country'}
+            ]
             if as_dict:
+                data_dict = {}
+                for item in data:
+                    data_dict[item['name']] = {'value': item.get('value'), 'prompt': item.get('prompt')}
                 return data
             else:
-                return Template(data=[{'name': k, 'value': v} for k, v in data.items()])
+                return Template(data)
 
     class Email(object):
         def __init__(self, email_type, email):
