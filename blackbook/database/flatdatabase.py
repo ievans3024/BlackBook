@@ -68,6 +68,7 @@ class FlatDatabase(Database):
         except TypeError:
             raise RuntimeError('Database file not specified in config option FLAT_DATABASE_FILE')
         except (IOError, FileNotFoundError):
+            # TODO: Make subclass of dict with auto-incrementing keys option
             self.database = {}
             self.__write_db_file()
 
