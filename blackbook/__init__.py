@@ -63,7 +63,7 @@ def api_entries():
         if request.mimetype != COLLECTION_JSON:
             abort(415)
         # TODO: Form validation
-        created_entry = db.create(request.data)
+        created_entry = db.create(json.loads(request.data))
         return Response(json.dumps(created_entry.to_dict()), mimetype=COLLECTION_JSON), 201
 
 

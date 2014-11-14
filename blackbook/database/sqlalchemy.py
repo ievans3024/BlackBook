@@ -1,7 +1,6 @@
 __author__ = 'ievans3024'
 
 from flask_sqlalchemy import SQLAlchemy
-from blackbook.py_collection_json import CollectionPlusJSON
 from collection_json import Collection
 from blackbook.database import Database
 
@@ -41,8 +40,27 @@ class SQLAlchemyDatabase(Database):
                          address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
                 self.first_name = first_name
                 self.last_name = last_name
-                self.emails = emails
-                self.phone_numbers = phone_numbers
+                self.emails = []
+                for email in emails:
+                    if isinstance(email, dict) and (email.get('email_type') and email.get('email')):
+                        self.emails.append(Email(email['email_type'], email['email'], self.id))
+                    elif isinstance(email, Email) and email.person_id == self.id:
+                        self.emails.append(email)
+                    else:
+                        raise TypeError(
+                            'Emails must be dict-like with correct properties or SQLAlchemyDatabase.Email instances'
+                        )
+                self.phone_numbers = []
+                for number in phone_numbers:
+                    if isinstance(number, dict) and (number.get('number_type') and number.get('number')):
+                        self.phone_numbers.append(PhoneNumber(number['number_type'], number['number']))
+                    elif isinstance(number, PhoneNumber) and number.person_id == self.id:
+                        self.phone_numbers.append(number)
+                    else:
+                        raise TypeError(
+                            'Phone Numbers must be dict-like with correct properties or SQLAlchemyDatabase.PhoneNumber \
+                            instances'
+                        )
                 self.address_line1 = address_line1
                 self.address_line2 = address_line2
                 self.city = city
@@ -50,7 +68,7 @@ class SQLAlchemyDatabase(Database):
                 self.zip_code = zip_code
                 self.country = country
 
-        class Email(db.Model):
+        class Email(db.Model, Database.Email):
             id = db.Column(db.Integer, primary_key=True)
             email_type = db.Column(db.String(20))
             email = db.Column(db.String(100))
@@ -61,7 +79,7 @@ class SQLAlchemyDatabase(Database):
                 self.email = email
                 self.person_id = person_id
 
-        class PhoneNumber(db.Model):
+        class PhoneNumber(db.Model, Database.PhoneNumber):
             id = db.Column(db.Integer, primary_key=True)
             number_type = db.Column(db.String(20))
             number = db.Column(db.String(100))
@@ -82,12 +100,14 @@ class SQLAlchemyDatabase(Database):
 
     def create(self, data):
         """Creates a new person"""
-        person = self.models['Person']()
+        args = {}
+        for item in data.get('data'):
+            if item.get('value'):
+                args[item['name']] = item['value']
+        person = self.models['Person'](**args)
         self.database.session.add(person)
         self.database.session.commit()
-        response_object = CollectionPlusJSON()
-        response_object.append_item(person.get_collection_object())
-        return response_object
+        return Collection(href='/api/', items=[person.get_collection_object()])
 
     def update(self, id, data):
         pass
