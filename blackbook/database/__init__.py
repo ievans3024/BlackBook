@@ -234,6 +234,14 @@ A base class for database wrappers.
             page_index_begin = ((page * per_page) - per_page)
             page_index_end = (page * per_page)
             new_page = Collection(href=collection.href, items=collection.items[page_index_begin:page_index_end])
+            if collection.error:
+                new_page.error = collection.error
+            if collection.links:
+                new_page.links = collection.links
+            if collection.queries:
+                new_page.queries = collection.qeuries
+            if collection.template:
+                new_page.template = collection.template
             if page > 1:
                 new_page.links.append(Link(
                     uri_template.format(endpoint_uri=endpoint, page=1, per_page=per_page),
