@@ -10,7 +10,7 @@
 function Collection (opts) {
 
     if (!this instanceof Collection) {
-        return new Collection(href, version, from_object);
+        return new Collection(opts);
     }
 
     // Unwrap collection contents, if necessary.
