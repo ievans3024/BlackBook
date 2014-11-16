@@ -25,23 +25,17 @@ function Collection (opts) {
 }
 
 /**
- * Collection base properties where typeof should be checked.
- */
-Collection.prototype.property_types = {
-    href: 'string',
-    version: 'string'
-};
-
-/**
  * Collection base properties with more complex requirements
  */
 Collection.prototype.property_rules = {
     error: {constructor: Object},
     data: {constructor: Array, required: [{name: 'name', type: 'string'}]},
+    href: {type: 'string'},
     items: {constructor: Array, required: [{name: 'href', type: 'string'}]},
     links: {constructor: Array, required: [{name: 'href', type: 'string'}, {name: 'rel', type: 'string'}]},
     queries: {constructor: Array, required: [{name: 'href', type: 'string'}, {name: 'rel', type: 'string'}]},
-    template: {constructor: Object, required: [{name: 'data', type: Array}]}
+    template: {constructor: Object, required: [{name: 'data', constructor: Array}]},
+    version: {type: 'string'},
 };
 
 /**
@@ -65,41 +59,72 @@ Collection.prototype.validate = function (collection) {
             required;
 
         // Validate the current property
-        if (property_string in this.property_types) {
-            if (typeof prop !== this.property_types[property_string]) {
-                throw TypeError(
-                    property_string + ' must be of type ' + this.property_types[property_string]
-                );
-            }
-        }
         if (property_string in this.property_rules) {
-            object_type = this.property_rules[property_string].constructor;
+            if (this.property_rules[property_string].hasOwnProperty('constructor') {
+                object_type = this.property_rules[property_string].constructor;
+                if (!prop isinstance object_type) {
+                    throw TypeError(
+                        property_string + ' must be an instance of ' object_type.name
+                    );
+                }
+            }
+            if (this.property_rules[property_string].hasOwnProperty('type') {
+                object_type = this.property_rules[property_string].type;
+                if (typeof prop !== object_type) {
+                    throw TypeError(
+                        property_string + ' must be of type ' + object_type
+                    )
+                }
+            }
             if (this.property_rules[property_string].hasOwnProperty('required')) {
                 required = this.property_rules[property_string].required;
                 if (object_type === Array) {
                     for (i_2 < prop.length; i_2++) {
                         for (i_3 < required.length; i_3++) {
-                            // TODO:
-                            // Check prop[i_2].hasOwnProperty(required[i_3].name);
-                            // Check prop[i_2][required[i_3].name] isinstance required[i_3].type
-                            // -OR-
-                            // Check typeof prop[i_2][required[i_3].name] === required[i_3].type
+                            if (!prop[i_2].hasOwnProperty(required[i_3].name)) {
+                                throw ValueError(
+                                    property_string + ' must have property ' + required[i_3].name
+                                );
+                            }
+                            if (required[i_3].hasOwnProperty('type')) {
+                                if (typeof prop[i_2][required[i_3].name] !== required[i_3].type) {
+                                    throw TypeError(
+                                        property_string + '.' + required[i_3].name + ' must be of type ' + required[i_3].type
+                                    );
+                                }
+                            }
+                            if (required[i_3].hasOwnProperty('constructor)) {
+                                if (!prop[i_2][required[i_3].name] isinstance required[i_3].constructor) {
+                                    throw TypeError(
+                                        property_string + '.' + required[i_3].name + ' must be an instance of ' + required[i_3].constructor.name
+                                    );
+                                }
+                            }
                         }
                     }
                 } else if (object_type === Object) {
                     for (i_2 < required.length; i_2++) {
-                        // TODO:
-                        // Check prop.hasOwnProperty(required[i_2].name);
-                        // Check prop[required[i_2].name] isinstance required[i_2].type
-                        // -OR-
-                        // Check typeof prop[required[i_2].name] === required[i_2].type
+                        if (!prop.hasOwnProperty(required[i_2].name) {
+                            throw ValueError(
+                                property_string + ' must have property ' + required[i_2].name
+                            );
+                        }
+                        if (required[i_2].hasOwnProperty('type')) {
+                            if (typeof prop[required[i_2].name] !== required[i_2].type) {
+                                throw TypeError(
+                                    property_string + '.' + required[i_2].name + ' must be of type ' + required[i_2].type
+                                );
+                            }
+                        }
+                        if (required[i_2].hasOwnProperty('constructor')) {
+                            if (!prop[required[i_2].name isinstance required[i_2].constructor) {
+                                throw TypeError(
+                                    property_string + '.' + required[i_2].name + ' must be an instance of ' + required[i_2].constructor.name
+                                );
+                            }
+                        }
                     }
                 }
-            }
-            if (!prop instanceof this.property_object_types[property_string].constructor) {
-                throw TypeError(
-                    property_string + ' must be an instance of ' + this.property_object_types[property_string].name
-                );
             }
         }
 
