@@ -104,3 +104,46 @@ Collection.prototype.validate = function (collection) {
         validate_property(collection[prop], 'collection.' + prop);
     }
 };
+
+
+/**
+ * Data Constructor
+ */
+function Data (opts) {
+
+}
+
+/**
+ * Error Constructor
+ */
+function Error (opts) {
+
+}
+
+/**
+ * Item Constructor
+ */
+function Item (opts) {
+
+}
+
+/**
+ * Link Constructor
+ */
+function Link (opts) {
+
+}
+
+/**
+ * Query Constructor
+ */
+function Query (opts) {
+
+}
+
+/**
+ * Template Constructor
+ */
+function Template (opts) {
+
+}
