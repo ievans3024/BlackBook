@@ -18,10 +18,7 @@ function Collection (opts) {
         opts = opts.collection;
     }
 
-    Collection.prototype.validate(opts);
-
-    // Assuming validator did it's job properly
-    this.collection = opts;
+    this.collection = Collection.prototype.validate(opts);
 }
 
 /**
@@ -41,9 +38,11 @@ Collection.prototype.property_rules = {
 /**
  * Validate this collection OR validate a collection provided as an argument
  * @param collection Optional. A different collection to validate. May be an object, JSON-parseable string, or Collection.
- * @throws {TypeError} If collection is not object or string.
+ * @throws {TypeError} If collection is not object or string, or if collection properties do not follow spec types.
  * @throws {SyntaxError} If collection is a string and not parseable by JSON.parse
  * @throws {SyntaxError} If collection (or collection.collection) does not have at least "href" and "version" properties.
+ * @throws {ValueError} If collection properties do not have required properties
+ * @return {Object} The collection, if valid.
  */
 Collection.prototype.validate = function (collection) {
 
@@ -62,7 +61,7 @@ Collection.prototype.validate = function (collection) {
         if (property_string in this.property_rules) {
             if (this.property_rules[property_string].hasOwnProperty('constructor') {
                 object_type = this.property_rules[property_string].constructor;
-                if (!prop isinstance object_type) {
+                if (!prop instanceof object_type) {
                     throw TypeError(
                         property_string + ' must be an instance of ' object_type.name
                     );
@@ -94,7 +93,7 @@ Collection.prototype.validate = function (collection) {
                                 }
                             }
                             if (required[i_3].hasOwnProperty('constructor)) {
-                                if (!prop[i_2][required[i_3].name] isinstance required[i_3].constructor) {
+                                if (!prop[i_2][required[i_3].name] instanceof required[i_3].constructor) {
                                     throw TypeError(
                                         property_string + '.' + required[i_3].name + ' must be an instance of ' + required[i_3].constructor.name
                                     );
@@ -117,7 +116,7 @@ Collection.prototype.validate = function (collection) {
                             }
                         }
                         if (required[i_2].hasOwnProperty('constructor')) {
-                            if (!prop[required[i_2].name isinstance required[i_2].constructor) {
+                            if (!prop[required[i_2].name instanceof required[i_2].constructor) {
                                 throw TypeError(
                                     property_string + '.' + required[i_2].name + ' must be an instance of ' + required[i_2].constructor.name
                                 );
@@ -138,9 +137,9 @@ Collection.prototype.validate = function (collection) {
         collection = this;
     }
 
-    if (typeof opts === 'string') {
-        collection = JSON.parse(opts);
-    } else if (!opts instanceof Object) {
+    if (typeof colleciton === 'string') {
+        collection = JSON.parse(collection);
+    } else if (!collection instanceof Object) {
         throw TypeError('collection must be an object or string.');
     }
 
@@ -152,4 +151,5 @@ Collection.prototype.validate = function (collection) {
         validate_property(collection[prop], 'collection.' + prop);
     }
 
+    return collection;
 };
