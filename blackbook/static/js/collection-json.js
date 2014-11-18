@@ -4,48 +4,111 @@
 
 /**
  * Collection Constructor
- * @param opts The Object or JSON string to construct this Collection from.
- * Automatically validated with Collection.prototype.validate
+ * @param collection The Object or JSON string to construct this Collection from.
+ * @throws {ValueError} If href or version properties are not present in collection.
  */
-function Collection (opts) {
+function Collection (collection) {
 
-    if (!this instanceof Collection) {
-        return new Collection(opts);
+    /**
+     * Iterate through an array, supplying parseables into a constructor,
+     * passing instances of constructor into an output array.
+     * @param {Array} array The array to process
+     * @param {function} parseable The constructor for an acceptably parseable object
+     * @param {function} constructor The constructor to pass parseable into, if necessary.
+     * @return {Array}
+     */
+    function process_array (array, parseable, constructor) {
+        var i = 0,
+            output = [],
+            length,
+            item;
+
+        for (i; i < length; i++) {
+            item = array[i];
+            if (item instanceof parseable) {
+                try {
+                    output.push(constructor(item));
+                } catch (e) {
+                    // Don't add item to the output, skip it.
+                    console.warn('process_array: array[' + i + '] not added.', e);
+                }
+            } else if (item instanceof constructor) {
+                output.push(item);
+            }
+        }
+
+        return output;
     }
 
+    var acceptable, acceptable_rules;
+
+    if (!this instanceof Collection) {
+        return new Collection(collection);
+    }
+
+    this.collection = {};
+
     // Parse from JSON, if necessary.
-    if (typeof opts === 'string') {
-        opts = JSON.parse(opts);
+    if (typeof collection === 'string') {
+        collection = JSON.parse(collection);
     }
 
     // Unwrap collection contents, if necessary.
-    if (opts.hasOwnProperty('collection')) {
-        opts = opts.collection;
+    if (collection.hasOwnProperty('collection')) {
+        collection = collection.collection;
     }
 
-    this.collection = collection;
+    // Check for most basic requirements in a Collection
+    if (!collection.hasOwnProperty('href')) {
+        throw ValueError('href property is required.');
+    }
+    if (!collection.hasOwnProperty('version')) {
+        throw ValueError('version property is required.');
+    }
+
+    // Validate (and, if necessary, parse) values
+    for (property in collection) {
+        acceptable = collection[property];
+        acceptable_rules = Collection.prototype.property_rules[property];
+        try {
+            Collection.prototype.validate({property: collection[property]}, true);
+        } catch (e) {
+            if (acceptable_rules.hasOwnProperty('constructor')) {
+                if (acceptable_rules.constructor === Array) {
+                    acceptable = process_array(acceptable, Object, acceptable_rules.contents.constructor);
+                } else {
+                    acceptable = acceptable_rules.constructor(acceptable);
+                }
+            }
+        } finally {
+            this.collection[property] = acceptable;
+        }
+    }
+
 }
 
 /**
- * Collection base properties with more complex requirements
+ * Collection properties with type requirements
  */
 Collection.prototype.property_rules = {
-    error: {constructor: Error},
-    data: {constructor: Array, contents: {constructor: Data}},
+    error: {constructor: CollectionError},
+    data: {constructor: Array, contents: {constructor: CollectionData}},
     href: {type: 'string'},
-    items: {constructor: Array, contents: {constructor: Item}},
-    links: {constructor: Array, contents: {constructor: Link}},
-    queries: {constructor: Array, contents: {constructor: Query}},
-    template: {constructor: Template},
+    items: {constructor: Array, contents: {constructor: CollectionItem}},
+    links: {constructor: Array, contents: {constructor: CollectionLink}},
+    queries: {constructor: Array, contents: {constructor: CollectionQuery}},
+    template: {constructor: CollectionTemplate},
     version: {type: 'string'},
 };
 
 /**
  * Validate this collection OR validate a collection provided as an argument
- * @param collection Optional. A different collection to validate. Must be a Collection.
- * @throws {TypeError} If collection is not a Collection, or if collection properties do not follow spec types.
+ * @param collection Optional. A different collection to validate.
+ * @param {bool} is_fragment Optional. If true, indicates that collection is not a complete Collection, but a segment.
+ * @throws {TypeError} If collection is not a Collection and is_fragment is not true,
+ * or if collection/fragment properties do not follow spec types.
  */
-Collection.prototype.validate = function (collection) {
+Collection.prototype.validate = function (collection, is_fragment) {
 
     var property_string,
         property;
@@ -92,12 +155,14 @@ Collection.prototype.validate = function (collection) {
         collection = this;
     }
 
-    if (!collection instanceof Collection) {
-        throw TypeError('collection must be an instance of Collection');
-    }
+    if (!is_fragment) {
+        if (!collection instanceof Collection) {
+            throw TypeError('collection must be an instance of Collection');
+        }
 
-    if (!collection.hasOwnProperty('href') || !collection.hasOwnProperty('version')) {
-        throw SyntaxError('collection must have at least "href" and "version" properties.');
+        if (!collection.hasOwnProperty('href') || !collection.hasOwnProperty('version')) {
+            throw SyntaxError('collection must have at least "href" and "version" properties.');
+        }
     }
 
     for (prop in collection) {
@@ -107,43 +172,43 @@ Collection.prototype.validate = function (collection) {
 
 
 /**
- * Data Constructor
+ * CollectionData Constructor
  */
-function Data (opts) {
+function CollectionData (opts) {
 
 }
 
 /**
- * Error Constructor
+ * CollectionError Constructor
  */
-function Error (opts) {
+function CollectionError (opts) {
 
 }
 
 /**
- * Item Constructor
+ * CollectionItem Constructor
  */
-function Item (opts) {
+function CollectionItem (opts) {
 
 }
 
 /**
- * Link Constructor
+ * CollectionLink Constructor
  */
-function Link (opts) {
+function CollectionLink (opts) {
 
 }
 
 /**
- * Query Constructor
+ * CollectionQuery Constructor
  */
-function Query (opts) {
+function CollectionQuery (opts) {
 
 }
 
 /**
- * Template Constructor
+ * CollectionTemplate Constructor
  */
-function Template (opts) {
+function CollectionTemplate (opts) {
 
 }
