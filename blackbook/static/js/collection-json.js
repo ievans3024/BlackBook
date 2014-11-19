@@ -2,6 +2,8 @@
  * AngularJS <-> Collection+JSON middleware
  */
 
+// TODO: write property constructors to accept JSON as an argument
+
 /**
  * Collection Constructor
  * @param collection The Object or JSON string to construct this Collection from.
