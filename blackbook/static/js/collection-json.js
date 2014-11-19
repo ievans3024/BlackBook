@@ -44,9 +44,9 @@ function Collection (collection) {
 Collection.prototype.property_rules = {
     error: {constructor: CollectionError},
     href: {type: 'string', required: true},
-    items: {constructor: CollectionArray, contents: {constructor: CollectionItem}},
-    links: {constructor: CollectionArray, contents: {constructor: CollectionLink}},
-    queries: {constructor: CollectionArray, contents: {constructor: CollectionQuery}},
+    items: {constructor: Array, contents: {constructor: CollectionItem}},
+    links: {constructor: Array, contents: {constructor: CollectionLink}},
+    queries: {constructor: Array, contents: {constructor: CollectionQuery}},
     template: {constructor: CollectionTemplate},
     version: {type: 'string', required: true},
 };
@@ -87,6 +87,34 @@ Collection.prototype.parse = function (object) {
         rules,
         collection = object;
 
+    function process_array (array, contains) {
+
+        var i,
+            field,
+            output = [];
+
+        if (!array instanceof Array) {
+            throw TypeError('array parameter must be an Array.');
+        }
+
+        if (typeof contains !== 'function') {
+            throw TypeError('contains parameter must be a function.');
+        }
+
+        for (i = 0; i < array.length; i++) {
+            if (array[i] instanceof contains) {
+                output.push(array[i]);
+            } else {
+                output.push(new contains(array[i]));
+            }
+        }
+
+        if (output.length > 0) {
+            return output;
+        }
+
+    }
+
     if (typeof object === 'string') {
         object = JSON.parse(object);
     }
@@ -108,8 +136,8 @@ Collection.prototype.parse = function (object) {
                 }
 
                 if (r === 'constructor') {
-                    if (rule_object.constructor === CollectionArray) {
-                        property = new CollectionArray(property, rule_object.contents.constructor);
+                    if (rule_object.constructor === Array) {
+                        property = process_array(property, rule_object.contents.constructor);
                     } else {
                         if (!property instanceof rule_object.constructor) {
                             property = new rule_object.constructor(property);
@@ -142,70 +170,6 @@ Collection.hook = function (constructor) {
 };
 
 Collection.hooked = [Collection];
-
-
-/**
- * CollectionArray constructor
- * @param {Array} array The array to make into an object
- * @param {function} contains The constructor for the type of data this CollectionArray should contain
- * @throws TypeError If params are not the correct type.
- */
-function CollectionArray (array, contains) {
-
-    var i,
-        field;
-
-    if (!this instanceof CollectionArray) {
-        return new CollectionArray(opts);
-    }
-
-    if (!array instanceof Array) {
-        throw TypeError('array parameter must be an Array.');
-    }
-
-    if (typeof contains !== 'function') {
-        throw TypeError('contains parameter must be a function.');
-    }
-
-    for (i = 0; i < array.length; i++) {
-        if (array[i] instanceof contains) {
-            field = array[i];
-        } else {
-            field = new contains(array[i]);
-        }
-        this[field.name] = {};
-        for (prop in field) {
-            this[field.name][prop] = field[prop];
-        }
-    }
-
-}
-
-/**
- * Turn CollectionArray's data into a Collection+JSON-friendly array
- */
-CollectionArray.prototype.toArray = function () {
-
-    var i,
-        properties,
-        array = []
-        field_object;
-
-    if (this instanceof CollectionArray) {
-        fields = Object.getOwnPropertyNames(this);
-        for (i = 0; i < fields.length; i++) {
-            field_object = {name: fields[i]};
-            for (prop in this[fields[i]]) {
-                field_object[prop] = this[fields[i]][prop];
-            }
-            array.push(field_object);
-        }
-    }
-
-    return array;
-}
-
-CollectionArray.prototype.preJSON = CollectionArray.prototype.toArray;
 
 
 /**
@@ -296,7 +260,7 @@ function CollectionItem (opts) {
  */
 CollectionItem.prototype.property_rules = {
     href: Collection.prototype.property_rules.href,
-    data: {constructor: CollectionArray, contents: {constructor: CollectionData}},
+    data: {constructor: Array, contents: {constructor: CollectionData}},
     links: Collection.prototype.property_rules.links
 };
 

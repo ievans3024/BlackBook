@@ -43,6 +43,7 @@ angular.module('BlackBook.controllers', []).controller(
                     $scope.collection = new Collection(response.data);
                     $scope.contactList = $scope.collection.items;
                     $scope.listNavigation = $scope.collection.links;
+                    console.log($scope.collection);
                 }
             );
         };
