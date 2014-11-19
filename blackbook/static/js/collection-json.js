@@ -36,7 +36,6 @@ function Collection (collection) {
  */
 Collection.prototype.property_rules = {
     error: {constructor: CollectionError},
-    // data: {constructor: Array, contents: {constructor: CollectionData}},
     href: {type: 'string', required: true},
     items: {constructor: Array, contents: {constructor: CollectionItem}},
     links: {constructor: Array, contents: {constructor: CollectionLink}},
@@ -122,6 +121,15 @@ Collection.prototype.parse = function (object) {
     return collection;
 }
 
+/**
+ * Hook collection data constructors to use some Collection functions
+ * @param {function} constructor The constructor whose prototype should receive these functions
+ */
+Collection.hook = function (constructor) {
+    constructor.prototype.toString = Collection.prototype.toString;
+    constructor.prototype.parse = Collection.prototype.parse;
+};
+
 
 
 /**
@@ -131,11 +139,7 @@ Collection.prototype.parse = function (object) {
 function CollectionData (opts) {
 
     if (!this instanceof CollectionData) {
-        return new CollectionData(name, opts);
-    }
-
-    if (!opts.hasOwnProperty('name')) {
-        throw ValueError('name property is required.');
+        return new CollectionData(opts);
     }
     
     opts = CollectionData.prototype.parse(opts);
@@ -153,14 +157,7 @@ CollectionData.prototype.property_rules = {
     'prompt': {type: 'string'}
 };
 
-/**
- * CollectionData string method
- */
-CollectionData.prototype.toString = function () {
-    return JSON.stringify(this);
-}
-
-CollectionData.prototype.parse = Collection.prototype.parse;
+Collection.hook(CollectionData);
 
 
 
@@ -169,32 +166,121 @@ CollectionData.prototype.parse = Collection.prototype.parse;
  */
 function CollectionError (opts) {
 
+    if (!this instanceof CollectionError) {
+        return new CollectionError(opts);
+    }
+
+    opts = CollectionError.prototype.parse(opts);
+
+    for (opt in opts) {
+        this[opt] = opts[opt];
+    }
 }
+
+/**
+ * CollectionError property rules
+ */
+CollectionError.prototype.property_rules = {
+    title: {type: 'string'},
+    code: {type: 'string'},
+    message: {type: 'string'}
+};
+
+Collection.hook(CollectionError);
+
 
 /**
  * CollectionItem Constructor
  */
 function CollectionItem (opts) {
+    if (!this instanceof CollectionItem) {
+        return new CollectionItem(opts);
+    }
 
+    opts = CollectionItem.prototype.parse(opts);
+
+    for (opt in opts) {
+        this[opt] = opts[opt];
+    }
 }
+
+/**
+ * CollectionItem property rules
+ */
+CollectionItem.prototype.property_rules = {
+    href: Collection.prototype.property_rules.href,
+    data: {constructor: Array, contents: {constructor: CollectionData}},
+    links: Colleciton.prototype.property_rules.links
+};
+
+Collection.hook(CollectionItem);
+
 
 /**
  * CollectionLink Constructor
  */
 function CollectionLink (opts) {
+    if (!this instanceof CollectionLink) {
+        return new CollectionLink(opts);
+    }
 
+    opts = CollectionLink.prototype.parse(opts);
+
+    for (opt in opts) {
+        this[opt] = opts[opt];
+    }
 }
+
+CollectionLink.prototype.property_rules = {
+    href: Collection.prototype.property_rules.href,
+    rel: {type: 'string', required: true},
+    prompt: {type: 'string'},
+    name: {type: 'string'},
+    render: {type: 'string'}
+}
+
+Collection.hook(CollectionLink);
+
 
 /**
  * CollectionQuery Constructor
  */
 function CollectionQuery (opts) {
+    if (!this instanceof CollectionQuery) {
+        return new CollectionQuery(opts);
+    }
 
+    opts = CollectionQuery.prototype.parse(opts);
+
+    for (opt in opts) {
+        this[opt] = opts[opt];
+    }
 }
+
+CollectionQuery.prototype.property_rules = CollectionLink.prototype.property_rules;
+delete CollectionQuery.prototype.property_rules.render;
+CollectionQuery.prototype.property_rules.data = CollectionItem.prototype.property_rules.data
+
+Collection.hook(CollectionQuery);
+
 
 /**
  * CollectionTemplate Constructor
  */
 function CollectionTemplate (opts) {
+    if (!this instanceof CollectionTemplate) {
+        return new CollectionTemplate(opts);
+    }
 
+    opts = CollectionTemplate.prototype.parse(opts);
+
+    for (opt in opts) {
+        this[opt] = opts[opt];
+    }
 }
+
+CollectionTemplate.prototype.property_rules = {
+    data: CollectionItem.prototype.property_rules.data
+}
+
+Collection.hook(CollectionTemplate);
