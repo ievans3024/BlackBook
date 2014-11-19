@@ -27,14 +27,6 @@ function Collection (collection) {
         collection = collection.collection;
     }
 
-    // Check for most basic requirements in a Collection
-    if (!collection.hasOwnProperty('href')) {
-        throw ValueError('href property is required.');
-    }
-    if (!collection.hasOwnProperty('version')) {
-        throw ValueError('version property is required.');
-    }
-
     this.collection = Collection.prototype.parse(collection);
 
 }
@@ -108,13 +100,12 @@ Collection.prototype.parse = function (object) {
             }
         
             if (r === 'constructor') {
-                if (!property instanceof rule.constructor) {
-                    throw TypeError(prop + ' must be an instance of ' + rule.constructor.name);
-                }
                 if (rule.constructor === Array) {
                     property = process_array(property, Object, rule.contents.constructor);
                 } else {
-                    property = rule.constructor(property);
+                    if (!property instanceof rule.constructor) {
+                        property = rule.constructor(property);
+                    }
                 }
             }
             
