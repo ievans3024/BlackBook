@@ -75,6 +75,10 @@ Collection.prototype.parse = function (object) {
     var property,
         rule,
         collection = object;
+
+    if (typeof object === 'string') {
+        object = JSON.parse(object);
+    }
     
     for (prop in this.property_rules) {
         if (object.hasOwnProperty(prop)) {
@@ -112,7 +116,7 @@ Collection.prototype.parse = function (object) {
 }
 
 /**
- * Hook some Collection functions into a collection data constructor
+ * Hook some Collection functions into a collection data constructor's prototype
  * @param {function} constructor The constructor whose prototype should receive these functions
  */
 Collection.hook = function (constructor) {
