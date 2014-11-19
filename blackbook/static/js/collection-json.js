@@ -11,7 +11,7 @@
  */
 function Collection (collection) {
 
-    var acceptable, acceptable_rules;
+    var i, collection_props;
 
     if (!this instanceof Collection) {
         return new Collection(collection);
@@ -30,9 +30,10 @@ function Collection (collection) {
     }
 
     collection = Collection.prototype.parse(collection);
+    collection_props = collection.getOwnPropertyNames();
 
-    for (prop in collection) {
-        this[prop] = collection[prop];
+    for (i = 0, i < collection_props.length; i++) {
+        this[collection_props[i]] = collection[collection_props[i]];
     }
 
 }
@@ -76,38 +77,49 @@ Collection.prototype.toString = function () {
  * @return {Object} The parsed form of the object
  */
 Collection.prototype.parse = function (object) {
-    var property,
+    var i,
+        i_2,
+        prop,
+        property,
+        r,
         rule,
+        rule_object,
+        rules,
         collection = object;
 
     if (typeof object === 'string') {
         object = JSON.parse(object);
     }
+
+    rules = this.property_rules.getOwnPropertyNames();
     
-    for (prop in this.property_rules) {
+    for (i = 0; i < rules.length; i++)) {
+        prop = rules[i];
         if (object.hasOwnProperty(prop)) {
             property = object[prop];
-            rule = this.property_rules[prop];
-            for (r in rule) {
-                if (r === 'required' && rule[r]) {
+            rule_object = this.property_rules[prop];
+            rule = rule_object.getOwnPropertyNames();
+            for (i_2 = 0; i_2 < rule.length; i_2++ ) {
+                r = rule[i_2];
+                if (r === 'required' && rule_object.required) {
                     if (!object.hasOwnProperty(prop)) {
                         throw ValueError(prop + ' is a required property.');
                     }
                 }
 
                 if (r === 'constructor') {
-                    if (rule.constructor === CollectionArray) {
-                        property = new CollectionArray(property, rule.contents.constructor);
+                    if (rule_object.constructor === CollectionArray) {
+                        property = new CollectionArray(property, rule_object.contents.constructor);
                     } else {
-                        if (!property instanceof rule.constructor) {
-                            property = new rule.constructor(property);
+                        if (!property instanceof rule_object.constructor) {
+                            property = new rule_object.constructor(property);
                         }
                     }
                 }
 
                 if (r === 'type') {
-                    if (typeof property !== rule.type) {
-                        throw TypeError(prop + ' must be of type ' + rule.type);
+                    if (typeof property !== rule_object.type) {
+                        throw TypeError(prop + ' must be of type ' + rule_object.type);
                     }
                 }
             }
@@ -202,14 +214,17 @@ CollectionArray.prototype.preJSON = CollectionArray.prototype.toArray;
  */
 function CollectionData (opts) {
 
+    var i;
+
     if (!this instanceof CollectionData) {
         return new CollectionData(opts);
     }
     
     opts = CollectionData.prototype.parse(opts);
+    opts_props = opts.getOwnPropertyNames();
 
-    for (opt in opts) {
-        this[opt] = opts[opt];
+    for (i = 0; i < opts_props.length; i++) {
+        this[opts_props[i]] = opts[opts_props[i]];
     }
 }
 
@@ -230,14 +245,17 @@ Collection.hook(CollectionData);
  */
 function CollectionError (opts) {
 
+    var i;
+
     if (!this instanceof CollectionError) {
         return new CollectionError(opts);
     }
-
+    
     opts = CollectionError.prototype.parse(opts);
+    opts_props = opts.getOwnPropertyNames();
 
-    for (opt in opts) {
-        this[opt] = opts[opt];
+    for (i = 0; i < opts_props.length; i++) {
+        this[opts_props[i]] = opts[opts_props[i]];
     }
 }
 
@@ -257,15 +275,20 @@ Collection.hook(CollectionError);
  * CollectionItem Constructor
  */
 function CollectionItem (opts) {
+
+    var i;
+
     if (!this instanceof CollectionItem) {
         return new CollectionItem(opts);
     }
-
+    
     opts = CollectionItem.prototype.parse(opts);
+    opts_props = opts.getOwnPropertyNames();
 
-    for (opt in opts) {
-        this[opt] = opts[opt];
+    for (i = 0; i < opts_props.length; i++) {
+        this[opts_props[i]] = opts[opts_props[i]];
     }
+    
 }
 
 /**
@@ -284,15 +307,20 @@ Collection.hook(CollectionItem);
  * CollectionLink Constructor
  */
 function CollectionLink (opts) {
+
+    var i;
+
     if (!this instanceof CollectionLink) {
         return new CollectionLink(opts);
     }
-
+    
     opts = CollectionLink.prototype.parse(opts);
+    opts_props = opts.getOwnPropertyNames();
 
-    for (opt in opts) {
-        this[opt] = opts[opt];
+    for (i = 0; i < opts_props.length; i++) {
+        this[opts_props[i]] = opts[opts_props[i]];
     }
+    
 }
 
 CollectionLink.prototype.property_rules = {
@@ -310,15 +338,20 @@ Collection.hook(CollectionLink);
  * CollectionQuery Constructor
  */
 function CollectionQuery (opts) {
+
+    var i;
+
     if (!this instanceof CollectionQuery) {
         return new CollectionQuery(opts);
     }
-
+    
     opts = CollectionQuery.prototype.parse(opts);
+    opts_props = opts.getOwnPropertyNames();
 
-    for (opt in opts) {
-        this[opt] = opts[opt];
+    for (i = 0; i < opts_props.length; i++) {
+        this[opts_props[i]] = opts[opts_props[i]];
     }
+    
 }
 
 CollectionQuery.prototype.property_rules = CollectionLink.prototype.property_rules;
@@ -332,15 +365,20 @@ Collection.hook(CollectionQuery);
  * CollectionTemplate Constructor
  */
 function CollectionTemplate (opts) {
+
+    var i;
+
     if (!this instanceof CollectionTemplate) {
         return new CollectionTemplate(opts);
     }
-
+    
     opts = CollectionTemplate.prototype.parse(opts);
+    opts_props = opts.getOwnPropertyNames();
 
-    for (opt in opts) {
-        this[opt] = opts[opt];
+    for (i = 0; i < opts_props.length; i++) {
+        this[opts_props[i]] = opts[opts_props[i]];
     }
+    
 }
 
 CollectionTemplate.prototype.property_rules = {
