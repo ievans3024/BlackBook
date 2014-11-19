@@ -84,7 +84,9 @@ Collection.prototype.parse = function (object) {
             }
         }
 
-        return output;
+        if (output.length > 0) {
+            return output;
+        }
     }
     
     for (prop in this.property_rules) {
@@ -114,8 +116,11 @@ Collection.prototype.parse = function (object) {
                 }
             }
         }
-        
-        collection[prop] = property;
+
+        if (property !== undefined) {
+            collection[prop] = property;
+        }
+
     }
     
     return collection;
@@ -210,7 +215,7 @@ function CollectionItem (opts) {
 CollectionItem.prototype.property_rules = {
     href: Collection.prototype.property_rules.href,
     data: {constructor: Array, contents: {constructor: CollectionData}},
-    links: Colleciton.prototype.property_rules.links
+    links: Collection.prototype.property_rules.links
 };
 
 Collection.hook(CollectionItem);
