@@ -129,7 +129,7 @@ Collection.prototype.parse = function (object) {
 }
 
 /**
- * Hook collection data constructors to use some Collection functions
+ * Hook some Collection functions into a collection data constructor
  * @param {function} constructor The constructor whose prototype should receive these functions
  */
 Collection.hook = function (constructor) {
