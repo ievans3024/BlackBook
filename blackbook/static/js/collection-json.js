@@ -2,6 +2,52 @@
  * AngularJS <-> Collection+JSON middleware
  */
 
+/* TODO: narrow validation scope to each object prototype.
+ * Collection validation still crawls the whole tree
+ * Collection validation will call other validators from other prototypes as dictated by rules
+ */
+
+/* TODO: make very generic validator that can validate properties in 'this' by rules defined in 'this.property_rules'
+ * Objects should inherit it in their prototypes
+ */
+
+/**
+ * RuleAbiding Constructor
+ */
+function RuleAbiding (rules) {
+    if (!this instanceof RuleAbiding) {
+        return new Conformist(rules);
+    }
+
+    this.property_rules = RuleAbiding.prototype.property_rules;
+
+    for (rule in rules) {
+        this.property_rules[rule] = rules[rule];
+    }
+}
+
+RuleAbiding.prototype.property_rules = {};
+
+/**
+ * RuleAbiding validator function
+ */
+RuleAbiding.prototype.validate = function (constructor) {
+    if (this instanceof constructor) {
+        var i,
+            properties = this.getOwnPropertyNames();
+
+        function validate_property (name) {
+            var property = this[name];
+        }
+
+        for (i = 0; i < properties.length; i++) {
+            validate_property(properties[i]);
+        }
+    }
+}
+
+Conformist
+
 /**
  * Collection Constructor
  * @param collection The Object or JSON string to construct this Collection from.
@@ -173,10 +219,35 @@ Collection.prototype.validate = function (collection, is_fragment) {
 
 /**
  * CollectionData Constructor
+ * @param {string} name The name of this data field.
+ * @param {Object} opts The value, prompt, and extended properties of this data field.
  */
-function CollectionData (opts) {
+function CollectionData (name, opts) {
 
+    if (!this instanceof CollectionData) {
+        return new CollectionData(name, opts);
+    }
+
+    if (!name) {
+        throw ValueError('name property is required.');
+    }
+
+    this.name = name
+
+    for (property in opts) {
+        this[property] = opts[property];
+    }
+
+    CollectionData.prototype.validate();
 }
+
+/**
+ * CollectionData property rules
+ */
+CollectionData.prototype.property_rules = {
+    'name': {type: 'string'},
+    'prompt': {type: 'string'}
+};
 
 /**
  * CollectionError Constructor
