@@ -29,7 +29,11 @@ function Collection (collection) {
         collection = collection.collection;
     }
 
-    this.collection = Collection.prototype.parse(collection);
+    collection = Collection.prototype.parse(collection);
+
+    for (prop in collection) {
+        this[prop] = collection[prop];
+    }
 
 }
 
@@ -62,7 +66,7 @@ Collection.prototype.toString = function () {
     }
 
     if (acceptable_instance) {
-        return JSON.stringify(this, this.preJSON);
+        return JSON.stringify({collection: this}, this.preJSON);
     }
 }
 
