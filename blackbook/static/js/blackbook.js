@@ -30,39 +30,22 @@ angular.module('BlackBook.controllers', []).controller(
 
     // TODO: Create separate controllers for featured contact, pagination, contact list, and create/edit/delete
 
-        var extractCollectionItems = function (response) {
-            console.log(response.data);
-            var data = [],
-            data_items = response.data.collection.items,
-            data_count = data_items.length;
-            i = 0,
-            data_object = null,
-            data_object_item = null,
-            data_object_item_length = 0,
-            j = 0;
-
-            for (i; i<data_count; i++) {
-                data_object = {};
-                data_object.href = data_items[i].href;
-                data_object_item = data_items[i].data;
-                data_object_item_length = data_object_item.length;
-                j = 0;
-                for (j; j<data_object_item_length; j++) {
-                    data_object[data_object_item[j].name] = data_object_item[j].value;
-                }
-                data.push(data_object);
-            }
-            if (data.length === 1) {
-                return data[0];
-            }
-            return data;
-        };
-
+        $scope.collection = null;
         $scope.selectedContact = null;
         $scope.contactList = null;
         $scope.listNavigation = null;
         $scope.listPerPage = 5;
         $scope.deletedContact = null;
+
+        $scope.getContactList = function (href) {
+            contactsService.get(href).then(
+                function(response) {
+                    $scope.collection = new Collection(response.data);
+                    $scope.contactList = $scope.collection.items;
+                    $scope.listNavigation = $scope.collection.links;
+                }
+            );
+        };
 
         $scope.getContact = function(href) {
             contactsService.get(href).then(
@@ -71,15 +54,6 @@ angular.module('BlackBook.controllers', []).controller(
                 }
             );
         };
-
-        $scope.getContactList = function (href) {
-            contactsService.get(href).then(
-                function(response) {
-                    $scope.contactList = extractCollectionItems(response);
-                    $scope.listNavigation = response.data.collection.links;
-                }
-            );
-        }
 
         $scope.refreshList = function () {
             $scope.getContactList('/api/entry/?page=1&per_page=' + $scope.listPerPage);
