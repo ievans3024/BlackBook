@@ -30,9 +30,9 @@ function Collection (collection) {
     }
 
     collection = Collection.prototype.parse(collection);
-    collection_props = collection.getOwnPropertyNames();
+    collection_props = Object.getOwnPropertyNames(collection);
 
-    for (i = 0, i < collection_props.length; i++) {
+    for (i = 0; i < collection_props.length; i++) {
         this[collection_props[i]] = collection[collection_props[i]];
     }
 
@@ -91,15 +91,15 @@ Collection.prototype.parse = function (object) {
         object = JSON.parse(object);
     }
 
-    rules = this.property_rules.getOwnPropertyNames();
+    rules = Object.getOwnPropertyNames(this.property_rules);
     
-    for (i = 0; i < rules.length; i++)) {
+    for (i = 0; i < rules.length; i++) {
         prop = rules[i];
         if (object.hasOwnProperty(prop)) {
             property = object[prop];
             rule_object = this.property_rules[prop];
-            rule = rule_object.getOwnPropertyNames();
-            for (i_2 = 0; i_2 < rule.length; i_2++ ) {
+            rule = Object.getOwnPropertyNames(rule_object);
+            for (i_2 = 0; i_2 < rule.length; i_2++) {
                 r = rule[i_2];
                 if (r === 'required' && rule_object.required) {
                     if (!object.hasOwnProperty(prop)) {
@@ -192,7 +192,7 @@ CollectionArray.prototype.toArray = function () {
         field_object;
 
     if (this instanceof CollectionArray) {
-        fields = this.getOwnPropertyNames();
+        fields = Object.getOwnPropertyNames(this);
         for (i = 0; i < fields.length; i++) {
             field_object = {name: fields[i]};
             for (prop in this[fields[i]]) {
@@ -221,7 +221,7 @@ function CollectionData (opts) {
     }
     
     opts = CollectionData.prototype.parse(opts);
-    opts_props = opts.getOwnPropertyNames();
+    opts_props = Object.getOwnPropertyNames(opts);
 
     for (i = 0; i < opts_props.length; i++) {
         this[opts_props[i]] = opts[opts_props[i]];
@@ -252,7 +252,7 @@ function CollectionError (opts) {
     }
     
     opts = CollectionError.prototype.parse(opts);
-    opts_props = opts.getOwnPropertyNames();
+    opts_props = Object.getOwnPropertyNames(opts);
 
     for (i = 0; i < opts_props.length; i++) {
         this[opts_props[i]] = opts[opts_props[i]];
@@ -283,7 +283,7 @@ function CollectionItem (opts) {
     }
     
     opts = CollectionItem.prototype.parse(opts);
-    opts_props = opts.getOwnPropertyNames();
+    opts_props = Object.getOwnPropertyNames(opts);
 
     for (i = 0; i < opts_props.length; i++) {
         this[opts_props[i]] = opts[opts_props[i]];
@@ -315,7 +315,7 @@ function CollectionLink (opts) {
     }
     
     opts = CollectionLink.prototype.parse(opts);
-    opts_props = opts.getOwnPropertyNames();
+    opts_props = Object.getOwnPropertyNames(opts);
 
     for (i = 0; i < opts_props.length; i++) {
         this[opts_props[i]] = opts[opts_props[i]];
@@ -346,7 +346,7 @@ function CollectionQuery (opts) {
     }
     
     opts = CollectionQuery.prototype.parse(opts);
-    opts_props = opts.getOwnPropertyNames();
+    opts_props = Object.getOwnPropertyNames(opts);
 
     for (i = 0; i < opts_props.length; i++) {
         this[opts_props[i]] = opts[opts_props[i]];
@@ -373,7 +373,7 @@ function CollectionTemplate (opts) {
     }
     
     opts = CollectionTemplate.prototype.parse(opts);
-    opts_props = opts.getOwnPropertyNames();
+    opts_props = Object.getOwnPropertyNames(opts);
 
     for (i = 0; i < opts_props.length; i++) {
         this[opts_props[i]] = opts[opts_props[i]];
