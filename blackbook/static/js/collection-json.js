@@ -77,37 +77,35 @@ Collection.prototype.parse = function (object) {
         collection = object;
     
     for (prop in this.property_rules) {
-        property = object[prop];
-        rule = this.property_rules[prop];
-        
-        for (r in rule) {
-            if (r === 'required' && rule[r]) {
-                if (!object.hasOwnProperty(prop)) {
-                    throw ValueError(prop + ' is a required property.');
+        if (object.hasOwnProperty(prop)) {
+            property = object[prop];
+            rule = this.property_rules[prop];
+            for (r in rule) {
+                if (r === 'required' && rule[r]) {
+                    if (!object.hasOwnProperty(prop)) {
+                        throw ValueError(prop + ' is a required property.');
+                    }
                 }
-            }
-        
-            if (r === 'constructor') {
-                if (rule.constructor === CollectionArray) {
-                    property = new CollectionArray(property, rule.contents.constructor);
-                } else {
-                    if (!property instanceof rule.constructor) {
-                        property = new rule.constructor(property);
+
+                if (r === 'constructor') {
+                    if (rule.constructor === CollectionArray) {
+                        property = new CollectionArray(property, rule.contents.constructor);
+                    } else {
+                        if (!property instanceof rule.constructor) {
+                            property = new rule.constructor(property);
+                        }
+                    }
+                }
+
+                if (r === 'type') {
+                    if (typeof property !== rule.type) {
+                        throw TypeError(prop + ' must be of type ' + rule.type);
                     }
                 }
             }
-            
-            if (r === 'type') {
-                if (typeof property !== rule.type) {
-                    throw TypeError(prop + ' must be of type ' + rule.type);
-                }
-            }
-        }
 
-        if (property !== undefined) {
             collection[prop] = property;
         }
-
     }
     
     return collection;
