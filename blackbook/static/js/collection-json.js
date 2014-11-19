@@ -37,7 +37,40 @@ RuleAbiding.prototype.validate = function (constructor) {
             properties = this.getOwnPropertyNames();
 
         function validate_property (name) {
-            var property = this[name];
+
+            var i,
+                property,
+                rule;
+
+            function assert_type (property_name, property, rule) {
+                var assertion,
+                    error_message;
+                for (r in rule) {
+                    if (r === 'constructor') {
+                        assertion = property instanceof rule.constructor;
+                        error_message = property_name + ' must be an instanceof ' + rule.constructor.name;
+                    } else if (r === 'type') {
+                        assertion = typeof property === rule.type;
+                        error_message = property_name + ' must be of type ' + rule.type
+                    }
+                    if (!assertion) {
+                        throw TypeError(error_message);
+                    }
+                }
+            }
+
+            if (this.property_rules.hasOwnProperty(name) {
+                property = this[name];
+                rule = this.property_rules[name];
+                assert_type(property, rule);
+                if (rule.hasOwnProperty('contents')) {
+                    if (rule.constructor === Array) {
+                        for (i = 0; i < property.length; i++) {
+                            assert_type(name + '[' + i + ']', property[i], rule.contents);
+                        }
+                    }
+                }
+            }
         }
 
         for (i = 0; i < properties.length; i++) {
@@ -45,8 +78,6 @@ RuleAbiding.prototype.validate = function (constructor) {
         }
     }
 }
-
-Conformist
 
 /**
  * Collection Constructor
