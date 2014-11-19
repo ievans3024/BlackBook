@@ -39,9 +39,9 @@ function Collection (collection) {
 Collection.prototype.property_rules = {
     error: {constructor: CollectionError},
     href: {type: 'string', required: true},
-    items: {constructor: Array, contents: {constructor: CollectionItem}},
-    links: {constructor: Array, contents: {constructor: CollectionLink}},
-    queries: {constructor: Array, contents: {constructor: CollectionQuery}},
+    items: {constructor: CollectionArray, contents: {constructor: CollectionItem}},
+    links: {constructor: CollectionArray, contents: {constructor: CollectionLink}},
+    queries: {constructor: CollectionArray, contents: {constructor: CollectionQuery}},
     template: {constructor: CollectionTemplate},
     version: {type: 'string', required: true},
 };
@@ -50,7 +50,20 @@ Collection.prototype.property_rules = {
  * Collection string method
  */
 Collection.prototype.toString = function () {
-    return JSON.stringify(this);
+
+    var i
+        acceptable_instance = false;
+
+    for (i = 0; i < Collection.hooked.length; i++) {
+        if (this instanceof Collection.hooked[i]) {
+            acceptable_instance = true;
+            break;
+        }
+    }
+
+    if (acceptable_instance) {
+        return JSON.stringify(this, this.preJSON);
+    }
 }
 
 /**
@@ -62,34 +75,6 @@ Collection.prototype.parse = function (object) {
     var property,
         rule,
         collection = object;
-        
-    /**
-     * Iterate through an array, supplying parseables into a constructor,
-     * passing instances of constructor into an output array.
-     * @param {Array} array The array to process
-     * @param {function} parseable The constructor for an acceptably parseable object
-     * @param {function} constructor The constructor to pass parseable into, if necessary.
-     * @return {Array}
-     */
-    function process_array (array, parseable, constructor) {
-        var i = 0,
-            output = [],
-            length,
-            item;
-
-        for (i; i < length; i++) {
-            item = array[i];
-            if (item instanceof parseable) {
-                output.push(constructor(item));
-            } else if (item instanceof constructor) {
-                output.push(item);
-            }
-        }
-
-        if (output.length > 0) {
-            return output;
-        }
-    }
     
     for (prop in this.property_rules) {
         property = object[prop];
@@ -103,11 +88,11 @@ Collection.prototype.parse = function (object) {
             }
         
             if (r === 'constructor') {
-                if (rule.constructor === Array) {
-                    property = process_array(property, Object, rule.contents.constructor);
+                if (rule.constructor === CollectionArray) {
+                    property = new CollectionArray(property, rule.contents.constructor);
                 } else {
                     if (!property instanceof rule.constructor) {
-                        property = rule.constructor(property);
+                        property = new rule.constructor(property);
                     }
                 }
             }
@@ -133,10 +118,76 @@ Collection.prototype.parse = function (object) {
  * @param {function} constructor The constructor whose prototype should receive these functions
  */
 Collection.hook = function (constructor) {
+    Collection.hooked.push(constructor);
     constructor.prototype.toString = Collection.prototype.toString;
     constructor.prototype.parse = Collection.prototype.parse;
 };
 
+Collection.hooked = [Collection];
+
+
+/**
+ * CollectionArray constructor
+ * @param {Array} array The array to make into an object
+ * @param {function} contains The constructor for the type of data this CollectionArray should contain
+ * @throws TypeError If params are not the correct type.
+ */
+function CollectionArray (array, contains) {
+
+    var i,
+        field;
+
+    if (!this instanceof CollectionArray) {
+        return new CollectionArray(opts);
+    }
+
+    if (!array instanceof Array) {
+        throw TypeError('array parameter must be an Array.');
+    }
+
+    if (typeof contains !== 'function') {
+        throw TypeError('contains parameter must be a function.');
+    }
+
+    for (i = 0; i < array.length; i++) {
+        if (array[i] instanceof contains) {
+            field = array[i];
+        } else {
+            field = new contains(array[i]);
+        }
+        this[field.name] = {};
+        for (prop in field) {
+            this[field.name][prop] = field[prop];
+        }
+    }
+
+}
+
+/**
+ * Turn CollectionArray's data into a Collection+JSON-friendly array
+ */
+CollectionArray.prototype.toArray = function () {
+
+    var i,
+        properties,
+        array = []
+        field_object;
+
+    if (this instanceof CollectionArray) {
+        fields = this.getOwnPropertyNames();
+        for (i = 0; i < fields.length; i++) {
+            field_object = {name: fields[i]};
+            for (prop in this[fields[i]]) {
+                field_object[prop] = this[fields[i]][prop];
+            }
+            array.push(field_object);
+        }
+    }
+
+    return array;
+}
+
+CollectionArray.prototype.preJSON = CollectionArray.prototype.toArray;
 
 
 /**
@@ -216,7 +267,7 @@ function CollectionItem (opts) {
  */
 CollectionItem.prototype.property_rules = {
     href: Collection.prototype.property_rules.href,
-    data: {constructor: Array, contents: {constructor: CollectionData}},
+    data: {constructor: CollectionArray, contents: {constructor: CollectionData}},
     links: Collection.prototype.property_rules.links
 };
 
