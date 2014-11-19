@@ -2,120 +2,12 @@
  * AngularJS <-> Collection+JSON middleware
  */
 
-/* TODO: narrow validation scope to each object prototype.
- * Collection validation still crawls the whole tree
- * Collection validation will call other validators from other prototypes as dictated by rules
- */
-
-/* TODO: make very generic validator that can validate properties in 'this' by rules defined in 'this.property_rules'
- * Objects should inherit it in their prototypes
- */
-
-/**
- * RuleAbiding Constructor
- */
-function RuleAbiding (rules) {
-    if (!this instanceof RuleAbiding) {
-        return new Conformist(rules);
-    }
-
-    this.property_rules = RuleAbiding.prototype.property_rules;
-
-    for (rule in rules) {
-        this.property_rules[rule] = rules[rule];
-    }
-}
-
-RuleAbiding.prototype.property_rules = {};
-
-/**
- * RuleAbiding validator function
- */
-RuleAbiding.prototype.validate = function (constructor) {
-    if (this instanceof constructor) {
-        var i,
-            properties = this.getOwnPropertyNames();
-
-        function validate_property (name) {
-
-            var i,
-                property,
-                rule;
-
-            function assert_type (property_name, property, rule) {
-                var assertion,
-                    error_message;
-                for (r in rule) {
-                    if (r === 'constructor') {
-                        assertion = property instanceof rule.constructor;
-                        error_message = property_name + ' must be an instanceof ' + rule.constructor.name;
-                    } else if (r === 'type') {
-                        assertion = typeof property === rule.type;
-                        error_message = property_name + ' must be of type ' + rule.type
-                    }
-                    if (!assertion) {
-                        throw TypeError(error_message);
-                    }
-                }
-            }
-
-            if (this.property_rules.hasOwnProperty(name) {
-                property = this[name];
-                rule = this.property_rules[name];
-                assert_type(property, rule);
-                if (rule.hasOwnProperty('contents')) {
-                    if (rule.constructor === Array) {
-                        for (i = 0; i < property.length; i++) {
-                            assert_type(name + '[' + i + ']', property[i], rule.contents);
-                        }
-                    }
-                }
-            }
-        }
-
-        for (i = 0; i < properties.length; i++) {
-            validate_property(properties[i]);
-        }
-    }
-}
-
 /**
  * Collection Constructor
  * @param collection The Object or JSON string to construct this Collection from.
  * @throws {ValueError} If href or version properties are not present in collection.
  */
 function Collection (collection) {
-
-    /**
-     * Iterate through an array, supplying parseables into a constructor,
-     * passing instances of constructor into an output array.
-     * @param {Array} array The array to process
-     * @param {function} parseable The constructor for an acceptably parseable object
-     * @param {function} constructor The constructor to pass parseable into, if necessary.
-     * @return {Array}
-     */
-    function process_array (array, parseable, constructor) {
-        var i = 0,
-            output = [],
-            length,
-            item;
-
-        for (i; i < length; i++) {
-            item = array[i];
-            if (item instanceof parseable) {
-                try {
-                    output.push(constructor(item));
-                } catch (e) {
-                    // Don't add item to the output, skip it.
-                    console.warn('process_array: array[' + i + '] not added.', e);
-                }
-            } else if (item instanceof constructor) {
-                output.push(item);
-            }
-        }
-
-        return output;
-    }
 
     var acceptable, acceptable_rules;
 
@@ -143,24 +35,7 @@ function Collection (collection) {
         throw ValueError('version property is required.');
     }
 
-    // Validate (and, if necessary, parse) values
-    for (property in collection) {
-        acceptable = collection[property];
-        acceptable_rules = Collection.prototype.property_rules[property];
-        try {
-            Collection.prototype.validate({property: collection[property]}, true);
-        } catch (e) {
-            if (acceptable_rules.hasOwnProperty('constructor')) {
-                if (acceptable_rules.constructor === Array) {
-                    acceptable = process_array(acceptable, Object, acceptable_rules.contents.constructor);
-                } else {
-                    acceptable = acceptable_rules.constructor(acceptable);
-                }
-            }
-        } finally {
-            this.collection[property] = acceptable;
-        }
-    }
+    this.collection = Collection.prototype.parse(collection);
 
 }
 
@@ -169,116 +44,134 @@ function Collection (collection) {
  */
 Collection.prototype.property_rules = {
     error: {constructor: CollectionError},
-    data: {constructor: Array, contents: {constructor: CollectionData}},
-    href: {type: 'string'},
+    // data: {constructor: Array, contents: {constructor: CollectionData}},
+    href: {type: 'string', required: true},
     items: {constructor: Array, contents: {constructor: CollectionItem}},
     links: {constructor: Array, contents: {constructor: CollectionLink}},
     queries: {constructor: Array, contents: {constructor: CollectionQuery}},
     template: {constructor: CollectionTemplate},
-    version: {type: 'string'},
+    version: {type: 'string', required: true},
 };
 
 /**
- * Validate this collection OR validate a collection provided as an argument
- * @param collection Optional. A different collection to validate.
- * @param {bool} is_fragment Optional. If true, indicates that collection is not a complete Collection, but a segment.
- * @throws {TypeError} If collection is not a Collection and is_fragment is not true,
- * or if collection/fragment properties do not follow spec types.
+ * Collection string method
  */
-Collection.prototype.validate = function (collection, is_fragment) {
+Collection.prototype.toString = function () {
+    return JSON.stringify(this);
+}
 
-    var property_string,
-        property;
+/**
+ * Property validator and parser
+ * @param {Object} object The object to parse.
+ * @return {Object} The parsed form of the object
+ */
+Collection.prototype.parse = function (object) {
+    var property,
+        rule,
+        collection = object;
+        
+    /**
+     * Iterate through an array, supplying parseables into a constructor,
+     * passing instances of constructor into an output array.
+     * @param {Array} array The array to process
+     * @param {function} parseable The constructor for an acceptably parseable object
+     * @param {function} constructor The constructor to pass parseable into, if necessary.
+     * @return {Array}
+     */
+    function process_array (array, parseable, constructor) {
+        var i = 0,
+            output = [],
+            length,
+            item;
 
-    function validate_property (prop, property_string) {
+        for (i; i < length; i++) {
+            item = array[i];
+            if (item instanceof parseable) {
+                output.push(constructor(item));
+            } else if (item instanceof constructor) {
+                output.push(item);
+            }
+        }
 
-        var i, rule,
-        sub_properties = prop.getOwnPropertyNames();
-
-        if (property_string in this.property_rules) {
-            rule = this.property_rules[property_string];
-            if (rule.hasOwnProperty('type')) {
-                if (typeof prop !== rule.type) {
-                    throw TypeError(property_string + ' must be of type ' + rule.type);
+        return output;
+    }
+    
+    for (prop in this.property_rules) {
+        property = object[prop];
+        rule = this.property_rules[prop];
+        
+        for (r in rule) {
+            if (r === 'required' && rule[r]) {
+                if (!object.hasOwnProperty(prop)) {
+                    throw ValueError(prop + ' is a required property.');
                 }
             }
-
-            if (rule.hasOwnProperty('constructor')) {
-                if (!prop instanceof rule.constructor) {
-                    throw TypeError(property_string + ' must be an instance of ' + rule.constructor);
+        
+            if (r === 'constructor') {
+                if (!property instanceof rule.constructor) {
+                    throw TypeError(prop + ' must be an instance of ' + rule.constructor.name);
                 }
-                if (rule.constructor === Array && rule.hasOwnProperty('contents')) {
-                    for (i = 0; i < prop.length; i++) {
-                        if (rule.contents.hasOwnProperty('constructor') {
-                            if (!prop[i] instanceof rule.contents.constructor) {
-                                throw TypeError(
-                                    property_string + ' must only contain instances of ' + rule.contents.constructor.name
-                                );
-                            }
-                        }
-                    }
+                if (rule.constructor === Array) {
+                    property = process_array(property, Object, rule.contents.constructor);
+                } else {
+                    property = rule.constructor(property);
+                }
+            }
+            
+            if (r === 'type') {
+                if (typeof property !== rule.type) {
+                    throw TypeError(prop + ' must be of type ' + rule.type);
                 }
             }
         }
-
-        // Descend into child properties
-        for (i = 0; i < sub_properties.length; i++) {
-            validate_property(prop[sub_properties[i]], property_string + '.' + sub_properties[i]);
-        }
-
+        
+        collection[prop] = property;
     }
+    
+    return collection;
+}
 
-    if (!collection && this instanceof Collection) {
-        collection = this;
-    }
-
-    if (!is_fragment) {
-        if (!collection instanceof Collection) {
-            throw TypeError('collection must be an instance of Collection');
-        }
-
-        if (!collection.hasOwnProperty('href') || !collection.hasOwnProperty('version')) {
-            throw SyntaxError('collection must have at least "href" and "version" properties.');
-        }
-    }
-
-    for (prop in collection) {
-        validate_property(collection[prop], 'collection.' + prop);
-    }
-};
 
 
 /**
  * CollectionData Constructor
- * @param {string} name The name of this data field.
- * @param {Object} opts The value, prompt, and extended properties of this data field.
+ * @param {Object} opts The properties of this field
  */
-function CollectionData (name, opts) {
+function CollectionData (opts) {
 
     if (!this instanceof CollectionData) {
         return new CollectionData(name, opts);
     }
 
-    if (!name) {
+    if (!opts.hasOwnProperty('name')) {
         throw ValueError('name property is required.');
     }
+    
+    opts = CollectionData.prototype.parse(opts);
 
-    this.name = name
-
-    for (property in opts) {
-        this[property] = opts[property];
+    for (opt in opts) {
+        this[opt] = opts[opt];
     }
-
-    CollectionData.prototype.validate();
 }
 
 /**
  * CollectionData property rules
  */
 CollectionData.prototype.property_rules = {
-    'name': {type: 'string'},
+    'name': {type: 'string', required: true},
     'prompt': {type: 'string'}
 };
+
+/**
+ * CollectionData string method
+ */
+CollectionData.prototype.toString = function () {
+    return JSON.stringify(this);
+}
+
+CollectionData.prototype.parse = Collection.prototype.parse;
+
+
 
 /**
  * CollectionError Constructor
