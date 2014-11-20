@@ -12,12 +12,11 @@
     {% endblock %}
 </head>
 {% block body %}
-<body ng-app="BlackBook" ng-controller="contactsController">
+<body ng-app="BlackBook">
 {% block header %}
     <div class="navbar navbar-inverse navbar-top" role="navigation">
         <div class="navbar-header">
             <a href="/" class="navbar-brand">BlackBook</a>
-            <!--<span class="navbar-brand tagline">My contact list</span>-->
         </div>
         <div class="navbar-form navbar-left">
             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#new-entry">
@@ -33,36 +32,52 @@
         </form>
     </div>
 {% endblock header %}
-    <div class="container-fluid">
+    <div class="container-fluid" ng-controller="contact_index">
         <div class="row">
 {% block entrylist %}
-            <div id="current-entry" class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+            <div id="current-entry" class="col-xs-12 col-sm-6 col-md-4 col-lg-3" ng-controller="selected_contact">
                 {# TODO: Make edit form dialog, add edit button #}
                 <div>
-                    <div ng-if="selectedContact">
-                        <h3 class="name">[[selectedContact.data.first_name.value]] [[selectedContact.data.last_name.value]]</h3>
+                    <div ng-if="selected()">
+                        <h3 class="name">[[selected().data.first_name.value]] [[selected().data.last_name.value]]</h3>
                         <div class="edit">
                             <button type="button" class="btn btn-xs btn-link">
                                 <span class="glyphicon glyphicon-pencil"></span> Edit
                             </button>
                             <button type="button" class="btn btn-xs btn-link" data-toggle="modal"
-                                    data-target="#delete-confirm" ng-click="$parent.deletedContact = selectedContact">
+                                    data-target="#delete-confirm">
                                 <span class="glyphicon glyphicon-trash"></span> Delete
                             </button>
                         </div>
-                        <span class="address-1">[[selectedContact.data.address_line_1.value]]</span>
-                        <span class="address-2">[[selectedContact.data.address_line_2.value]]</span>
-                        <span class="city">[[selectedContact.data.city.value]]</span>
-                        <span class="state">[[selectedContact.data.state.value]]</span>
-                        <span class="zip">[[selectedContact.data.zip.value]]</span>
-                        <span class="country">[[selectedContact.data.country.value]]</span>
+                        <span class="address-1">[[selected().data.address_line_1.value]]</span>
+                        <span class="address-2">[[selected().data.address_line_2.value]]</span>
+                        <span class="city">[[selected().data.city.value]]</span>
+                        <span class="state">[[selected().data.state.value]]</span>
+                        <span class="zip">[[selected().data.zip.value]]</span>
+                        <span class="country">[[selected().data.country.value]]</span>
                         <div class="phone-number">
                             <h4>Phone:</h4>
-                            <span class="phone-number" ng-repeat="number in selectedContact.data.phone_numbers.value">[[ number.number_type | capitalize ]]: [[ number.number ]]</span>
+                            <span class="phone-number" ng-repeat="number in selected().data.phone_numbers.value">[[ number.number_type | capitalize ]]: [[ number.number ]]</span>
                         </div>
                         <div class="email">
                             <h4>E-mail:</h4>
-                            <a class="email" ng-repeat="email in selectedContact.data.emails.value" href="mailto:[[ email.email ]]">[[ email.email_type | capitalize ]]</a>
+                            <a class="email" ng-repeat="email in selected().data.emails.value" href="mailto:[[ email.email ]]">[[ email.email_type | capitalize ]]</a>
+                        </div>
+                        <div id="delete-confirm" class="modal fade">
+                            <div class="modal-dialog">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                    <h4 class="modal-title">Confirm Delete</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Delete [[ selected().data.first_name.value ]] [[ selected().data.last_name.value ]]?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal"
+                                           ng-click="delete(selected().href)">OK</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -71,24 +86,20 @@
             <div id="entries" class="col-xs-12 col-sm-6 col-md-8 col-lg-9">
                 <div class="entry-nav">
                     <span class="pages col-xs-12">
-                        <a ng-repeat="nav in listNavigation" ng-click="getContactList(nav.href)" rel="[[nav.rel]]">[[ nav.prompt ]]</a>
+                        <a ng-repeat="nav in navigation.links" ng-click="get_contacts(nav.href)" rel="[[nav.rel]]">[[ nav.prompt ]]</a>
                     </span>
                     <span class="per-page-container col-xs-12">
                         Per Page:
-                        <select class="per-page" ng-model="listPerPage" ng-pattern="/^\d+$/" ng-change="refreshList()">
+                        <select class="per-page" ng-model="navigation.per_page" ng-pattern="/^\d+$/" ng-change="refresh_index()">
                             <option value="5" selected>5</option>
                             <option value="10">10</option>
                             <option value="20">20</option>
                         </select>
                     </span>
                 </div>
-                <div class="entry" ng-repeat="contact in contactList">
-                    <h3 class="name" ng-click="getContact(contact.href)">
+                <div class="entry" ng-repeat="contact in index">
+                    <h3 class="name" ng-click="get_contact(contact.href)">
                         [[contact.data.first_name.value]] [[contact.data.last_name.value]]
-                        <button class="btn btn-xs btn-link" type="button" data-toggle="modal" data-target="#delete-confirm"
-                            aria-hideen="true" ng-click="$parent.deletedContact = contact">
-                            <span class="glyphicon glyphicon-trash"></span>
-                        </button>
                     </h3>
                     <p ng-repeat="number in contact.data.phone_numbers.value" ng-if="number.number_type === 'primary'" class="phone">[[number.number]]</p>
                 </div>
@@ -174,23 +185,7 @@
     </form>
 {% endblock newform %}
 {% block deleteconfirm %}
-    <div id="delete-confirm" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title">Confirm Delete</h4>
-            </div>
-            <div class="modal-body">
-                <p>Delete [[ deletedContact.data.first_name.value ]] [[ deletedContact.data.last_name.value ]]?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal"
-                        ng-click="$parent.deletedContact = null">Cancel</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal"
-                        ng-click="deleteContact(deletedContact.href)">OK</button>
-            </div>
-        </div>
-    </div>
+
 {% endblock deleteconfirm %}
 {% block dialog %}
     <div id="status-dialog" class="modal fade">

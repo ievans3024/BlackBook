@@ -1,17 +1,31 @@
-angular.module('BlackBook', [
+var black_book = angular.module('BlackBook', [
     'BlackBook.controllers',
-    'BlackBook.services',
-    'BlackBook.filters'
+    'BlackBook.filters',
+    'BlackBook.services'
 ],
 function($interpolateProvider) {
     $interpolateProvider.startSymbol('[[');
     $interpolateProvider.endSymbol(']]');
 });
 
-angular.module('BlackBook.services', []).factory(
-    'contactsService', function($http) {
+black_book.controllers = angular.module('BlackBook.controllers', []);
+black_book.filters = angular.module('BlackBook.filters', []);
+black_book.services = angular.module('BlackBook.services', []);
+
+black_book.services.factory(
+    'contacts_service', function($http) {
 
         var contactAPI = {};
+
+        contactAPI.selected = {value: null};
+
+        contactAPI.selected.get = function () {
+            return this.value;
+        }
+
+        contactAPI.selected.set = function (contact) {
+            this.value = contact;
+        }
 
         contactAPI.get = function(href) {
             var headers = { 'Accept': 'application/vnd.collection+json' };
@@ -26,7 +40,7 @@ angular.module('BlackBook.services', []).factory(
     }
 );
 
-angular.module('BlackBook.filters', []).filter(
+black_book.filters.filter(
     'capitalize', function () {
         return function (input) {
             var string_array = input.split(' '),
@@ -39,57 +53,78 @@ angular.module('BlackBook.filters', []).filter(
     }
 );
 
-angular.module('BlackBook.controllers', []).controller(
-    'contactsController', function($scope, contactsService) {
+black_book.controllers.controller(
+    'selected_contact', function($scope, contacts_service) {
 
-    // TODO: Create separate controllers for featured contact, pagination, contact list, and create/edit/delete
+        $scope.selected = function () { return contacts_service.selected.get(); };
 
-        $scope.collection = null;
-        $scope.selectedContact = null;
-        $scope.contactList = null;
-        $scope.listNavigation = null;
-        $scope.listPerPage = 5;
-        $scope.deletedContact = null;
+        $scope.edit = function (href) {
 
-        $scope.getContactList = function (href) {
-            contactsService.get(href).then(
-                function(response) {
-                    $scope.collection = new Collection(response.data);
-                    $scope.contactList = $scope.collection.items;
-                    $scope.listNavigation = $scope.collection.links;
-                }
-            );
-        };
-
-        $scope.getContact = function(href) {
-            contactsService.get(href).then(
-                function(response) {
-                    var contact_collection = new Collection(response.data)
-                    $scope.selectedContact = contact_collection.items[0];
-                }
-            );
-        };
-
-        $scope.refreshList = function () {
-            $scope.getContactList('/api/entry/?page=1&per_page=' + $scope.listPerPage);
         }
 
-        $scope.deleteContact = function (href) {
-            contactsService.delete(href).then(
-                function (response) {
-                    $scope.selectedContact = null;
-                    $scope.deletedContact = null;
-                    $scope.refreshList();
+        $scope.delete = function (href) {
+            contacts_service.delete(href).then(
+                function () {
+                    $scope.$emit('contact_delete');
                 }
             );
         }
-
-        $scope.getContactList('/api/entry/');
     }
 );
-/*
-angular.module('BlackBook.controllers', []).controller(
-    'testsController', function ($scope, contactsService) {
+
+black_book.controllers.controller(
+    'contact_index', function($scope, $timeout, contacts_service) {
+
+        var navigation = {
+            links: null,
+            per_page: 5
+        }
+
+        $scope.index = null;
+        $scope.navigation = navigation;
+
+        $scope.get_contacts = function (href) {
+            contacts_service.get(href).then(
+                function (response) {
+                    var collection = new Collection(response.data);
+                    $scope.index = collection.items;
+                    $scope.navigation.links = collection.links;
+                }
+            );
+        }
+
+        $scope.get_contact = function (href) {
+            contacts_service.get(href).then(
+                function(response) {
+                    var collection = new Collection(response.data);
+                    contacts_service.selected.set(collection.items[0]);
+                }
+            );
+        }
+
+        $scope.refresh_index = function (href) {
+            var uri;
+            if ($scope.navigation.per_page !== 5) {
+                uri = '/api/entry/?per_page=' + $scope.navigation.per_page;
+            } else {
+                uri = '/api/entry/';
+            }
+            $scope.get_contacts(uri);
+        }
+
+        $scope.$on('contact_delete', function () {
+            $timeout(function () {
+                contacts_service.selected.set(null);
+                $scope.refresh_index();
+            }, 500);
+        });
+
+        $scope.refresh_index();
+    }
+);
+
+black_book.controllers.controller(
+    'tests_controller', function ($scope, contacts_service) {
 
         var status = {
             FAIL: { cssclass: 'label-danger', text: 'Failed!' },
@@ -107,7 +142,7 @@ angular.module('BlackBook.controllers', []).controller(
                 result: {text: 'Testing basic HTTP GET to /api/', status: status.RUNNING}
             }
 
-            contactsService.get('/api/').then(
+            contacts_service.get('/api/').then(
                 function (response) {
                     if (
                         response.status === 200 &&
@@ -129,4 +164,3 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.test_basic();
     }
 );
-*/
