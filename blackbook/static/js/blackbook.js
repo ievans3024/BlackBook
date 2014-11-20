@@ -73,7 +73,7 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.getContactList('/api/entry/');
     }
 );
-
+/*
 angular.module('BlackBook.controllers', []).controller(
     'testsController', function ($scope, contactsService) {
 
@@ -115,3 +115,4 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.test_basic();
     }
 );
+*/
