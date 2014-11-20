@@ -190,13 +190,12 @@ function CollectionData (fields) {
     this.array = fields;
 
     for (i = 0; i < fields.length; i++) {
-        console.log(fields[i]);
         opts = CollectionData.prototype.parse(fields[i]);
         opts_props = Object.getOwnPropertyNames(opts);
         value = {}
-        for (i_2 = 0; i < opts_props.length; i++) {
-            if (opts_props[i] !== 'name') {
-                value[opts_props[i]] = opts[opts_props[i]];
+        for (i_2 = 0; i_2 < opts_props.length; i_2++) {
+            if (opts_props[i_2] !== 'name') {
+                value[opts_props[i_2]] = opts[opts_props[i_2]];
             }
         }
         this[opts.name] = value;
