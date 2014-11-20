@@ -107,6 +107,14 @@ def api_search():
     # Coming soon!
     abort(501)
 
+if app.config.get('TESTING'):
+    @app.route('/tests/')
+    def tests():
+        """
+        Front-to-back api unittests
+        """
+        return render_template('tests.html')
+
 
 if __name__ == '__main__':
     # db.generate_test_db()  # uncomment to generate test database

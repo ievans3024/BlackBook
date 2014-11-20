@@ -11,6 +11,7 @@
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/blackbook.css') }}">
     {% endblock %}
 </head>
+{% block body %}
 <body ng-app="BlackBook" ng-controller="contactsController">
 {% block header %}
     <div class="navbar navbar-inverse navbar-top" role="navigation">
@@ -31,7 +32,7 @@
             </div>
         </form>
     </div>
-{% endblock %}
+{% endblock header %}
     <div class="container-fluid">
         <div class="row">
 {% block entrylist %}
@@ -92,7 +93,7 @@
                     <p ng-repeat="number in contact.phone_numbers.value" ng-if="number.number_type === 'primary'" class="phone">[[number.number]]</p>
                 </div>
             </div>
-{% endblock %}
+{% endblock entrylist %}
         </div>
     </div>
 {% block newform %}
@@ -171,7 +172,7 @@
             </div>
         </div>
     </form>
-{% endblock %}
+{% endblock newform %}
 {% block deleteconfirm %}
     <div id="delete-confirm" class="modal fade">
         <div class="modal-dialog">
@@ -190,7 +191,7 @@
             </div>
         </div>
     </div>
-{% endblock %}
+{% endblock deleteconfirm %}
 {% block dialog %}
     <div id="status-dialog" class="modal fade">
         <div class="modal-dialog">
@@ -202,13 +203,14 @@
             <div class="modal-footer"><button type="button" class="btn btn-success" data-dismiss="modal">OK</button></div>
         </div>
     </div>
-{% endblock %}
+{% endblock dialog %}
 {% block scripts %}
     <script src="{{ url_for('static', filename='js/collection-json.js') }}"></script>
     <script src="{{ url_for('static', filename='js/lib/jquery-2.1.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/lib/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/lib/angular.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/blackbook.js') }}"></script>
-{% endblock %}
+{% endblock scripts %}
 </body>
+{% endblock body %}
 </html>

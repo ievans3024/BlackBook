@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<body ng-app="BlackBook">
+    <div class="navbar navbar-inverse navbar-top" role="navigation">
+        <div class="navbar-header">
+            <a href="/" class="navbar-brand">BlackBook</a>
+            <!--<span class="navbar-brand tagline">My contact list</span>-->
+        </div>
+    </div>
+    <div class="container-fluid" ng-controller="testsController">
+        <div class="row">
+            <div id="entries" class="col-xs-12 col-sm-6 col-md-8 col-lg-9">
+                <div id="entry" ng-repeat="test in tests">
+                    <h3 class="name">[[ test.title ]] <span class="label [[ test.result.status.cssclass ]]">[[ test.result.status.text ]]</span></h3>
+                    <p>[[ test.result.text ]]</p>
+                </div>
+                <div id="entry" ng-if="current_test">
+                    <h3 class="name">[[ current_test.title ]] <span class="label [[ current_test.result.status.cssclass ]]">[[ current_test.result.status.text ]]</span></h3>
+                    <p>[[ current_test.result.text ]]</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% block scripts %}{{ super() }}{% endblock %}
+</body>
+{% endblock %}

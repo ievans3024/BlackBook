@@ -73,3 +73,45 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.getContactList('/api/entry/');
     }
 );
+
+angular.module('BlackBook.controllers', []).controller(
+    'testsController', function ($scope, contactsService) {
+
+        var status = {
+            FAIL: { cssclass: 'label-danger', text: 'Failed!' },
+            RUNNING: { cssclass: 'label-warning', text: 'Running...' },
+            PASS: { cssclass: 'label-success', text: 'Passed!' }
+        }
+
+        $scope.tests = []
+        $scope.current_test = null;
+
+        $scope.test_basic = function () {
+
+            $scope.current_test = {
+                title: 'Basic GET',
+                result: {text: 'Testing basic HTTP GET to /api/', status: status.RUNNING}
+            }
+
+            contactsService.get('/api/').then(
+                function (response) {
+                    if (
+                        response.status === 200 &&
+                        response.config.headers['Accept'] === 'application/vnd.collection+json' &&
+                        response.data.hasOwnProperty('collection') &&
+                        response.data.collection.hasOwnProperty('href') &&
+                        response.data.collection.hasOwnProperty('version')
+                        ) {
+
+                        $scope.current_test.result.status = status.PASS;
+                        $scope.current_test.result.text = 'HTTP GET /api/ successfully returned a Collection+JSON document'
+                        $scope.tests.push($scope.current_test);
+                        $scope.current_test = null;
+                    }
+                }
+            )
+        }
+
+        $scope.test_basic();
+    }
+);
