@@ -287,7 +287,7 @@ A base class for database wrappers.
                             prompt=str(page_num)
                         ))
 
-                if page + trailing <= number_of_pages:
+                if page + trailing < number_of_pages:
                     new_page.links.append(Link(
                         '',
                         'skip',
