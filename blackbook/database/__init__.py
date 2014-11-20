@@ -277,24 +277,24 @@ A base class for database wrappers.
                 prompt=str(page)
             ))
 
-            if page < number_of_pages:
+            if page <= number_of_pages:
                 for trail_page in range(1, leading + 1):
                     page_num = page + trail_page
-                    if page_num < number_of_pages:
+                    if page_num <= number_of_pages:
                         new_page.links.append(Link(
                             uri_template.format(endpoint_uri=endpoint, page=page_num, per_page=per_page),
                             'more',
                             prompt=str(page_num)
                         ))
 
-                if page + trailing < number_of_pages:
+                if page + trailing <= number_of_pages:
                     new_page.links.append(Link(
                         '',
                         'skip',
                         prompt='…'
                     ))
 
-                if page < number_of_pages:
+                if page <= number_of_pages:
                     new_page.links.append(Link(
                         uri_template.format(endpoint_uri=endpoint, page=page + 1, per_page=per_page),
                         'next',
