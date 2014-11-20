@@ -43,7 +43,6 @@ angular.module('BlackBook.controllers', []).controller(
                     $scope.collection = new Collection(response.data);
                     $scope.contactList = $scope.collection.items;
                     $scope.listNavigation = $scope.collection.links;
-                    console.log($scope.collection);
                 }
             );
         };
@@ -51,7 +50,8 @@ angular.module('BlackBook.controllers', []).controller(
         $scope.getContact = function(href) {
             contactsService.get(href).then(
                 function(response) {
-                    $scope.selectedContact = extractCollectionItems(response);
+                    var contact_collection = new Collection(response.data)
+                    $scope.selectedContact = contact_collection.items[0];
                 }
             );
         };
