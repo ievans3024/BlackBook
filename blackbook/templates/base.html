@@ -62,7 +62,7 @@
                         </div>
                         <div class="email">
                             <h4>E-mail:</h4>
-                            <span class="email" ng-repeat="email in selectedContact.data.emails.value">[[email.email_type]]: [[email.email]]</span>
+                            <a class="email" ng-repeat="email in selectedContact.data.emails.value" href="mailto:[[ email.email ]]">[[ email.email_type ]]</a>
                         </div>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
                             <span class="glyphicon glyphicon-trash"></span>
                         </button>
                     </h3>
-                    <p ng-repeat="number in contact.phone_numbers.value" ng-if="number.number_type === 'primary'" class="phone">[[number.number]]</p>
+                    <p ng-repeat="number in contact.data.phone_numbers.value" ng-if="number.number_type === 'primary'" class="phone">[[number.number]]</p>
                 </div>
             </div>
 {% endblock entrylist %}
