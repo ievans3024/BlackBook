@@ -39,7 +39,7 @@
                 {# TODO: Make edit form dialog, add edit button #}
                 <div>
                     <div ng-if="selectedContact">
-                        <h3 class="name">[[selectedContact.first_name]] [[selectedContact.last_name]]</h3>
+                        <h3 class="name">[[selectedContact.data.first_name.value]] [[selectedContact.data.last_name.value]]</h3>
                         <div class="edit">
                             <button type="button" class="btn btn-xs btn-link">
                                 <span class="glyphicon glyphicon-pencil"></span> Edit
@@ -49,19 +49,19 @@
                                 <span class="glyphicon glyphicon-trash"></span> Delete
                             </button>
                         </div>
-                        <span class="address-1">[[selectedContact.address_line_1]]</span>
-                        <span class="address-2">[[selectedContact.address_line_2]]</span>
-                        <span class="city">[[selectedContact.city]]</span>
-                        <span class="state">[[selectedContact.state]]</span>
-                        <span class="zip">[[selectedContact.zip]]</span>
-                        <span class="country">[[selectedContact.country]]</span>
+                        <span class="address-1">[[selectedContact.data.address_line_1.value]]</span>
+                        <span class="address-2">[[selectedContact.data.address_line_2.value]]</span>
+                        <span class="city">[[selectedContact.data.city.value]]</span>
+                        <span class="state">[[selectedContact.data.state.value]]</span>
+                        <span class="zip">[[selectedContact.data.zip.value]]</span>
+                        <span class="country">[[selectedContact.data.country.value]]</span>
                         <div class="phone-number">
                             <h4>Phone:</h4>
-                            <span class="phone-number" ng-repeat="number in selectedContact.phone_numbers">[[number.number_type]]: [[number.number]]</span>
+                            <span class="phone-number" ng-repeat="number in selectedContact.data.phone_numbers.value">[[number.number_type]]: [[number.number]]</span>
                         </div>
                         <div class="email">
                             <h4>E-mail:</h4>
-                            <span class="email" ng-repeat="email in selectedContact.emails">[[email.email_type]]: [[email.email]]</span>
+                            <span class="email" ng-repeat="email in selectedContact.data.emails.value">[[email.email_type]]: [[email.email]]</span>
                         </div>
                     </div>
                 </div>
@@ -83,13 +83,13 @@
                 </div>
                 <div class="entry" ng-repeat="contact in contactList">
                     <h3 class="name" ng-click="getContact(contact.href)">
-                        [[contact.first_name]] [[contact.last_name]]
+                        [[contact.data.first_name.value]] [[contact.data.last_name.value]]
                         <button class="btn btn-xs btn-link" type="button" data-toggle="modal" data-target="#delete-confirm"
                             aria-hideen="true" ng-click="$parent.deletedContact = contact">
                             <span class="glyphicon glyphicon-trash"></span>
                         </button>
                     </h3>
-                    <p ng-repeat="number in contact.phone_numbers" ng-if="number.number_type === 'primary'" class="phone">[[number.number]]</p>
+                    <p ng-repeat="number in contact.phone_numbers.value" ng-if="number.number_type === 'primary'" class="phone">[[number.number]]</p>
                 </div>
             </div>
 {% endblock %}
@@ -180,7 +180,7 @@
                 <h4 class="modal-title">Confirm Delete</h4>
             </div>
             <div class="modal-body">
-                <p>Delete [[ deletedContact.first_name ]] [[ deletedContact.last_name ]]?</p>
+                <p>Delete [[ deletedContact.data.first_name.value ]] [[ deletedContact.data.last_name.value ]]?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal"
