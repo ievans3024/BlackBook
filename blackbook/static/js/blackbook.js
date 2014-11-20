@@ -1,6 +1,7 @@
 angular.module('BlackBook', [
     'BlackBook.controllers',
-    'BlackBook.services'
+    'BlackBook.services',
+    'BlackBook.filters'
 ],
 function($interpolateProvider) {
     $interpolateProvider.startSymbol('[[');
@@ -22,6 +23,19 @@ angular.module('BlackBook.services', []).factory(
         }
 
         return contactAPI;
+    }
+);
+
+angular.module('BlackBook.filters', []).filter(
+    'capitalize', function () {
+        return function (input) {
+            var string_array = input.split(' '),
+                i;
+            for (i = 0; i < string_array.length; i++) {
+                string_array[i] = string_array[i][0].toUpperCase() + string_array[i].slice(1, string_array[i].length);
+            }
+            return string_array.join(' ');
+        };
     }
 );
 

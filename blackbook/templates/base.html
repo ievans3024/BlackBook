@@ -58,11 +58,11 @@
                         <span class="country">[[selectedContact.data.country.value]]</span>
                         <div class="phone-number">
                             <h4>Phone:</h4>
-                            <span class="phone-number" ng-repeat="number in selectedContact.data.phone_numbers.value">[[number.number_type]]: [[number.number]]</span>
+                            <span class="phone-number" ng-repeat="number in selectedContact.data.phone_numbers.value">[[ number.number_type | capitalize ]]: [[ number.number ]]</span>
                         </div>
                         <div class="email">
                             <h4>E-mail:</h4>
-                            <a class="email" ng-repeat="email in selectedContact.data.emails.value" href="mailto:[[ email.email ]]">[[ email.email_type ]]</a>
+                            <a class="email" ng-repeat="email in selectedContact.data.emails.value" href="mailto:[[ email.email ]]">[[ email.email_type | capitalize ]]</a>
                         </div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
             <div id="entries" class="col-xs-12 col-sm-6 col-md-8 col-lg-9">
                 <div class="entry-nav">
                     <span class="pages col-xs-12">
-                        <a ng-repeat="nav in listNavigation" ng-click="getContactList(nav.href)" rel="[[nav.rel]]">[[nav.prompt]]</a>
+                        <a ng-repeat="nav in listNavigation" ng-click="getContactList(nav.href)" rel="[[nav.rel]]">[[ nav.prompt ]]</a>
                     </span>
                     <span class="per-page-container col-xs-12">
                         Per Page:
