@@ -12,7 +12,13 @@
         <div class="row">
             <div id="entries" class="col-xs-12 col-sm-6 col-md-8 col-lg-9">
                 <div id="entry" ng-repeat="test in tests">
-                    <h3 class="name">[[ test.title ]] <span class="label [[ test.result.status.cssclass ]]">[[ test.result.status.text ]]</span></h3>
+                    <h3 class="name">
+                        [[ test.title ]]
+                        {# Bootstrap label classes don't work when they're in ng-class #}
+                        <span class="label [[ test.result.status.cssclass ]]">
+                            [[ test.result.status.text ]]
+                        </span>
+                    </h3>
                     <p>[[ test.result.text ]]</p>
                 </div>
                 <div id="entry" ng-if="current_test">
