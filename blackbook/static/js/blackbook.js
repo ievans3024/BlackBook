@@ -56,7 +56,16 @@ black_book.filters.filter(
 black_book.controllers.controller(
     'selected_contact', function($scope, contacts_service) {
 
-        $scope.selected = function () { return contacts_service.selected.get(); };
+        $scope.selected = null;
+
+        $scope.select = function (href) {
+            contacts_service.get(href).success(
+                function (data) {
+                    var collection = new Collection(data);
+                    $scope.selected = collection.items[0];
+                }
+            );
+        }
 
         $scope.edit = function (href) {
 
@@ -65,15 +74,19 @@ black_book.controllers.controller(
         $scope.delete = function (href) {
             contacts_service.delete(href).then(
                 function () {
-                    $scope.$emit('contact_delete');
+                    $scope.selected = null;
                 }
             );
         }
+
+        $scope.$on('select', function (event, href) {
+            $scope.select(href);
+        });
     }
 );
 
 black_book.controllers.controller(
-    'contact_index', function($scope, $timeout, contacts_service) {
+    'contact_index', function($scope, contacts_service) {
 
         var navigation = {
             links: null,
@@ -84,9 +97,9 @@ black_book.controllers.controller(
         $scope.navigation = navigation;
 
         $scope.get_contacts = function (href) {
-            contacts_service.get(href).then(
-                function (response) {
-                    var collection = new Collection(response.data);
+            contacts_service.get(href).success(
+                function (data) {
+                    var collection = new Collection(data);
                     $scope.index = collection.items;
                     $scope.navigation.links = collection.links;
                 }
@@ -94,12 +107,7 @@ black_book.controllers.controller(
         }
 
         $scope.get_contact = function (href) {
-            contacts_service.get(href).then(
-                function(response) {
-                    var collection = new Collection(response.data);
-                    contacts_service.selected.set(collection.items[0]);
-                }
-            );
+            $scope.$broadcast('select', href);
         }
 
         $scope.refresh_index = function (href) {
@@ -111,13 +119,6 @@ black_book.controllers.controller(
             }
             $scope.get_contacts(uri);
         }
-
-        $scope.$on('contact_delete', function () {
-            $timeout(function () {
-                contacts_service.selected.set(null);
-                $scope.refresh_index();
-            }, 500);
-        });
 
         $scope.refresh_index();
     }
