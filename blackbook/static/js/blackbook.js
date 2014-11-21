@@ -124,6 +124,7 @@ black_book.controllers.controller(
     }
 );
 
+// TODO: rewrite this using promises and expect()?
 black_book.controllers.controller(
     'tests_controller', function ($scope, contacts_service) {
 
