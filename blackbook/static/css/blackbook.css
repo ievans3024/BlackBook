@@ -84,9 +84,7 @@ select.per-page {
     padding: .25em .5em;
     color: #000000;
     background: #ffffff;
-    border-style: solid;
-    border-width: 1px;
-    border-color: #aaaaaa;
+    border: 1px solid #aaaaaa;
     border-radius: 5px;
 }
 
@@ -101,13 +99,11 @@ select.per-page {
     float: left;
     margin: .25em .25em;
     padding: .25em .5em;
-    border-style: solid;
-    border-width: 1px;
     border-radius: 5px;
     text-decoration: none;
     text-align: center;
     color: #7f7f7f;
-    border-color: #dddddd;
+    border: 1px solid #dddddd;
     cursor: pointer;
 }
 
@@ -120,7 +116,7 @@ select.per-page {
 
 .entry-nav .per-page-container {
     margin: 1em 0;
-    padding: 0 .25;
+    padding: 0 .25em;
 }
 
 .city:after {
