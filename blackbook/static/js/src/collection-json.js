@@ -7,7 +7,7 @@
 /**
  * Collection Constructor
  * @param collection The Object or JSON string to construct this Collection from.
- * @throws {ValueError} If href or version properties are not present in collection.
+ * @throws {Error} If href or version properties are not present in collection.
  */
 function Collection (collection) {
 
@@ -48,7 +48,7 @@ Collection.prototype.property_rules = {
     links: {construct: Array, contents: {construct: CollectionLink}},
     queries: {construct: Array, contents: {construct: CollectionQuery}},
     template: {construct: CollectionTemplate},
-    version: {type: 'string', required: true},
+    version: {type: 'string', required: true}
 };
 
 /**
@@ -56,7 +56,7 @@ Collection.prototype.property_rules = {
  */
 Collection.prototype.toString = function () {
 
-    var i
+    var i,
         acceptable_instance = false;
 
     for (i = 0; i < Collection.hooked.length; i++) {
@@ -69,11 +69,11 @@ Collection.prototype.toString = function () {
     if (acceptable_instance) {
         return JSON.stringify({collection: this}, this.preJSON);
     }
-}
+};
 
 /**
  * Property validator and parser
- * @param {Object} object The object to parse.
+ * @param {Object|string} object The object to parse. May be a JSON string.
  * @return {Object} The parsed form of the object
  */
 Collection.prototype.parse = function (object) {
@@ -90,15 +90,14 @@ Collection.prototype.parse = function (object) {
     function process_array (array, contains) {
 
         var i,
-            field,
             output = [];
 
         if (!(array instanceof Array)) {
-            throw TypeError('array parameter must be an Array.');
+            throw new TypeError('array parameter must be an Array.');
         }
 
         if (typeof contains !== 'function') {
-            throw TypeError('contains parameter must be a function.');
+            throw new TypeError('contains parameter must be a function.');
         }
 
         for (i = 0; i < array.length; i++) {
@@ -131,7 +130,7 @@ Collection.prototype.parse = function (object) {
                 r = rule[i_2];
                 if (r === 'required' && rule_object.required) {
                     if (!object.hasOwnProperty(prop)) {
-                        throw ValueError(prop + ' is a required property.');
+                        throw new Error(prop + ' is a required property.');
                     }
                 }
 
@@ -147,7 +146,7 @@ Collection.prototype.parse = function (object) {
 
                 if (r === 'type') {
                     if (typeof property !== rule_object.type) {
-                        throw TypeError(prop + ' must be of type ' + rule_object.type);
+                        throw new TypeError(prop + ' must be of type ' + rule_object.type);
                     }
                 }
             }
@@ -157,11 +156,11 @@ Collection.prototype.parse = function (object) {
     }
     
     return collection;
-}
+};
 
 /**
  * Hook some Collection functions into a collection data constructor's prototype
- * @param {function} constructor The constructor whose prototype should receive these functions
+ * @param {function} construct The constructor whose prototype should receive these functions
  */
 Collection.hook = function (construct) {
     Collection.hooked.push(construct);
@@ -181,10 +180,11 @@ function CollectionData (fields) {
     var i,
         i_2,
         opts,
+        opts_props,
         value;
 
-    if (!((this instanceof CollectionData))) {
-        return new CollectionData(opts);
+    if (!(this instanceof CollectionData)) {
+        return new CollectionData(fields);
     }
 
     this.array = fields;
@@ -192,11 +192,12 @@ function CollectionData (fields) {
     for (i = 0; i < fields.length; i++) {
         opts = CollectionData.prototype.parse(fields[i]);
         opts_props = Object.getOwnPropertyNames(opts);
-        value = {}
+        value = {};
         for (i_2 = 0; i_2 < opts_props.length; i_2++) {
             if (opts_props[i_2] !== 'name') {
                 value[opts_props[i_2]] = opts[opts_props[i_2]];
             }
+            value.order = i;
         }
         this[opts.name] = value;
     }
@@ -214,7 +215,7 @@ CollectionData.prototype.toArray = function () {
     if (this instanceof CollectionData) {
         return this.array;
     }
-}
+};
 
 CollectionData.prototype.preJSON = CollectionData.prototype.toArray;
 
@@ -226,7 +227,8 @@ Collection.hook(CollectionData);
  */
 function CollectionError (opts) {
 
-    var i;
+    var i,
+        opts_props;
 
     if (!(this instanceof CollectionError)) {
         return new CollectionError(opts);
@@ -257,7 +259,8 @@ Collection.hook(CollectionError);
  */
 function CollectionItem (opts) {
 
-    var i;
+    var i,
+        opts_props;
 
     if (!(this instanceof CollectionItem)) {
         return new CollectionItem(opts);
@@ -289,7 +292,8 @@ Collection.hook(CollectionItem);
  */
 function CollectionLink (opts) {
 
-    var i;
+    var i,
+        opts_props;
 
     if (!(this instanceof CollectionLink)) {
         return new CollectionLink(opts);
@@ -310,7 +314,7 @@ CollectionLink.prototype.property_rules = {
     prompt: {type: 'string'},
     name: {type: 'string'},
     render: {type: 'string'}
-}
+};
 
 Collection.hook(CollectionLink);
 
@@ -320,7 +324,8 @@ Collection.hook(CollectionLink);
  */
 function CollectionQuery (opts) {
 
-    var i;
+    var i,
+        opts_props;
 
     if (!(this instanceof CollectionQuery)) {
         return new CollectionQuery(opts);
@@ -337,7 +342,7 @@ function CollectionQuery (opts) {
 
 CollectionQuery.prototype.property_rules = CollectionLink.prototype.property_rules;
 delete CollectionQuery.prototype.property_rules.render;
-CollectionQuery.prototype.property_rules.data = CollectionItem.prototype.property_rules.data
+CollectionQuery.prototype.property_rules.data = CollectionItem.prototype.property_rules.data;
 
 Collection.hook(CollectionQuery);
 
@@ -347,7 +352,8 @@ Collection.hook(CollectionQuery);
  */
 function CollectionTemplate (opts) {
 
-    var i;
+    var i,
+        opts_props;
 
     if (!(this instanceof CollectionTemplate)) {
         return new CollectionTemplate(opts);
@@ -364,6 +370,6 @@ function CollectionTemplate (opts) {
 
 CollectionTemplate.prototype.property_rules = {
     data: CollectionItem.prototype.property_rules.data
-}
+};
 
 Collection.hook(CollectionTemplate);
