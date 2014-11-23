@@ -38,8 +38,8 @@
             <div id="current-entry" class="col-xs-12 col-sm-6 col-md-4 col-lg-3" ng-controller="selected_contact">
                 {# TODO: Make edit form dialog, add edit button #}
                 <div>
-                    <div ng-if="selected()">
-                        <h3 class="name">[[selected().data.first_name.value]] [[selected().data.last_name.value]]</h3>
+                    <div ng-if="selected">
+                        <h3 class="name">[[selected.data.first_name.value]] [[selected.data.last_name.value]]</h3>
                         <div class="edit">
                             <button type="button" class="btn btn-xs btn-link">
                                 <span class="glyphicon glyphicon-pencil"></span> Edit
@@ -49,19 +49,19 @@
                                 <span class="glyphicon glyphicon-trash"></span> Delete
                             </button>
                         </div>
-                        <span class="address-1">[[selected().data.address_line_1.value]]</span>
-                        <span class="address-2">[[selected().data.address_line_2.value]]</span>
-                        <span class="city">[[selected().data.city.value]]</span>
-                        <span class="state">[[selected().data.state.value]]</span>
-                        <span class="zip">[[selected().data.zip.value]]</span>
-                        <span class="country">[[selected().data.country.value]]</span>
+                        <span class="address-1">[[selected.data.address_line_1.value]]</span>
+                        <span class="address-2">[[selected.data.address_line_2.value]]</span>
+                        <span class="city">[[selected.data.city.value]]</span>
+                        <span class="state">[[selected.data.state.value]]</span>
+                        <span class="zip">[[selected.data.zip.value]]</span>
+                        <span class="country">[[selected.data.country.value]]</span>
                         <div class="phone-number">
                             <h4>Phone:</h4>
-                            <span class="phone-number" ng-repeat="number in selected().data.phone_numbers.value">[[ number.number_type | capitalize ]]: [[ number.number ]]</span>
+                            <span class="phone-number" ng-repeat="number in selected.data.phone_numbers.value">[[ number.number_type | capitalize ]]: [[ number.number ]]</span>
                         </div>
                         <div class="email">
                             <h4>E-mail:</h4>
-                            <a class="email" ng-repeat="email in selected().data.emails.value" href="mailto:[[ email.email ]]">[[ email.email_type | capitalize ]]</a>
+                            <a class="email" ng-repeat="email in selected.data.emails.value" href="mailto:[[ email.email ]]">[[ email.email_type | capitalize ]]</a>
                         </div>
                         <div id="delete-confirm" class="modal fade">
                             <div class="modal-dialog">
@@ -70,12 +70,12 @@
                                     <h4 class="modal-title">Confirm Delete</h4>
                                 </div>
                                 <div class="modal-body">
-                                    <p>Delete [[ selected().data.first_name.value ]] [[ selected().data.last_name.value ]]?</p>
+                                    <p>Delete [[ selected.data.first_name.value ]] [[ selected.data.last_name.value ]]?</p>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                                     <button type="button" class="btn btn-primary" data-dismiss="modal"
-                                           ng-click="delete(selected().href)">OK</button>
+                                           ng-click="delete(selected.href)">OK</button>
                                 </div>
                             </div>
                         </div>
@@ -98,7 +98,7 @@
                     </span>
                 </div>
                 <div class="entry" ng-repeat="contact in index">
-                    <h3 class="name" ng-click="get_contact(contact.href)">
+                    <h3 class="name" ng-click="get_detail(contact.href)">
                         [[contact.data.first_name.value]] [[contact.data.last_name.value]]
                     </h3>
                     <p ng-repeat="number in contact.data.phone_numbers.value" ng-if="number.number_type === 'primary'" class="phone">[[number.number]]</p>

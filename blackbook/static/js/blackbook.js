@@ -17,16 +17,6 @@ black_book.services.factory(
 
         var contactAPI = {};
 
-        contactAPI.selected = {value: null};
-
-        contactAPI.selected.get = function () {
-            return this.value;
-        }
-
-        contactAPI.selected.set = function (contact) {
-            this.value = contact;
-        }
-
         contactAPI.get = function(href) {
             var headers = { 'Accept': 'application/vnd.collection+json' };
             return $http.get(href, { headers: headers }); // please note how this might be insecure
@@ -58,15 +48,6 @@ black_book.controllers.controller(
 
         $scope.selected = null;
 
-        $scope.select = function (href) {
-            contacts_service.get(href).success(
-                function (data) {
-                    var collection = new Collection(data);
-                    $scope.selected = collection.items[0];
-                }
-            );
-        }
-
         $scope.edit = function (href) {
 
         }
@@ -80,7 +61,12 @@ black_book.controllers.controller(
         }
 
         $scope.$on('select', function (event, href) {
-            $scope.select(href);
+            contacts_service.get(href).success(
+                function (data) {
+                    var collection = new Collection(data);
+                    $scope.selected = collection.items[0];
+                }
+            );
         });
     }
 );
@@ -106,7 +92,7 @@ black_book.controllers.controller(
             );
         }
 
-        $scope.get_contact = function (href) {
+        $scope.get_detail = function (href) {
             $scope.$broadcast('select', href);
         }
 
