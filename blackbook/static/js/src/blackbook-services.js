@@ -2,6 +2,7 @@ black_book.services = black_book.services || angular.module('BlackBook.services'
 
 black_book.services.factory(
     'contacts_service', function($http) {
+        var collection = {};
 
         return {
             create: function (data) {
@@ -16,7 +17,8 @@ black_book.services.factory(
             },
             delete: function(href) {
                 return $http.delete(href);
-            }
+            },
+            collection: collection
         }
 
     }

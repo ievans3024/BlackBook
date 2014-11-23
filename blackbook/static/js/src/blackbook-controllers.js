@@ -1,7 +1,7 @@
 black_book.controllers = black_book.controllers || angular.module('BlackBook.controllers', []);
 
 black_book.controllers.controller(
-    'selected_contact', function($scope, contacts_service) {
+    'selected_contact', function ($scope, contacts_service) {
 
         $scope.selected = null;
 
@@ -29,7 +29,46 @@ black_book.controllers.controller(
 );
 
 black_book.controllers.controller(
-    'contact_index', function($scope, contacts_service) {
+    'new_contact', function ($scope, contacts_service) {
+        $scope.template = {};
+        $scope.defaults = {};
+
+        $scope.add_fieldset = function (fieldset) {
+            if (fieldset === 'emails' || fieldset === 'phone_numbers') {
+                console.log($scope.defaults[fieldset]);
+                $scope.template.data[fieldset].value.unshift(angular.copy($scope.defaults[fieldset]));
+            }
+        };
+
+        $scope.remove_fieldset = function (fieldset, index) {
+            if (fieldset === 'emails' || fieldset === 'phone_numbers') {
+                $scope.template.data[fieldset].value.splice(index, 1);
+            }
+        };
+
+        $scope.create_new = function () {
+            console.log($scope.template);
+        };
+
+        $scope.$watch(
+            function () { return contacts_service.collection; },
+            function (newValue) {
+                if (
+                    newValue instanceof Collection &&
+                        newValue.hasOwnProperty('template')
+                ) {
+                    $scope.template = angular.copy(newValue.template);
+                    $scope.defaults.emails = angular.copy(newValue.template.data.emails.value[0]);
+                    $scope.defaults.phone_numbers = angular.copy(newValue.template.data.phone_numbers.value[0]);
+                }
+            },
+            true
+        );
+    }
+);
+
+black_book.controllers.controller(
+    'contact_index', function ($scope, contacts_service) {
 
         var navigation = {
             links: null,
@@ -43,6 +82,7 @@ black_book.controllers.controller(
             contacts_service.read(href).success(
                 function (data) {
                     var collection = new Collection(data);
+                    contacts_service.collection = collection;
                     $scope.index = collection.items;
                     $scope.navigation.links = collection.links;
                 }

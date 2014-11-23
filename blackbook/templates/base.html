@@ -106,83 +106,54 @@
             </div>
 {% endblock entrylist %}
         </div>
-    </div>
-{% block newform %}
-    {# TODO: On submit, send post with new contact form. Append response status to status box #}
-    <form id="new-contact-entry">
-        <div id="new-entry" class="modal fade">
-            <div class="modal-dialog">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">New Contact</h4>
-                </div>
-                <div class="modal-body container-fluid">
-                    <div class="row">
-                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                            <input class="form-control" type="text" placeholder="First Name" maxlength="100" id="first-name" name="first-name">
+        <form id="new-contact-entry" ng-controller="new_contact">
+            <div id="new-entry" class="modal fade">
+                <div class="modal-dialog">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">New Contact</h4>
+                    </div>
+                    <div class="modal-body container-fluid">
+                        <div class="row" ng-repeat="field in template.data.array">
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="field.name !== 'emails' && field.name !== 'phone_numbers'">
+                                <input class="form-control" type="text" placeholder="[[field.prompt]]" maxlength="100" id="[[field.name]]">
+                            </div>
+                            <div ng-if="field.name === 'emails' || field.name === 'phone_numbers'">
+                                <h5>
+                                    [[field.prompt]]
+                                </h5>
+                                <button type="button" class="btn btn-success" ng-click="add_fieldset(field.name)">
+                                    Add More <span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                                <div ng-repeat="fieldset in field.value track by $index">
+                                    <div class="col-xs-11 col-xs-offset-1 col-sm-11 col-sm-offset-1 col-md-11 col-md-offset-1 col-lg-11 col-lg-offset-1">
+                                        <div class="col-xs-5 col-sm-5 col-md-5 col-lg-5" ng-repeat="f in fieldset.data">
+                                            <input class="form-control" type="text" placeholder="[[f.prompt]]" maxlength="100" ng-model="f.value">
+                                        </div>
+                                        <button type="button" class="btn btn-danger col-xs-1 col-sm-1 col-md-1 col-lg-1" ng-click="remove_fieldset(field.name, $index)" ng-if="!$first">
+                                            <span class="glyphicon glyphicon-minus"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                            <input class="form-control" type="text" placeholder="Last Name" maxlength="100" id="last-name" name="last-name">
+                    <div class="modal-footer">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+                                <button class="form-control btn btn-success" ng-click="create_new()">Create</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                            <input class="form-control" type="text" placeholder="Email" maxlength="100" id="email" name="email">
+                        <div class="row">
+                            <div id="submit-status-box"></div>
                         </div>
-                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                            <input class="form-control" type="text" placeholder="Type (e.g. Primary)" maxlength="20" id="email-type" name="email-type">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                            <input class="form-control" type="text" placeholder="Phone Number" maxlength="100" id="phone-number" name="phone-number">
-                        </div>
-                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                            <input class="form-control" type="text" placeholder="Type (e.g., Home)" maxlength="20" id="phone-number-type" name="phone-number-type">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                            <input class="form-control" type="text" placeholder="Address Line 1" maxlength="50" id="address-line-1" name="address-line-1">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                            <input class="form-control" type="text" placeholder="Address Line 2" maxlength="50" id="address-line-2" name="address-line-2">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-5 col-sm-5 col-md-5 col-lg-5">
-                            <input class="form-control" type="text" placeholder="City" maxlength="50" id="city" name="city">
-                        </div>
-                        <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
-                            <input class="form-control" type="text" placeholder="State" maxlength="2" id="state" name="state">
-                        </div>
-                        <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
-                            <input class="form-control" type="text" placeholder="Zipcode" maxlength="11" id="zip" name="zip">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                            <input class="form-control" type="text" placeholder="Country" maxlength="50" id="country" name="country">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div class="row">
-                        <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
-                            <input class="form-control btn btn-success" type="submit" value="Add">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div id="submit-status-box"></div>
                     </div>
                 </div>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
+{% block newform %}
+    {# TODO: On submit, send post with new contact form. Append response status to status box #}
 {% endblock newform %}
 {% block deleteconfirm %}
 
@@ -200,7 +171,7 @@
     </div>
 {% endblock dialog %}
 {% block scripts %}
-    <script src="{{ url_for('static', filename='js/lib/collection-json.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/src/collection-json.js') }}"></script>
     <script src="{{ url_for('static', filename='js/lib/jquery-2.1.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/lib/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/lib/angular.min.js') }}"></script>
