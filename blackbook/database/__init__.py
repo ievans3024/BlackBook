@@ -84,8 +84,22 @@ A base class for database wrappers.
             data = [
                 {'name': 'first_name', 'value': '', 'prompt': 'First Name'},
                 {'name': 'last_name', 'value': '', 'prompt': 'Last Name'},
-                {'name': 'emails', 'value': [{'email_type': '', 'email': ''}], 'prompt': 'Emails'},
-                {'name': 'phone_numbers', 'value': [{'number_type': '', 'number': ''}], 'prompt': 'Phone Numbers'},
+                {'name': 'emails', 'value': [
+                    {
+                        'data': [
+                            {'name': 'email', 'prompt': 'name@example.com', 'value': ''},
+                            {'name': 'email_type', 'prompt': 'Type (e.g., Home, Work)', 'value': ''}
+                        ]
+                    }
+                ], 'prompt': 'Emails'},
+                {'name': 'phone_numbers', 'value': [
+                    {
+                        'data': [
+                            {'name': 'number', 'prompt': '555-555-5555', 'value': ''},
+                            {'name': 'number_type', 'prompt': 'Type (e.g., Home, Work)', 'value': ''}
+                        ]
+                    }
+                ], 'prompt': 'Phone Numbers'},
                 {'name': 'address_line_1', 'value': '', 'prompt': 'Address Line 1'},
                 {'name': 'address_line_2', 'value': '', 'prompt': 'Address Line 2'},
                 {'name': 'city', 'value': '', 'prompt': 'City'},
