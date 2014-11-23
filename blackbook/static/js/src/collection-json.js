@@ -138,7 +138,7 @@ Collection.prototype.parse = function (object) {
                     if (rule_object.construct === Array) {
                         property = process_array(property, rule_object.contents.construct);
                     } else {
-                        if (!((property instanceof rule_object.construct))) {
+                        if (!(property instanceof rule_object.construct)) {
                             property = new rule_object.construct(property);
                         }
                     }
@@ -178,10 +178,7 @@ Collection.hooked = [Collection];
 function CollectionData (fields) {
 
     var i,
-        i_2,
-        opts,
-        opts_props,
-        value;
+        opts;
 
     if (!(this instanceof CollectionData)) {
         return new CollectionData(fields);
@@ -189,18 +186,11 @@ function CollectionData (fields) {
 
     this.array = fields;
 
-    for (i = 0; i < fields.length; i++) {
-        opts = CollectionData.prototype.parse(fields[i]);
-        opts_props = Object.getOwnPropertyNames(opts);
-        value = {};
-        for (i_2 = 0; i_2 < opts_props.length; i_2++) {
-            if (opts_props[i_2] !== 'name') {
-                value[opts_props[i_2]] = opts[opts_props[i_2]];
-            }
-            value.order = i;
-        }
-        this[opts.name] = value;
+    for (i = 0; i < this.array.length; i++) {
+        opts = CollectionData.prototype.parse(fields[i]); // ensure all data opts with rules are abiding by them.
+        this[opts.name] = this.array[i];
     }
+
 }
 
 /**
