@@ -7,7 +7,7 @@ black_book.controllers.controller(
 
         $scope.edit = function (href) {
 
-        }
+        };
 
         $scope.delete = function (href) {
             contacts_service.delete(href).then(
@@ -15,7 +15,7 @@ black_book.controllers.controller(
                     $scope.selected = null;
                 }
             );
-        }
+        };
 
         $scope.$on('select', function (event, href) {
             contacts_service.read(href).success(
@@ -34,7 +34,7 @@ black_book.controllers.controller(
         var navigation = {
             links: null,
             per_page: 5
-        }
+        };
 
         $scope.index = null;
         $scope.navigation = navigation;
@@ -47,21 +47,23 @@ black_book.controllers.controller(
                     $scope.navigation.links = collection.links;
                 }
             );
-        }
+        };
 
         $scope.get_detail = function (href) {
             $scope.$broadcast('select', href);
-        }
+        };
 
         $scope.refresh_index = function (href) {
             var uri;
-            if ($scope.navigation.per_page !== 5) {
+            if (href) {
+                uri = href;
+            } else if ($scope.navigation.per_page !== 5) {
                 uri = '/api/entry/?per_page=' + $scope.navigation.per_page;
             } else {
                 uri = '/api/entry/';
             }
             $scope.get_contacts(uri);
-        }
+        };
 
         $scope.refresh_index();
     }
@@ -75,9 +77,9 @@ black_book.controllers.controller(
             FAIL: { cssclass: 'label-danger', text: 'Failed!' },
             RUNNING: { cssclass: 'label-warning', text: 'Running...' },
             PASS: { cssclass: 'label-success', text: 'Passed!' }
-        }
+        };
 
-        $scope.tests = []
+        $scope.tests = [];
         $scope.current_test = null;
 
         $scope.test_basic = function () {
@@ -85,7 +87,7 @@ black_book.controllers.controller(
             $scope.current_test = {
                 title: 'Basic GET',
                 result: {text: 'Testing basic HTTP GET to /api/', status: status.RUNNING}
-            }
+            };
 
             contacts_service.read('/api/').then(
                 function (response) {
@@ -98,13 +100,13 @@ black_book.controllers.controller(
                         ) {
 
                         $scope.current_test.result.status = status.PASS;
-                        $scope.current_test.result.text = 'HTTP GET /api/ successfully returned a Collection+JSON document'
+                        $scope.current_test.result.text = 'HTTP GET /api/ successfully returned a Collection+JSON document';
                         $scope.tests.push($scope.current_test);
                         $scope.current_test = null;
                     }
                 }
             )
-        }
+        };
 
         $scope.test_basic();
     }
