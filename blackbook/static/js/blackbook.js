@@ -15,18 +15,22 @@ black_book.services = angular.module('BlackBook.services', []);
 black_book.services.factory(
     'contacts_service', function($http) {
 
-        var contactAPI = {};
+        return {
+            create: function (data) {
 
-        contactAPI.get = function(href) {
-            var headers = { 'Accept': 'application/vnd.collection+json' };
-            return $http.get(href, { headers: headers }); // please note how this might be insecure
-        };
+            },
+            read: function(href) {
+                var headers = { 'Accept': 'application/vnd.collection+json' };
+                return $http.get(href, { headers: headers }); // please note how this might be insecure
+            },
+            update: function (href, data) {
 
-        contactAPI.delete = function(href) {
-            return $http.delete(href);
+            },
+            delete: function(href) {
+                return $http.delete(href);
+            }
         }
-
-        return contactAPI;
+        
     }
 );
 
@@ -61,7 +65,7 @@ black_book.controllers.controller(
         }
 
         $scope.$on('select', function (event, href) {
-            contacts_service.get(href).success(
+            contacts_service.read(href).success(
                 function (data) {
                     var collection = new Collection(data);
                     $scope.selected = collection.items[0];
@@ -83,7 +87,7 @@ black_book.controllers.controller(
         $scope.navigation = navigation;
 
         $scope.get_contacts = function (href) {
-            contacts_service.get(href).success(
+            contacts_service.read(href).success(
                 function (data) {
                     var collection = new Collection(data);
                     $scope.index = collection.items;
@@ -130,7 +134,7 @@ black_book.controllers.controller(
                 result: {text: 'Testing basic HTTP GET to /api/', status: status.RUNNING}
             }
 
-            contacts_service.get('/api/').then(
+            contacts_service.read('/api/').then(
                 function (response) {
                     if (
                         response.status === 200 &&
