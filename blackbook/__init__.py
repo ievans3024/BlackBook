@@ -67,7 +67,6 @@ def api_entries():
             created_entry = db.create(json.loads(request.data.decode()))
         except (TypeError, ValueError) as e:
             # TODO: Create custom error classes in database code, raise those instead.
-            print(e)
             abort(400)
         return Response(json.dumps(created_entry.to_dict()), mimetype=COLLECTION_JSON), 201
 
@@ -122,6 +121,9 @@ if app.config.get('TESTING'):
 
 
 if __name__ == '__main__':
-    # db.generate_test_db()  # uncomment to generate test database
+    try:
+        db.generate_test_db()  # uncomment to generate test database
+    except IndexError:
+        pass
     # whooshalchemy.whoosh_index(app, Person)  # TODO: figure out if this should be a scheduled task instead
     app.run()
