@@ -30,12 +30,17 @@ black_book.controllers.controller(
 
 black_book.controllers.controller(
     'new_contact', function ($scope, contacts_service) {
+        var status_messages = {
+            201: {cssclass: 'bg-success', text: 'Contact created!'},
+            400: {cssclass: 'bg-danger', text: 'Bad form data. Please double-check each field.'}
+        };
+
         $scope.template = {};
         $scope.defaults = {};
+        $scope.statuses = [];
 
         $scope.add_fieldset = function (fieldset) {
             if (fieldset === 'emails' || fieldset === 'phone_numbers') {
-                console.log($scope.defaults[fieldset]);
                 $scope.template.data[fieldset].value.unshift(angular.copy($scope.defaults[fieldset]));
             }
         };
@@ -47,7 +52,17 @@ black_book.controllers.controller(
         };
 
         $scope.create_new = function () {
-            console.log($scope.template);
+            var promise = contacts_service.create({ data: $scope.template.data.array });
+            promise.success(
+                function (data, status) {
+                    $scope.statuses.push(status_messages[status]);
+                }
+            );
+            promise.error(
+                function (data, status) {
+                    $scope.statuses.push(status_messages[status]);
+                }
+            );
         };
 
         $scope.$watch(

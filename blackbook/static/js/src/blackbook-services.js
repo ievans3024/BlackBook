@@ -5,8 +5,19 @@ black_book.services.factory(
         var collection = {};
 
         return {
-            create: function (data) {
+            create: function (data, href) {
+                var request = {
+                    method: 'POST',
+                    url: '/api/entry/',
+                    headers: {'Content-Type': 'application/vnd.collection+json'},
+                    data: data
+                };
 
+                if (href) {
+                    request.url = '/api/entry/';
+                }
+
+                return $http(request);
             },
             read: function(href) {
                 var headers = { 'Accept': 'application/vnd.collection+json' };

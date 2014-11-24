@@ -101,7 +101,7 @@
                     <h3 class="name" ng-click="get_detail(contact.href)">
                         [[contact.data.first_name.value]] [[contact.data.last_name.value]]
                     </h3>
-                    <p ng-repeat="number in contact.data.phone_numbers.value" ng-if="number.number_type === 'primary'" class="phone">[[number.number]]</p>
+                    <p ng-repeat="number in contact.data.phone_numbers.value" ng-if="$first" class="phone">[[number.number]]</p>
                 </div>
             </div>
 {% endblock entrylist %}
@@ -116,7 +116,7 @@
                     <div class="modal-body container-fluid">
                         <div class="row" ng-repeat="field in template.data.array">
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="field.name !== 'emails' && field.name !== 'phone_numbers'">
-                                <input class="form-control" type="text" placeholder="[[field.prompt]]" maxlength="100" id="[[field.name]]">
+                                <input class="form-control" type="text" placeholder="[[field.prompt]]" maxlength="100" ng-model="field.value">
                             </div>
                             <div ng-if="field.name === 'emails' || field.name === 'phone_numbers'">
                                 <h5>
@@ -144,8 +144,8 @@
                                 <button class="form-control btn btn-success" ng-click="create_new()">Create</button>
                             </div>
                         </div>
-                        <div class="row">
-                            <div id="submit-status-box"></div>
+                        <div id="submit-status-box" class="row">
+                                <span class="[[status.cssclass]] col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-repeat="status in statuses track by $index">[[status.text]]</span>
                         </div>
                     </div>
                 </div>
