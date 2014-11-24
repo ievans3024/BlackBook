@@ -63,7 +63,12 @@ def api_entries():
         if request.mimetype != COLLECTION_JSON:
             abort(415)
         # TODO: Form validation
-        created_entry = db.create(json.loads(request.data))
+        try:
+            created_entry = db.create(json.loads(request.data.decode()))
+        except (TypeError, ValueError) as e:
+            # TODO: Create custom error classes in database code, raise those instead.
+            print(e)
+            abort(400)
         return Response(json.dumps(created_entry.to_dict()), mimetype=COLLECTION_JSON), 201
 
 
