@@ -16,8 +16,8 @@ class SQLAlchemyDatabase(Database):
             __searchable__ = [
                 'first_name',
                 'last_name',
-                'address_line1',
-                'address_line2',
+                'address_line_1',
+                'address_line_2',
                 'city',
                 'state',
                 'zip_code',
@@ -29,40 +29,60 @@ class SQLAlchemyDatabase(Database):
             last_name = db.Column(db.String(100))
             emails = db.relationship('Email', backref='person', lazy='dynamic')  # TODO: make these m2m relationships
             phone_numbers = db.relationship('PhoneNumber', backref='person', lazy='dynamic')  # TODO
-            address_line1 = db.Column(db.String(50), nullable=True)
-            address_line2 = db.Column(db.String(50), nullable=True)
+            address_line_1 = db.Column(db.String(50), nullable=True)
+            address_line_2 = db.Column(db.String(50), nullable=True)
             city = db.Column(db.String(50), nullable=True)
             state = db.Column(db.String(2), nullable=True)
             zip_code = db.Column(db.String(11), nullable=True)
             country = db.Column(db.String(50), nullable=True)
 
             def __init__(self, first_name, last_name, emails=[], phone_numbers=[],
-                         address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
+                         address_line_1=None, address_line_2=None, city=None, state=None, zip_code=None, country=None):
                 self.first_name = first_name
                 self.last_name = last_name
                 self.emails = []
                 for email in emails:
-                    if isinstance(email, dict) and (email.get('email_type') and email.get('email')):
-                        self.emails.append(Email(email['email_type'], email['email'], self.id))
+                    if isinstance(email, dict) and email.get('data'):
+                        opts = {}
+                        for data in email.get('data'):
+                            if data.get('name') and data.get('value'):
+                                opts[data.get('name')] = data.get('value')
+                        if opts.get('email_type') and opts.get('email'):
+                            self.emails.append(Email(opts.get('email_type'), opts.get('email'), self.id))
+                        else:
+                            raise ValueError(
+                                'Email data must have a value and a type.'
+                            )
                     elif isinstance(email, Email) and email.person_id == self.id:
                         self.emails.append(email)
                     else:
                         raise TypeError(
-                            'Emails must be dict-like with correct properties or SQLAlchemyDatabase.Email instances'
+                            'Emails must be dict-like with correct properties or SQLAlchemyDatabase.Email instances.'
                         )
                 self.phone_numbers = []
                 for number in phone_numbers:
-                    if isinstance(number, dict) and (number.get('number_type') and number.get('number')):
-                        self.phone_numbers.append(PhoneNumber(number['number_type'], number['number']))
+                    if isinstance(number, dict) and number.get('data'):
+                        opts = {}
+                        for data in number.get('data'):
+                            if data.get('name') and data.get('value'):
+                                opts[data.get('name')] = data.get('value')
+                        if opts.get('number_type') and opts.get('number'):
+                            self.phone_numbers.append(
+                                PhoneNumber(opts.get('number_type'), opts.get('number'), self.id)
+                            )
+                        else:
+                            raise ValueError(
+                                'Phone Number data must have a value and a type.'
+                            )
                     elif isinstance(number, PhoneNumber) and number.person_id == self.id:
                         self.phone_numbers.append(number)
                     else:
                         raise TypeError(
                             'Phone Numbers must be dict-like with correct properties or SQLAlchemyDatabase.PhoneNumber \
-                            instances'
+                            instances.'
                         )
-                self.address_line1 = address_line1
-                self.address_line2 = address_line2
+                self.address_line_1 = address_line_1
+                self.address_line_2 = address_line_2
                 self.city = city
                 self.state = state
                 self.zip_code = zip_code
@@ -148,7 +168,7 @@ class SQLAlchemyDatabase(Database):
         from os.path import join, isdir
         from random import choice
         from tempfile import gettempdir
-        from blackbook.database import test_address_line1s, test_address_line2s, test_cities, test_first_names, \
+        from blackbook.database import test_address_line_1s, test_address_line_2s, test_cities, test_first_names, \
             test_last_names, test_phone_numbers, test_states, test_zipcodes
 
         tempdir = join(gettempdir(), 'blackbook')
@@ -182,8 +202,8 @@ class SQLAlchemyDatabase(Database):
                     test_phone_numbers.pop(test_phone_numbers.index(choice(test_phone_numbers)))
                 ), person.id)
             ]
-            person.address_line1 = test_address_line1s.pop(test_address_line1s.index(choice(test_address_line1s)))
-            person.address_line2 = test_address_line2s.pop(test_address_line2s.index(choice(test_address_line2s)))
+            person.address_line_1 = test_address_line_1s.pop(test_address_line_1s.index(choice(test_address_line_1s)))
+            person.address_line_2 = test_address_line_2s.pop(test_address_line_2s.index(choice(test_address_line_2s)))
             person.city = choice(test_cities)
             person.state = choice(test_states)
             person.zip_code = choice(test_zipcodes)

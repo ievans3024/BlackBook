@@ -23,7 +23,7 @@ A base class for database wrappers.
     # TODO: Force usage of self.models['ModelName'] and make these private members?
     class Person(object):
         def __init__(self, id, first_name, last_name, emails=[], phone_numbers=[],
-                     address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
+                     address_line_1=None, address_line_2=None, city=None, state=None, zip_code=None, country=None):
             """
             Person constructor
             :param id: The id to assign this Person
@@ -31,8 +31,8 @@ A base class for database wrappers.
             :param last_name: This Person's last name.
             :param emails: A list of this Person's emails as Email instances (optional)
             :param phone_numbers: A list of this Person's phone numbers as PhoneNumber instances (optional)
-            :param address_line1: The first line of this Person's physical address (optional)
-            :param address_line2: The second line of this Person's physical address (optional)
+            :param address_line_1: The first line of this Person's physical address (optional)
+            :param address_line_2: The second line of this Person's physical address (optional)
             :param city: The city this Person is located in (optional)
             :param state: The state this Person is located in (optional)
             :param zip_code: The zip code this Person is located in (optional)
@@ -57,8 +57,8 @@ A base class for database wrappers.
                     'last_name': self.last_name,
                     'emails': [{'email_type': email.email_type, 'email': email.email} for email in self.emails],
                     'phone_numbers': phone_numbers,
-                    'address_line_1': self.address_line1,
-                    'address_line_2': self.address_line2,
+                    'address_line_1': self.address_line_1,
+                    'address_line_2': self.address_line_2,
                     'city': self.city,
                     'state': self.state,
                     'zip_code': self.zip_code,
@@ -356,7 +356,7 @@ test_phone_numbers = [
     '2450', '9826', '6458', '0554', '5614', '5106', '5020', '0577', '7277', '6371'
 ]
 
-test_address_line1s = [
+test_address_line_1s = [
     '907 23rd St.', '972 24th Ave.', '483 24th Ave.', '676 8th Ave.', '984 21st St.', '923 19th St.',
     '734 13th Ave.', '741 22nd Ave.', '45 20th Ave.', '597 16th St.', '259 15th Ave.', '361 3rd Ave.',
     '697 21st St.', '887 18th Ave.', '403 9th Ave.', '684 9th Ave.', '641 19th Ave.', '398 2nd Ave.',
@@ -367,7 +367,7 @@ test_address_line1s = [
     '162 4th St.', '552 4th Ave.', '118 8th St.', '900 3rd St.', '9 14th St.', '921 9th Ave.'
 ]
 
-test_address_line2s = [
+test_address_line_2s = [
     None, None, 'Apt. R', 'Apt. 786', 'Apt. K', 'Apt. V', None, 'Apt. X', 'Apt. N', None, None, 'Apt. 789',
     'Apt. O', 'Apt. S', 'Apt. J', 'Apt. 778', None, 'Apt. 662', None, 'Apt. P', 'Apt. 717', 'Apt. E', 'Apt. 402',
     'Apt. W', None, 'Apt. 545', None, None, 'Apt. X', None, None, 'Apt. T', 'Apt. 183', None, None, None,
