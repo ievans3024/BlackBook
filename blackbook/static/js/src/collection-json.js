@@ -1,5 +1,7 @@
 /**
  * AngularJS <-> Collection+JSON middleware
+ * @author ievans3024
+ * @preserve true
  */
 
 // TODO: write property constructors to accept JSON as an argument
