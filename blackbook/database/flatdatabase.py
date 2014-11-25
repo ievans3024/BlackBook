@@ -147,7 +147,7 @@ class FlatDatabase(Database):
         from os.path import join, isdir
         from random import choice
         from tempfile import gettempdir
-        from blackbook.database import test_address_line1s, test_address_line2s, test_cities, test_first_names, \
+        from blackbook.database import test_address_line_1s, test_address_line_2s, test_cities, test_first_names, \
             test_last_names, test_phone_numbers, test_states, test_zipcodes
 
         tempdir = join(gettempdir(), 'blackbook')
@@ -167,22 +167,22 @@ class FlatDatabase(Database):
             person = self.models['Person'](
                 id, name, surname,
                 emails=[
-                   self.models['Email']('primary', '{first}.{last}@example.com'.format(
-                       first=name.lower(), last=surname.lower()
-                   ))
+                    self.models['Email']('primary', '{first}.{last}@example.com'.format(
+                        first=name.lower(), last=surname.lower()
+                    ))
                 ],
                 phone_numbers=[
-                   self.models['PhoneNumber']('primary', '1-555-555-{0}'.format(
-                       test_phone_numbers.pop(
-                           test_phone_numbers.index(choice(test_phone_numbers))
-                       )
-                   ))
+                    self.models['PhoneNumber']('primary', '1-555-555-{0}'.format(
+                        test_phone_numbers.pop(
+                            test_phone_numbers.index(choice(test_phone_numbers))
+                        )
+                    ))
                 ],
-                address_line1=test_address_line1s.pop(
-                   test_address_line1s.index(choice(test_address_line1s))
+                address_line1=test_address_line_1s.pop(
+                    test_address_line_1s.index(choice(test_address_line_1s))
                 ),
-                address_line2=test_address_line2s.pop(
-                   test_address_line2s.index(choice(test_address_line2s))
+                address_line2=test_address_line_2s.pop(
+                    test_address_line_2s.index(choice(test_address_line_2s))
                 ),
                 city=choice(test_cities),
                 state=choice(test_states),
