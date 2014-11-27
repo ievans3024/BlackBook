@@ -4,9 +4,16 @@ from collection_json import Collection, Item, Template, Error, Link
 from math import ceil as _ceil
 
 
+# TODO: Make Model skeleton class
+# TODO: Make Database accordingly extensible
+# TODO: Move database package outside of flask app package
+# TODO: Make models.py and define models there
+# TODO: Move Collection helper stuff like paginate, mimetype and errors to separate module
+# TODO: Use app.config.get('API_ROOT') for Collection.href
+
 class Database(object):
     """
-A base class for database wrappers.
+    A base class for database wrappers.
 
     Consider this class to be a skeleton to model database wrappers from. Docstrings in this class provide helpful
     information for writing subclasses that will behave in a consistent way for the flask app to interface with.
@@ -20,7 +27,6 @@ A base class for database wrappers.
         404: Error(code="404", message="There is no Person with that id.", title="Not Found")
     }
 
-    # TODO: Force usage of self.models['ModelName'] and make these private members?
     class Person(object):
         def __init__(self, id, first_name, last_name, emails=[], phone_numbers=[],
                      address_line_1=None, address_line_2=None, city=None, state=None, zip_code=None, country=None):

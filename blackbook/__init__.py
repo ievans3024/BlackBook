@@ -5,8 +5,10 @@ import json
 from collection_json import Collection, Link
 from flask import Flask, render_template, request, abort, Response
 
-
 # TODO: Learn how to use global object (g)
+# TODO: Move path definitions to separate modules
+# TODO: Add errors module with generic error handler, use abort() accordingly
+
 COLLECTION_JSON = 'application/vnd.collection+json'
 
 app = Flask(__name__)
