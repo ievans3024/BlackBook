@@ -1,13 +1,16 @@
 __author__ = 'ievans3024'
 
 import json
-from blackbook.database import Database
+
 from collection_json import Collection
+
+from database import Database
 
 
 class FlatDatabase(Database):
     """A Basic Database that operates in memory and stores as json in user-configurable directory"""
-    class Person(Database.Person):
+
+    class Person(Database.Model):
 
         def __init__(self, id, first_name, last_name, emails=[], phone_numbers=[],
                      address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
@@ -147,7 +150,7 @@ class FlatDatabase(Database):
         from os.path import join, isdir
         from random import choice
         from tempfile import gettempdir
-        from blackbook.database import test_address_line_1s, test_address_line_2s, test_cities, test_first_names, \
+        from database import test_address_line_1s, test_address_line_2s, test_cities, test_first_names, \
             test_last_names, test_phone_numbers, test_states, test_zipcodes
 
         tempdir = join(gettempdir(), 'blackbook')

@@ -2,7 +2,8 @@ __author__ = 'ievans3024'
 
 from flask_sqlalchemy import SQLAlchemy
 from collection_json import Collection
-from blackbook.database import Database
+
+from database import Database
 
 
 class SQLAlchemyDatabase(Database):
@@ -168,7 +169,7 @@ class SQLAlchemyDatabase(Database):
         from os.path import join, isdir
         from random import choice
         from tempfile import gettempdir
-        from blackbook.database import test_address_line_1s, test_address_line_2s, test_cities, test_first_names, \
+        from database import test_address_line_1s, test_address_line_2s, test_cities, test_first_names, \
             test_last_names, test_phone_numbers, test_states, test_zipcodes
 
         tempdir = join(gettempdir(), 'blackbook')
