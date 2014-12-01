@@ -3,10 +3,27 @@ __author__ = 'ievans3024'
 Helper module for collection_json classes
 """
 
-from collection_json import Collection, Link
+from collection_json import Collection, Link, Template
 from math import ceil
 
 MIMETYPE = 'application/vnd.collection+json'
+
+
+def parse_template(template):
+    """
+    Parse a collection_json.Template object into key/value pairs.
+    :param template: The template to parse.
+    :type template: collection_json.Template
+    :return: The Template data represented as a dict, with prompt and other non-key/value data stripped.
+    """
+    if not isinstance(template, Template):
+        raise TypeError('Param "template" must be an instance of ' + Template.__name__)
+
+    as_dict = {}
+    properties = template.to_dict()['data']
+    for prop in properties:
+        as_dict[prop.get('name')] = prop.get('value')
+    return as_dict
 
 
 def paginate(collection, endpoint='', uri_template='{endpoint_uri}?page={page}&per_page={per_page}',
