@@ -155,8 +155,7 @@ class Email(FlatDatabaseModel):
 
     __required__ = [
         'email',
-        'email_type',
-        'person'
+        'email_type'
     ]
 
     __indexed__ = [
@@ -177,8 +176,7 @@ class PhoneNumber(FlatDatabaseModel):
 
     __required__ = [
         'number',
-        'number_type',
-        'person'
+        'number_type'
     ]
 
     __indexed__ = [
