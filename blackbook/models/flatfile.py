@@ -163,9 +163,8 @@ class Email(FlatDatabaseModel):
     email_type = str
     person = object
 
-    def __init__(self, id, person, data):
+    def __init__(self, id, data):
         super(Email, self).__init__(id, data)
-        self.person = person
 
     def get_collection_item(self, as_dict=False):
         data = [
@@ -198,9 +197,8 @@ class PhoneNumber(FlatDatabaseModel):
     number_type = str
     person = object
 
-    def __init__(self, id, person, data):
+    def __init__(self, id, data):
         super(PhoneNumber, self).__init__(id, data)
-        self.person = person
 
     def get_collection_item(self, as_dict=False):
         data = [
