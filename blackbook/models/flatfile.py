@@ -11,9 +11,9 @@ from flask_crudsdb import Model, ModelError
 
 class FlatDatabaseModel(Model):
 
-    def __init__(self, id, data):
+    def __init__(self, pk, data):
         super(FlatDatabaseModel, self).__init__(data)
-        self.id = abs(int(id))
+        self.id = abs(int(pk))
         self.update(data)
 
     def get_collection_item(self, as_dict=False):
@@ -64,8 +64,8 @@ class Person(FlatDatabaseModel):
     zip_code = str
     country = str
 
-    def __init__(self, id, data):
-        super(Person, self).__init__(id, data)
+    def __init__(self, pk, data):
+        super(Person, self).__init__(pk, data)
         for attr in (self.emails, self.phone_numbers):
             if not isinstance(attr, type) and hasattr(attr, '__iter__'):
                 for value in attr:
@@ -163,8 +163,8 @@ class Email(FlatDatabaseModel):
     email_type = str
     person = object
 
-    def __init__(self, id, data):
-        super(Email, self).__init__(id, data)
+    def __init__(self, pk, data):
+        super(Email, self).__init__(pk, data)
 
     def get_collection_item(self, as_dict=False):
         data = [
@@ -197,8 +197,8 @@ class PhoneNumber(FlatDatabaseModel):
     number_type = str
     person = object
 
-    def __init__(self, id, data):
-        super(PhoneNumber, self).__init__(id, data)
+    def __init__(self, pk, data):
+        super(PhoneNumber, self).__init__(pk, data)
 
     def get_collection_item(self, as_dict=False):
         data = [
