@@ -4,12 +4,11 @@ __author__ = 'ievans3024'
 FlatfileDatabase data models
 """
 
-from blackbook.models import GenericModel
 from collection_json import Data, Item, Template
-from flask_crudsdb import Model, ModelError
+from flask_crudsdb import Model, ModelError, TypeEnforcer
 
 
-class FlatDatabaseModel(GenericModel, Model):
+class FlatDatabaseModel(Model):
 
     def __init__(self, pk, data):
         super(FlatDatabaseModel, self).__init__(data)
@@ -42,16 +41,16 @@ class Person(FlatDatabaseModel):
         'country'
     ]
 
-    first_name = str
-    last_name = str
-    emails = list
-    phone_numbers = list
-    address_line_1 = str
-    address_line_2 = str
-    city = str
-    state = str
-    zip_code = str
-    country = str
+    first_name = TypeEnforcer(str)
+    last_name = TypeEnforcer(str)
+    emails = TypeEnforcer(list)
+    phone_numbers = TypeEnforcer(list)
+    address_line_1 = TypeEnforcer(str)
+    address_line_2 = TypeEnforcer(str)
+    city = TypeEnforcer(str)
+    state = TypeEnforcer(str)
+    zip_code = TypeEnforcer(str)
+    country = TypeEnforcer(str)
 
     def __init__(self, pk, data):
         super(Person, self).__init__(pk, data)
@@ -148,9 +147,9 @@ class Email(FlatDatabaseModel):
         'email_type'
     ]
 
-    email = str
-    email_type = str
-    person = object
+    email = TypeEnforcer(str)
+    email_type = TypeEnforcer(str)
+    person = TypeEnforcer(object)
 
     def __init__(self, pk, data):
         super(Email, self).__init__(pk, data)
@@ -182,9 +181,9 @@ class PhoneNumber(FlatDatabaseModel):
         'number_type'
     ]
 
-    number = str
-    number_type = str
-    person = object
+    number = TypeEnforcer(str)
+    number_type = TypeEnforcer(str)
+    person = TypeEnforcer(object)
 
     def __init__(self, pk, data):
         super(PhoneNumber, self).__init__(pk, data)
