@@ -4,12 +4,12 @@ __author__ = 'ievans3024'
 FlatfileDatabase data models
 """
 
-from blackbook.collection import parse_template
+from blackbook.models import GenericModel
 from collection_json import Data, Item, Template
 from flask_crudsdb import Model, ModelError
 
 
-class FlatDatabaseModel(Model):
+class FlatDatabaseModel(GenericModel, Model):
 
     def __init__(self, pk, data):
         super(FlatDatabaseModel, self).__init__(data)
@@ -22,17 +22,6 @@ class FlatDatabaseModel(Model):
     @staticmethod
     def get_template(as_dict=False):
         return super(FlatDatabaseModel).get_template(as_dict)
-
-    def update(self, data):
-        data = parse_template(data)
-        for required in self.__required__:
-            if required not in data:
-                raise ModelError('%s not found in provided data but is a required attribute.' % required)
-        for k, v in data.iteritems():
-            if hasattr(self.__class__, k):
-                setattr(self, k, v)
-            else:
-                print('attribute {key} not found in class {type}'.format(key=k, type=self.__class__.__name__))
 
 
 class Person(FlatDatabaseModel):
