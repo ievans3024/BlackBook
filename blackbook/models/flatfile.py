@@ -5,7 +5,7 @@ FlatfileDatabase data models
 """
 
 from blackbook.collection import parse_template
-from collection_json import Item, Template
+from collection_json import Data, Item, Template
 from flask_crudsdb import Model, ModelError
 
 
@@ -61,7 +61,7 @@ class Person(FlatDatabaseModel):
     address_line_2 = str
     city = str
     state = str
-    zip = str
+    zip_code = str
     country = str
 
     def __init__(self, id, data):
@@ -77,20 +77,15 @@ class Person(FlatDatabaseModel):
                             raise ModelError('phone numbers must be instances of %s' % PhoneNumber.__name__)
 
     def get_collection_item(self, short=False, as_dict=False):
+        # TODO: Make this utilize Collection+JSON item data array better
         uri = '/api/entry/%d/' % self.id
-        phone_numbers = [
-            {
-                'number_type': phone_number.number_type,
-                'number': phone_number.number
-            }
-            for phone_number in self.phone_numbers
-        ]
+        phone_numbers = [{'data': phone_number.get_collection_item()} for phone_number in self.phone_numbers]
 
         if not short:
             data = {
                 'first_name': self.first_name,
                 'last_name': self.last_name,
-                'emails': [{'email_type': email.email_type, 'email': email.email} for email in self.emails],
+                'emails': [{'data': email.get_collection_item()} for email in self.emails],
                 'phone_numbers': phone_numbers,
                 'address_line_1': self.address_line_1,
                 'address_line_2': self.address_line_2,
@@ -155,7 +150,8 @@ class Email(FlatDatabaseModel):
 
     __required__ = [
         'email',
-        'email_type'
+        'email_type',
+        'person'
     ]
 
     __indexed__ = [
@@ -171,12 +167,26 @@ class Email(FlatDatabaseModel):
         super(Email, self).__init__(id, data)
         self.person = person
 
+    def get_collection_item(self, as_dict=False):
+        data = [
+            {'name': 'email', 'prompt': 'name@example.com', 'value': self.email},
+            {'name': 'email_type', 'prompt': 'Type (e.g., Home, Work)', 'value': self.email_type}
+        ]
+        if as_dict:
+            data_dict = {}
+            for item in data:
+                data_dict[item['name']] = {'value': item.get('value'), 'prompt': item.get('prompt')}
+            return data_dict
+        else:
+            return [Data(item['name'], value=item.get('value'), prompt=item.get('prompt')) for item in data]
+
 
 class PhoneNumber(FlatDatabaseModel):
 
     __required__ = [
         'number',
-        'number_type'
+        'number_type',
+        'person'
     ]
 
     __indexed__ = [
@@ -191,6 +201,19 @@ class PhoneNumber(FlatDatabaseModel):
     def __init__(self, id, person, data):
         super(PhoneNumber, self).__init__(id, data)
         self.person = person
+
+    def get_collection_item(self, as_dict=False):
+        data = [
+            {'name': 'number', 'prompt': '1-555-555-5555', 'value': self.number},
+            {'name': 'number_type', 'prompt': 'Type (e.g., Home, Work)', 'value': self.number_type}
+        ]
+        if as_dict:
+            data_dict = {}
+            for item in data:
+                data_dict[item['name']] = {'value': item.get('value'), 'prompt': item.get('prompt')}
+            return data_dict
+        else:
+            return [Data(item['name'], value=item.get('value'), prompt=item.get('prompt')) for item in data]
 
 models = {
     'Person': Person,
