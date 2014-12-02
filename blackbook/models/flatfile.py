@@ -11,8 +11,6 @@ from flask_crudsdb import Model, ModelError
 
 class FlatDatabaseModel(Model):
 
-    __required__ = []
-
     def __init__(self, id, data):
         super(FlatDatabaseModel, self).__init__(data)
         self.id = abs(int(id))
@@ -40,21 +38,32 @@ class FlatDatabaseModel(Model):
 
 class Person(FlatDatabaseModel):
 
-    # required data properties for this model
     __required__ = [
         'first_name',
         'last_name'
     ]
-    first_name = ''
-    last_name = ''
-    emails = []
-    phone_numbers = []
-    address_line_1 = ''
-    address_line_2 = ''
-    city = ''
-    state = ''
-    zip = 0
-    country = ''
+
+    __indexed__ = [
+        'first_name',
+        'last_name',
+        'address_line_1',
+        'address_line_2',
+        'city',
+        'state',
+        'zip',
+        'country'
+    ]
+
+    first_name = str
+    last_name = str
+    emails = list
+    phone_numbers = list
+    address_line_1 = str
+    address_line_2 = str
+    city = str
+    state = str
+    zip = str
+    country = str
 
     def __init__(self, id, data):
         super(Person, self).__init__(id, data)
@@ -138,20 +147,44 @@ class Email(FlatDatabaseModel):
 
     __required__ = [
         'email',
+        'email_type',
+        'person'
+    ]
+
+    __indexed__ = [
+        'email',
         'email_type'
     ]
 
-    email = ''
-    email_type = ''
+    email = str
+    email_type = str
+    person = object
 
-    def __init__(self, id, data):
+    def __init__(self, id, person, data):
         super(Email, self).__init__(id, data)
+        self.person = person
 
 
 class PhoneNumber(FlatDatabaseModel):
-    def __init__(self, data):
-        self.number_type = number_type
-        self.number = number
+
+    __required__ = [
+        'number',
+        'number_type',
+        'person'
+    ]
+
+    __indexed__ = [
+        'number',
+        'number_type'
+    ]
+
+    number = str
+    number_type = str
+    person = object
+
+    def __init__(self, id, person, data):
+        super(PhoneNumber, self).__init__(id, data)
+        self.person = person
 
 
 '''
