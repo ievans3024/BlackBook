@@ -25,15 +25,14 @@ class FlatDatabaseModel(Model):
 
     def update(self, data):
         data = parse_template(data)
-        default = self.get_template(True)
         for required in self.__required__:
             if required not in data:
-                raise ModelError('%s not found in provided data but is a required attribute.')
+                raise ModelError('%s not found in provided data but is a required attribute.' % required)
         for k, v in data.iteritems():
-            if default.get(k) is not None:
+            if hasattr(self.__class__, k):
                 setattr(self, k, v)
             else:
-                print('key %s not found in template' % k)
+                print('attribute {key} not found in class {type}'.format(key=k, type=self.__class__.__name__))
 
 
 class Person(FlatDatabaseModel):
@@ -67,6 +66,15 @@ class Person(FlatDatabaseModel):
 
     def __init__(self, id, data):
         super(Person, self).__init__(id, data)
+        for attr in (self.emails, self.phone_numbers):
+            if not isinstance(attr, type) and hasattr(attr, '__iter__'):
+                for value in attr:
+                    if attr is self.emails:
+                        if not isinstance(value, Email):
+                            raise ModelError('emails must be instances of %s' % Email.__name__)
+                    else:
+                        if not isinstance(value, PhoneNumber):
+                            raise ModelError('phone numbers must be instances of %s' % PhoneNumber.__name__)
 
     def get_collection_item(self, short=False, as_dict=False):
         uri = '/api/entry/%d/' % self.id
@@ -185,51 +193,3 @@ class PhoneNumber(FlatDatabaseModel):
     def __init__(self, id, person, data):
         super(PhoneNumber, self).__init__(id, data)
         self.person = person
-
-
-'''
-class Person(Database.Model):
-
-        def __init__(self, id, first_name, last_name, emails=[], phone_numbers=[],
-                     address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
-
-            self.id = abs(int(id))
-
-            if type(emails) != list:
-                raise TypeError('emails must be a list')
-            if type(phone_numbers) != list:
-                raise TypeError('phone_numbers must be a list')
-
-            for email in emails:
-                if not isinstance(email, FlatDatabase.Email):
-                    raise TypeError(
-                        'phone_numbers must contain instances of %s' % FlatDatabase.Email.__class__.__name__
-                    )
-
-            for phone_number in phone_numbers:
-                if not isinstance(phone_number, FlatDatabase.PhoneNumber):
-                    raise TypeError(
-                        'phone_numbers must contain instances of %s' % FlatDatabase.PhoneNumber.__class__.__name__
-                    )
-
-            self.first_name = str(first_name)
-            self.last_name = str(last_name)
-            self.emails = emails
-            self.phone_numbers = phone_numbers
-            self.address_line1 = str(address_line1)
-            self.address_line2 = str(address_line2)
-            self.city = str(city)
-            self.state = str(state)
-            self.zip_code = str(zip_code)
-            self.country = str(country)
-
-    class Email(Database.Email):
-        def __init__(self, email_type, email):
-            self.email_type = email_type
-            self.email = email
-
-    class PhoneNumber(Database.PhoneNumber):
-        def __init__(self, number_type, number):
-            self.number_type = number_type
-            self.number = number
-'''
