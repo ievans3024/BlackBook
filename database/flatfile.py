@@ -10,67 +10,18 @@ from database import Database
 class FlatDatabase(Database):
     """A Basic Database that operates in memory and stores as json in user-configurable directory"""
 
-    class Person(Database.Model):
-
-        def __init__(self, id, first_name, last_name, emails=[], phone_numbers=[],
-                     address_line1=None, address_line2=None, city=None, state=None, zip_code=None, country=None):
-
-            self.id = abs(int(id))
-
-            if type(emails) != list:
-                raise TypeError('emails must be a list')
-            if type(phone_numbers) != list:
-                raise TypeError('phone_numbers must be a list')
-
-            for email in emails:
-                if not isinstance(email, FlatDatabase.Email):
-                    raise TypeError(
-                        'phone_numbers must contain instances of %s' % FlatDatabase.Email.__class__.__name__
-                    )
-
-            for phone_number in phone_numbers:
-                if not isinstance(phone_number, FlatDatabase.PhoneNumber):
-                    raise TypeError(
-                        'phone_numbers must contain instances of %s' % FlatDatabase.PhoneNumber.__class__.__name__
-                    )
-
-            self.first_name = str(first_name)
-            self.last_name = str(last_name)
-            self.emails = emails
-            self.phone_numbers = phone_numbers
-            self.address_line1 = str(address_line1)
-            self.address_line2 = str(address_line2)
-            self.city = str(city)
-            self.state = str(state)
-            self.zip_code = str(zip_code)
-            self.country = str(country)
-
-    class Email(Database.Email):
-        def __init__(self, email_type, email):
-            self.email_type = email_type
-            self.email = email
-
-    class PhoneNumber(Database.PhoneNumber):
-        def __init__(self, number_type, number):
-            self.number_type = number_type
-            self.number = number
-
     def __init__(self, app):
-        self.app = app
+        super(FlatDatabase, self).__init__(app)
         self.models = {
             'Person': FlatDatabase.Person,
             'Email': FlatDatabase.Email,
             'PhoneNumber': FlatDatabase.PhoneNumber
         }
         try:
-            FileNotFoundError
-        except NameError:
-            FileNotFoundError = IOError  # python2/3 compatibility hack -- for open() errors -- better way to do this?
-        try:
             self.__reload_db_file()
         except TypeError:
             raise RuntimeError('Database file not specified in config option FLAT_DATABASE_FILE')
-        except (IOError, FileNotFoundError):
+        except FileNotFoundError:
             # TODO: Make subclass of dict with auto-incrementing keys option
             self.database = {}
             self.__write_db_file()

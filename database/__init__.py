@@ -1,231 +1,158 @@
 __author__ = 'ievans3024'
 
-from collection_json import Item, Template
-
-
-# TODO: Make Database accordingly extensible
 
 class Database(object):
     """
-    A base class for database wrappers.
+    A base class for database abstraction for ReSTful APIs
 
-    Consider this class to be a skeleton to model database wrappers from. Docstrings in this class provide helpful
-    information for writing subclasses that will behave in a consistent way for the flask app to interface with.
+    This class is a skeleton to model wrappers from. A database wrapper should abstract away database/ORM quirks in
+    behind a simple interface modeled after CRUDS -- Create, Read, Update, Delete, Search -- systems.
 
-    This system allows developers to abstract away quirks for their particular database interface without having to
-    heavily modify the application logic directly. This also allows the application to be easily extended to support
-    more database types as it is developed.
+    Subclass this class when creating a new wrapper class. Implement the same methods provided here, and the application
+    code will be able to interact with the database regardless of what kind of database is being used.
     """
 
     class Model(object):
+        """
+        A base class for database models.
 
-        class ModelError(Exception):
+        This class is a skeleton to model information models from. A database wrapper may subclass this to provide
+        some simple methods for different kinds of information.
+
+        When an information model inherits from this and another class, this class should be to the right of all other
+        inherited classes, e.g:
+            class SomeMultiInheritModel(SomeOtherModel, Model):
+                pass
+        """
+
+        class ModelError(BaseException):
+            """
+            Wrapper class for model-specific errors. Can be subclassed.
+            Purely exists to allow for catching explicitly written model errors (e.g., for data validation) and to
+            create custom exceptions to catch different types of errors (e.g., missing required fields, wrong data
+            type, etc.)
+            """
             def __init__(self, message, *args, **kwargs):
-                super(Exception, self).__init__(message)
+                super(BaseException, self).__init__(message)
 
         def __init__(self, *args, **kwargs):
             """
-
-            :param args:
-            :param kwargs:
-            :return:
+            Model Constructor
+            All models should implement this method.
+            This method should raise a Database.Model.ModelError or a subclass of it when data supplied is invalid.
+            Models should have an 'endpoint' property that can be set on init
             """
             pass
 
-        def get_collection_object(self, *args, as_dict=False, **kwargs):
+        def get_collection_item(self, as_dict=False):
             """
-
-            :param args:
-            :param as_dict:
-            :param kwargs:
-            :return:
+            Get a collection_json.Item representation of this model
+            :param as_dict: If true, return a dict-like object instead of a collection_json.Item instance.
+            :return: A collection_json.Item instance by default, a dict-like object if as_dict is true.
             """
             raise NotImplementedError()
 
         @staticmethod
-        def get_collection_template(*args, as_dict=False, **kwargs):
+        def get_template(as_dict=False):
             """
-
-            :param args:
-            :param as_dict:
-            :param kwargs:
-            :return:
+            Get an empty collection_json.Template for this model
+            :param as_dict: If true, return a dict-like object instead of a collection_json.Template instance.
+            :return: A collection_json.Template instance by default, a dict-like object if as_dict is true
             """
             raise NotImplementedError()
 
         def update(self, data):
             """
-
-            :param data:
+            Update this model instance's data
+            :param data: The information to update the model with.
+            :type data: collection_json.Template
             :return:
             """
             raise NotImplementedError()
 
-    class Person(object):
-        def __init__(self, id, first_name, last_name, emails=[], phone_numbers=[],
-                     address_line_1=None, address_line_2=None, city=None, state=None, zip_code=None, country=None):
-            """
-            Person constructor
-            :param id: The id to assign this Person
-            :param first_name: This Person's first name.
-            :param last_name: This Person's last name.
-            :param emails: A list of this Person's emails as Email instances (optional)
-            :param phone_numbers: A list of this Person's phone numbers as PhoneNumber instances (optional)
-            :param address_line_1: The first line of this Person's physical address (optional)
-            :param address_line_2: The second line of this Person's physical address (optional)
-            :param city: The city this Person is located in (optional)
-            :param state: The state this Person is located in (optional)
-            :param zip_code: The zip code this Person is located in (optional)
-            :param country: The country this Person is located in (optional)
-            :return:
-            """
-            raise NotImplementedError()
-
-        def get_collection_object(self, short=False, as_dict=False):
-            uri = '/api/entry/%d/' % self.id
-            phone_numbers = [
-                {
-                    'number_type': phone_number.number_type,
-                    'number': phone_number.number
-                }
-                for phone_number in self.phone_numbers
-            ]
-
-            if not short:
-                data = {
-                    'first_name': self.first_name,
-                    'last_name': self.last_name,
-                    'emails': [{'email_type': email.email_type, 'email': email.email} for email in self.emails],
-                    'phone_numbers': phone_numbers,
-                    'address_line_1': self.address_line_1,
-                    'address_line_2': self.address_line_2,
-                    'city': self.city,
-                    'state': self.state,
-                    'zip_code': self.zip_code,
-                    'country': self.country
-                }
-            else:
-                data = {
-                    'first_name': self.first_name,
-                    'last_name': self.last_name,
-                    'phone_numbers': phone_numbers
-                }
-            if as_dict:
-                return dict({'uri': uri}, **data)
-            else:
-                return Item(href=uri, data=[{'name': k, 'value': v} for k, v in data.items()])
-
-        @staticmethod
-        def get_collection_template(as_dict=False):
-            """
-            Get the empty template for ReSTful API usage.
-            :return: A template for Person data represented as a Template instance.
-            """
-            data = [
-                {'name': 'first_name', 'value': '', 'prompt': 'First Name'},
-                {'name': 'last_name', 'value': '', 'prompt': 'Last Name'},
-                {'name': 'emails', 'value': [
-                    {
-                        'data': [
-                            {'name': 'email', 'prompt': 'name@example.com', 'value': ''},
-                            {'name': 'email_type', 'prompt': 'Type (e.g., Home, Work)', 'value': ''}
-                        ]
-                    }
-                ], 'prompt': 'Emails'},
-                {'name': 'phone_numbers', 'value': [
-                    {
-                        'data': [
-                            {'name': 'number', 'prompt': '555-555-5555', 'value': ''},
-                            {'name': 'number_type', 'prompt': 'Type (e.g., Home, Work)', 'value': ''}
-                        ]
-                    }
-                ], 'prompt': 'Phone Numbers'},
-                {'name': 'address_line_1', 'value': '', 'prompt': 'Address Line 1'},
-                {'name': 'address_line_2', 'value': '', 'prompt': 'Address Line 2'},
-                {'name': 'city', 'value': '', 'prompt': 'City'},
-                {'name': 'state', 'value': '', 'prompt': 'State'},
-                {'name': 'zip_code', 'value': '', 'prompt': 'Zip Code'},
-                {'name': 'country', 'value': '', 'prompt': 'Country'}
-            ]
-            if as_dict:
-                data_dict = {}
-                for item in data:
-                    data_dict[item['name']] = {'value': item.get('value'), 'prompt': item.get('prompt')}
-                return data
-            else:
-                return Template(data)
-
-    class Email(object):
-        def __init__(self, email_type, email):
-            """
-            Email constructor
-            :param email_type: The classification of this Email (e.g., "home", "work", etc.)
-            :param email: The email address that this Email represents
-            :return:
-            """
-            raise NotImplementedError()
-
-    class PhoneNumber(object):
-        def __init__(self, number_type, number):
-            """
-            PhoneNumber constructor
-            :param number_type: The classification of this PhoneNumber (e.g., "home", "work", etc.)
-            :param number: The phone number that this PhoneNumber represents
-            :return:
-            """
-            raise NotImplementedError()
-
-    def __init__(self, app):
+    def __init__(self, app, *args, **kwargs):
         """
-        Database wrapper constructor
-        Implementations should create self.app (containing "app" param,) self.database, and self.models
-        :param app: An instance of Flask
+        Database Constructor
+        All Databases should implement this method.
+        All Databases should create a property called "models" that is a dict-like object where keys are the model name
+        and values are the Model Class, e.g.:
+            self.models = {
+                'ModelOne': SomeDatabaseClass.ModelOne,
+                'ModelTwo': SomeDatabaseClass.ModelTwo
+            }
+        :param app: The flask application to tie this Database to.
+        :param args:
+        :param kwargs:
         :return:
         """
         raise NotImplementedError()
 
-    def create(self, data):
+    def add_model(self, model_class):
         """
-        Create a new Person entry
-        :param data: A dict containing data for the new Person entry. See Database.Person.get_collection_template
-        :return: The Person entry created, represented as a CollectionPlusJSON instance.
+        Add a model class to the instance models.
+        :param model_class: The model class to add
+        :type model_class: database.Database.Model
+        :raises TypeError: If model_class is not a subclass of ubookstore.database.Database.Model
+        :return:
+        """
+        if issubclass(model_class, Database.Model):
+            try:
+                self.models[model_class.__name__] = model_class
+            except (AttributeError, TypeError):
+                raise NotImplementedError(
+                    self.__class__.__name__ + ' does not have a "models" attribute or it is not subscriptable.'
+                )
+        else:
+            raise TypeError('model_class must be a subclass of database.Database.Model')
+
+    def create(self, model, data, *args, **kwargs):
+        """
+        Create a new model instance.
+        Please note that server-side data validation should happen in the model's init method somewhere.
+        This method should capture instances of Database.Model.ModelError and return a Collection containing the
+        appropriate error information.
+        :param model: The model to create a new instance of.
+        :param data: The data to parse into the model.
+        :return: A collection_json.Collection instance containing information about what happened (including errors.)
         """
         raise NotImplementedError()
 
-    def update(self, id, data):
+    def read(self, model, *args, **kwargs):
         """
-        Update an existing Person entry
-        Implementations should return Database.HTTP_ERRORS[404] if Person with id does not exist.
-        :param id: The id of the existing person entry to update.
-        :param data: A dict containing data to update the Person entry with. See Database.Person.get_collection_template
-        :return: The Person entry updated, represented as a CollectionPlusJSON instance.
-        """
-        raise NotImplementedError()
-
-    def read(self, id=None, page=1, per_page=5):
-        """
-        Read an existing Person entry, or read paginated list of all Person entries
-        Implementations should use CollectionPlusJSON.paginate to paginate the list of Person entries
-        :param id: The id of the existing person entry to read. (optional, default is None)
-        :param page: The page of the paginated listing to get. (optional, default is 1, ignored if id is provided)
-        :param per_page: The number of entries to list per page. (optional, default is 5, ignored if id is provided)
-        :return: CollectionPlusJSON instance representing the Person or list of Person entries.
+        Get information representing a model instance.
+        :param model: The model to attempt to read from, using information in args/kwargs to specify what is requested.
+        :return: A collection_json.Collection instance containing information about the requested resource or what
+        happened (including errors.)
         """
         raise NotImplementedError()
 
-    def delete(self, id):
+    def update(self, model, data, *args, **kwargs):
         """
-        Delete an existing Person entry
-        :param id: The id of the existing Person entry to delete
-        :return: The Person that was deleted, represented as a CollectionPlusJSON instance
+        Update information for an existing model instance.
+        Please note that server-side data validation should happen in the model's init method somewhere.
+        This method should capture instances of Database.Model.ModelError and return a Collection containing the
+        appropriate error information.
+        :param model: The model to update the information for.
+        :param data: The data to parse into the model. Should accept partial data and overlay it on existing data.
+        :return: A collection_json.Collection instance containing information about what happened (including errors.)
         """
         raise NotImplementedError()
 
-    def search(self, data):
+    def delete(self, model, *args, **kwargs):
         """
-        Search the database records for certain criteria
-        :param data: A dict containing query data. This should match the format of CollectionPlusJSON "queries" section.
-        :return: The matching entries represented as a CollectionPlusJSON instance.
+        Delete an instance of a model.
+        This method should determine from args/kwargs which instance of the model to delete.
+        :param model: The model to delete an instance of.
+        :return: A collection_json.Collection instance containing information about what happened (including errors.)
+        """
+        raise NotImplementedError()
+
+    def search(self, model, data, *args, **kwargs):
+        """
+        Search a model for instances that might be relevant to a query.
+        :param model: The model to search through instances of.
+        :return: A collection_json.Collection instance containing information about the results from the query, or about
+        what happened (including errors.)
         """
         raise NotImplementedError()
 
