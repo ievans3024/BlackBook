@@ -193,3 +193,9 @@ class PhoneNumber(FlatDatabaseModel):
     def __init__(self, id, person, data):
         super(PhoneNumber, self).__init__(id, data)
         self.person = person
+
+models = {
+    'Person': Person,
+    'Email': Email,
+    'PhoneNumber': PhoneNumber
+}
