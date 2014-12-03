@@ -10,7 +10,7 @@ from flask_crudsdb import Model, TypeEnforcer
 
 class FlatDatabaseModel(Model):
 
-    def __init__(self, pk, data):
+    def __init__(self, data, *args, pk=None, **kwargs):
         super(FlatDatabaseModel, self).__init__(data)
         self.id = abs(int(pk))
         self.update(data)
@@ -36,8 +36,8 @@ class Person(blackbook.models.Person, FlatDatabaseModel):
     zip_code = TypeEnforcer(str)
     country = TypeEnforcer(str)
 
-    def __init__(self, pk, data):
-        super(Person, self).__init__(pk, data)
+    def __init__(self, data, *args, **kwargs):
+        super(Person, self).__init__(data, *args, **kwargs)
 
 
 class Email(blackbook.models.Email, FlatDatabaseModel):
@@ -46,8 +46,8 @@ class Email(blackbook.models.Email, FlatDatabaseModel):
     email_type = TypeEnforcer(str)
     person = TypeEnforcer(object)
 
-    def __init__(self, pk, data):
-        super(Email, self).__init__(pk, data)
+    def __init__(self, data, *args, **kwargs):
+        super(Email, self).__init__(data, *args, **kwargs)
 
 
 class PhoneNumber(FlatDatabaseModel):
@@ -56,8 +56,8 @@ class PhoneNumber(FlatDatabaseModel):
     number_type = TypeEnforcer(str)
     person = TypeEnforcer(object)
 
-    def __init__(self, pk, data):
-        super(PhoneNumber, self).__init__(pk, data)
+    def __init__(self, data, *args, **kwargs):
+        super(PhoneNumber, self).__init__(data, *args, **kwargs)
 
 models = {
     'Person': Person,

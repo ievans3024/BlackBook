@@ -17,8 +17,8 @@ class Email(Model):
         'email_type'
     ]
 
-    def __init__(self, pk, data):
-        super(Email, self).__init__(pk, data)
+    def __init__(self, data, *args, **kwargs):
+        super(Email, self).__init__(data, *args, **kwargs)
 
     def get_collection_item(self, as_dict=False):
         data = [
@@ -56,8 +56,8 @@ class Person(Model):
         'country'
     ]
 
-    def __init__(self, pk, data):
-        super(Person, self).__init__(pk, data)
+    def __init__(self, data, *args, **kwargs):
+        super(Person, self).__init__(data, *args, **kwargs)
         for attr in (self.emails, self.phone_numbers):
             if (attr not in (Person.emails, Person.phone_numbers)) and hasattr(attr, '__iter__'):
                 for value in attr:
@@ -151,8 +151,8 @@ class PhoneNumber(Model):
         'number_type'
     ]
 
-    def __init__(self, pk, data):
-        super(PhoneNumber, self).__init__(pk, data)
+    def __init__(self, data, *args, **kwargs):
+        super(PhoneNumber, self).__init__(data, *args, **kwargs)
 
     def get_collection_item(self, as_dict=False):
         data = [
