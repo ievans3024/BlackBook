@@ -1,6 +1,6 @@
 __author__ = 'ievans3024'
 
-from collection_json import Data, Item, Template
+import blackbook.models
 from flask_crudsdb import Model, ModelError
 from flask_sqlalchemy import Model as SQLAModel
 
@@ -15,14 +15,14 @@ class SQLAlchemyModel(SQLAModel, Model):
         return super(SQLAlchemyModel).get_template(as_dict)
 
 
-class Person(SQLAlchemyModel):
+class Person(blackbook.models.Person, SQLAlchemyModel):
     pass
 
 
-class Email(SQLAlchemyModel):
+class Email(blackbook.models.Email, SQLAlchemyModel):
     pass
 
 
-class PhoneNumber(SQLAlchemyModel):
+class PhoneNumber(blackbook.models.PhoneNumber, SQLAlchemyModel):
     pass
 
