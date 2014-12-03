@@ -2,7 +2,9 @@ __author__ = 'ievans3024'
 
 import blackbook.models
 from flask_crudsdb import Model, ModelError
-from flask_sqlalchemy import Model as SQLAModel
+from flask_sqlalchemy import Model as SQLAModel, sqlalchemy
+
+# TODO: Convert this to pure sqlalchemy
 
 
 class SQLAlchemyModel(SQLAModel, Model):
