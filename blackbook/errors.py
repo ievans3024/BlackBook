@@ -6,6 +6,9 @@ from collection_json import Error
 from flask import json, render_template
 from os.path import join
 
+# TODO: Convert to https://github.com/ievans3024/CollectionPlusJSON
+# TODO: API errors should be a series of classes
+#   e.g., APINotFoundError, APIForbiddenError, etc. returned in blank Collection+JSON body
 
 @app.errorhandler(400)
 @app.errorhandler(403)

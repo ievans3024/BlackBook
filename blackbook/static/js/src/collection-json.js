@@ -5,7 +5,7 @@
  */
 
 // TODO: write property constructors to accept JSON as an argument
-
+// TODO: js minifier automation w/ travis
 /**
  * Collection Constructor
  * @param collection The Object or JSON string to construct this Collection from.

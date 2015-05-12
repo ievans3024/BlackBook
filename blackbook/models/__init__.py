@@ -1,6 +1,6 @@
 __author__ = 'ievans3024'
 
-from flask_crudsdb import Model, ModelError
+from flask_crudsdb import Model, ModelError  # FIXME: remove this dependency
 from collection_json import Data, Item, Template
 
 

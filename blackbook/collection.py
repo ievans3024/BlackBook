@@ -6,6 +6,8 @@ Helper module for collection_json classes
 from collection_json import Collection, Link, Template
 from math import ceil
 
+# TODO: Convert to https://github.com/ievans3024/CollectionPlusJSON
+
 MIMETYPE = 'application/vnd.collection+json'
 
 

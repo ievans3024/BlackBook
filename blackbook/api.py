@@ -4,6 +4,12 @@ __author__ = 'ievans3024'
 AJAX API routes
 """
 
+# TODO: API using Blueprint instance and MethodView subclasses
+#   (couchdb <-> couchdb model classes <-> API MethodView subclasses <-> AngularJS/Client)
+# TODO: Convert to https://github.com/ievans3024/CollectionPlusJSON
+# TODO: API Error classes
+#   e.g., APINotFoundError, APIForbiddenError, etc.
+
 from blackbook import app, db, render_template, request_accepts, request
 from blackbook.collection import MIMETYPE as CPJSON
 from collection_json import Collection, Link

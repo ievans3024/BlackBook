@@ -1,5 +1,7 @@
 __author__ = 'ievans3024'
 
+# FIXME: Move this out of __init__ to prevent accidental double imports
+
 #import flask_whooshalchemy as whooshalchemy
 
 from flask import Flask, request, render_template

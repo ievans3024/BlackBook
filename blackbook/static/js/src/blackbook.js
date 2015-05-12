@@ -1,3 +1,5 @@
+/* TODO: js minifier automation w/ travis */
+
 var black_book = angular.module('BlackBook', [
     'BlackBook.controllers',
     'BlackBook.filters',

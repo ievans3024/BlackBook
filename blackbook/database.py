@@ -1,6 +1,9 @@
 __author__ = 'ievans3024'
 
-from blackbook import app
+from flask import current_app as app
+
+# TODO: remove support for all other database types, just use couch
+# TODO: nodejs json builder (in travis?) for making api specs and couch design docs in pure js
 
 if (not app.config.get('DATABASE_HANDLER')) or (app.config.get('DATABASE_HANDLER') == 'flatfile'):
     from database.flatfile import FlatDatabase
