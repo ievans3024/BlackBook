@@ -2,7 +2,7 @@ __author__ = 'ievans3024'
 
 import re
 
-from couchdb.mapping import Document, TextField, ListField, Mapping
+from couchdb.mapping import DictField, Document, ListField, Mapping, TextField, ViewField
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -105,8 +105,74 @@ class TypedDocument(Document):
 
 class Contact(TypedDocument):
     """A contact being stored in the "book"."""
+    name_first = TextField()
+    name_last = TextField()
+    defaults = DictField(
+        Mapping.build(
+            address=DictField(
+                Mapping.build(
+                    label=TextField(),
+                    line_1=TextField(),
+                    line_2=TextField(),
+                    city=TextField(),
+                    state=TextField(),
+                    zip=TextField(),
+                    country=TextField()
+                )
+            ),
+            email=DictField(
+                Mapping.build(
+                    label=TextField(),
+                    email=TextField()
+                )
+            ),
+            phone_number=DictField(
+                Mapping.build(
+                    label=TextField(),
+                    number=TextField()
+                )
+            )
+        )
+    )
+    addresses = ListField(
+        DictField(
+            Mapping.build(
+                label=TextField(),
+                line_1=TextField(),
+                line_2=TextField(),
+                city=TextField(),
+                state=TextField(),
+                zip=TextField(),
+                country=TextField()
+            )
+        )
+    )
+    emails = ListField(
+        DictField(
+            Mapping.build(
+                label=TextField(),
+                email=TextField()
+            )
+        )
+    )
+    phone_numbers = ListField(
+        DictField(
+            Mapping.build(
+                label=TextField(),
+                number=TextField()
+            )
+        )
+    )
+    by_name = ViewField("contact", "")
+    by_surname = ViewField("contact", "")
 
-    pass
+    @property
+    def name(self):
+        return " ".join([self.name_first, self.name_last])
+
+    @property
+    def rname(self):
+        return ", ".join([self.name_last, self.name_first])
 
 
 class Group(Permissible, TypedDocument):
