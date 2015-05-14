@@ -1,5 +1,8 @@
 __author__ = 'ievans3024'
 
+# TODO: full-text search with couchdb-lucene (and pylucene?)
+#   see: https://wiki.apache.org/couchdb/Full_text_search
+
 import re
 
 from couchdb.mapping import DictField, Document, ListField, Mapping, TextField, ViewField
@@ -105,6 +108,7 @@ class TypedDocument(Document):
 
 class Contact(TypedDocument):
     """A contact being stored in the "book"."""
+    user = TextField()  # references User.id
     name_first = TextField()
     name_last = TextField()
     defaults = DictField(
@@ -163,8 +167,12 @@ class Contact(TypedDocument):
             )
         )
     )
-    by_name = ViewField("contact", "")
-    by_surname = ViewField("contact", "")
+    by_address = ViewField("contact", "")  # searches key against line_1, line_2, city, state, zip, country
+    by_email = ViewField("contact", "")  # searches key against email in every entry in emails
+    by_name = ViewField("contact", "")  # searches key against name_first
+    by_phone_number = ViewField("contact", "")  # searches key against number in every entry in phone numbers
+    by_surname = ViewField("contact", "")  # searches key against name_last
+    by_user = ViewField("contact", "")  # searches key against user
 
     @property
     def name(self):
