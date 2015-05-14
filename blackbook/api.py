@@ -1,14 +1,115 @@
 __author__ = 'ievans3024'
 
-"""
-AJAX API routes
-"""
-
 # TODO: API using Blueprint instance and MethodView subclasses
 #   (couchdb <-> couchdb model classes <-> API MethodView subclasses <-> AngularJS/Client)
 # TODO: Convert to https://github.com/ievans3024/CollectionPlusJSON
 # TODO: API Error classes
 #   e.g., APINotFoundError, APIForbiddenError, etc.
+
+"""
+/user/[?[page=<pagenum>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
+
+    GET: retrieve list of users
+        - serves creation template
+        - requires authenticated admin user to see user list
+        - optionally requires authenticated admin user to see creation template
+        - if not authenticated:
+            - if public registration is off:
+                - HTTP 401 response
+                - collection.items will be empty
+                - collection.template will be empty
+                - collection.error will contain 401 error code, title and message
+            - if public registration is on:
+                - HTTP 200 response
+                - collection.items will be empty
+                - collection.template will contain creation template
+        - if authenticated:
+            - if not authorized:
+                - HTTP 403 response
+                - collection.items and collection.template will be empty
+                - collection.error will contain 403 error code, title and message
+            - if authorized:
+                - HTTP 200 response
+                - collection.items will contain a paginated list of users
+                - collection.links will contain a list of pagination links
+                - collection.template will contain creation template
+
+    POST: create a new user
+        - only accepts creation template
+        - authenticated users must be admins
+        - optionally requires authenticated admin user to create new users (public registration turned off)
+        - if public registration is off:
+            - if not authenticated:
+                - HTTP 401 response
+                - collection.items will be empty
+                - collection.template will be empty
+                - collection.error will contain 401 error code, title and message
+        - if authenticated:
+            - if not authorized:
+                - HTTP 403 response
+                - collection.items and collection.template will be empty
+                - collection.error will contain 403 error code, title and message
+
+/user/<id>/
+
+    GET: retrieve information about a specific user
+        - serves update template
+        - requires authenticated user
+            - if not authenticated:
+                - HTTP 401 response
+                - collection.items and collection.template will be empty
+                - collection.error will contain 401 error code, title and message
+            - non-admin users may only retrieve their own info
+                -if <id> == user.id:
+                    - HTTP 200
+                    - collection.items will contain a one-item list with the user's information
+                    - collection.
+                - 403 response if <id> != User.id, regardless if <id> exists in the system
+                - collection.items and collection.template will be empty
+            - admin users may retrieve info about any user
+                - certain info (such as passwords--hashed or plaintext,) is not retrievable through the api
+                - 404 response if <id> does not exist
+
+    PUT: update information about a specific user
+        - requires authenticated user is updating themselves, or is an admin user
+        - only accepts complete update template
+        - 403 if authenticated but not authorized, 401 if not authenticated
+
+    PATCH: update information about a specific user
+        - requires authenticated user is updating themselves, or is an admin user
+        - accepts partial or complete update template
+        - 403 if authenticated but not authorized, 401 if not authenticated
+
+    DELETE: delete a specific user
+        - requires authenticated admin user and user is not themselves
+        - 403 if authenticated but not authorized, 401 if not authenticated
+
+/contact/
+
+    GET: retrieve list of contacts
+        - serves creation template
+        - list will be empty if token associated with authenticated user is not present
+        - only lists contacts created by the authenticated user (multi-user system)
+
+    POST: create a new contact
+        - only accepts creation template
+        - requires token associated with authenticated user
+        - only adds contact's info to authenticated user's contact list
+
+/contact/<id>/
+
+    GET: retrieve information about a specific contact
+        - requires token associated with authenticated user
+        - 404s if <id> is not in User.contacts, regardless of whether <id> exists in system
+        - serves update template
+
+    PUT: update information about a specific contact
+        - requires token associated with authenticated user
+        - 404s if <id> is not in User.contacts, regardless of whether <id> exists in system
+
+    PATCH:
+
+"""
 
 from blackbook import app, db, render_template, request_accepts, request
 from blackbook.collection import MIMETYPE as CPJSON
