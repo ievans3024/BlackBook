@@ -1,231 +1,5 @@
 __author__ = 'ievans3024'
 
-# TODO: API using Blueprint instance and MethodView subclasses
-#   (couchdb <-> couchdb model classes <-> API MethodView subclasses <-> AngularJS/Client)
-# TODO: Convert to https://github.com/ievans3024/CollectionPlusJSON
-# TODO: API Error classes
-#   e.g., APINotFoundError, APIForbiddenError, etc.
-
-"""
-/user/[?[page=<pagenum>][username=<name>][email=<email>]]
-
-    GET: retrieve list of users
-        - serves creation template
-        - requires authenticated admin user to see user list
-        - optionally requires authenticated admin user to see creation template
-        - if not authenticated:
-            - if public registration is off:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if public registration is on:
-                - HTTP 200 response
-                - collection.items will be empty
-                - collection.template will contain creation template
-        - if authenticated:
-            - if not authorized:
-                - HTTP 403 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 403 error code, title and message
-            - if authorized:
-                - HTTP 200 response
-                - collection.items will contain a paginated list of users
-                - collection.links will contain a list of pagination links
-                - collection.queries will contain a list of queries that can be performed
-                    - username: search the list by username
-                    - email: search the list by email
-                - collection.template will contain creation template
-
-    POST: create a new user
-        - optionally allows public creation of user accounts
-        - requires completed creation form
-            - if (not authenticated and public registration is on) or (authenticated admin user):
-                - if form is complete:
-                    - HTTP 201 response
-                    - collection.items will contain a one-item list of the new user's information
-                    - collection.template will contain the creation template
-                - if form is incomplete:
-                    - HTTP 400 response
-                    - collection.items will be empty
-                    - collection.template will contain the creation template
-                    - collection.error will contain 400 error code, title and message
-            - if not authenticated and public registration is off:
-                - HTTP 401 response
-                - collection.items will be empty
-                - collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated non-admin user:
-                - HTTP 403 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 403 error code, title and message
-
-
-/user/<id>/
-
-    GET: retrieve information about a specific user
-        - serves update template
-        - requires authenticated user
-            - if not authenticated:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - non-admin users may only retrieve their own info
-                - admin users may retrieve info about any user
-                - certain info (such as passwords) cannot be retrieved through the api
-                - if (non-admin user and <id> == user.id) or (admin user):
-                    - HTTP 200 response
-                    - collection.items will contain a one-item list with the user's information
-                    - collection.template will contain the update template
-                - if non-admin user and (<id> != user.id or <id> does not exist):
-                    - HTTP 403 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 403 error code, title and message
-                - if admin user and <id> does not exist:
-                    - HTTP 404 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 404 error code, title and message
-
-    PUT: update information about a specific user
-        - requires authenticated user and complete template
-            - if not authenticated:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - non-admin users may only update themselves
-                - admin users may update any user
-                - certain info (such as passwords) can only be modified by a user's own self through the api
-                - if (non-admin user and <id> == user.id) or (admin user):
-                    - if template complete:
-                        - HTTP 200 response
-                        - collection.items will contain a one-item list with the user's updated information
-                        - collection.template will contain the update template
-                    - if template incomplete:
-                        - 400 HTTP response
-                        - collection.items will be empty
-                        - collection.template will contain update template
-                        - collection.error will contain 400 error code, title and message
-                - if non-admin user and (<id> != user.id or <id> does not exist):
-                    - HTTP 403 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 403 error code, title and message
-                - if admin user and <id> does not exist:
-                    - HTTP 404 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 404 error code, title and message
-
-    PATCH: update information about a specific user
-        - requires authenticated user and partial or complete template
-            - if not authenticated:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - non-admin users may only update themselves
-                - admin users may update any user
-                - certain info (such as passwords) can only be modified by a user's own self through the api
-                - data in submitted template that does not match the server's template will be ignored
-                - if (non-admin user and <id> == user.id) or (admin user):
-                    - if template contains matching data:
-                        - HTTP 200 response
-                        - collection.items will contain a one-item list with the user's updated information
-                        - collection.template will contain the update template
-                    - if template does not contain any matching data:
-                        - 400 HTTP response
-                        - collection.items will be empty
-                        - collection.template will contain update template
-                        - collection.error will contain 400 error code, title and message
-                - if non-admin user and (<id> != user.id or <id> does not exist):
-                    - HTTP 403 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 403 error code, title and message
-                - if admin user and <id> does not exist:
-                    - HTTP 404 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 404 error code, title and message
-
-    DELETE: delete a specific user
-        - requires authenticated user
-            - if not authenticated:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - if (non-admin user and <id> == user.id) or (admin user):
-                    - HTTP 204 response
-                    - No body
-                - if non-admin user and (<id> != user.id or <id> does not exist):
-                    - HTTP 403 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 403 error code, title and message
-                - if admin and <id> does not exist:
-                    - HTTP 404 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 404 error code, title and message
-
-
-/user/<id>/contacts/[?[page=<pagenum>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
-
-    GET: retrieve list of contacts for a particular user
-        - only displays contacts a specific user has created
-        - requires authenticated user
-            - if not authenticated:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - non-admin users may only view their own contacts
-                - admin users may view contacts for all users
-                - if (non-admin user and <id> == user.id) or (admin user):
-                    - HTTP 200 response
-                    - collection.items will contain a paginated list of the user's contacts
-                    - collection.links will contain a list of pagination links
-                        - also contains a special "rel=owner" link, referring to the owning user
-                    - collection.queries will contain a list of queries that can be performed
-                        - q: general query/search (searches all fields)
-                        - name: search by first name
-                        - surname: search by last name
-                        - email: search by email
-                        - phone: search by phone number
-                    - collection.template will contain the creation template
-                - if non-admin user and (<id> != user.id or <id> does not exist):
-                    - HTTP 403 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 403 error code, title and message
-                - if admin user and <id> does not exist:
-                    - HTTP 404 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 404 error code, title and message
-
-    POST: create a new contact for a particular user
-        - requires authenticated user and completed creation form
-            - if not authenticated:
-                - unauthenticated users cannot create new contacts
-                - HTTP 401 response
-                - collection.items will be empty
-                - collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if (authenticated non-admin and <id> == user.id) or (authenticated admin user):
-                - non-admins may only create contacts for themselves
-                - admins may create contacts for any user
-                - if form is complete:
-                    - HTTP 201 response
-                    - collection.items will contain a one-item list of the new user's information
-                    - collection.template will contain the creation template
-                - if form is incomplete:
-                    - HTTP 400 response
-                    - collection.items will be empty
-                    - collection.template will contain the creation template
-                    - collection.error will contain 400 error code, title and message
-            - if authenticated non-admin and <id> != user.id:
-                - non-admins may not create contacts for other users
-                - HTTP 403 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 403 error code, title and message
-
-"""
-
 import collection_plus_json
 import couchdb
 import couchdb.mapping
@@ -437,6 +211,22 @@ class APINotFoundError(APIError):
         super(APINotFoundError, self).__init__(code=code, title=title, message=message, **kwargs)
 
 
+# TODO: more APIError convenience subclasses
+#   APIBadRequestError              400 Bad Request
+#   APINotAuthorizedError           401 Not Authorized
+#   APIForbiddenError               403 Forbidden
+#   APIMethodNotAllowed             405 Method Not Allowed
+#   APINotAcceptableError           406 Not Acceptable
+#   APIConflictError                409 Conflict
+#   APIGoneError                    410 Gone
+#   APIUnsupportedMediaTypeError    415 Unsupported Media Type
+#   APIAuthenticationTimeoutError   419 Authentication Timeout
+#   APITooManyRequestsError         429 Too Many Requests
+#   APIInternalServerError          500 Internal Server Error
+#   APINotImplementedError          501 Not Implemented
+#   APIUnavailableError             503 Service Unavailable
+
+
 class Contact(ABC):
     """
     Contact API class
@@ -621,10 +411,10 @@ class Session(ABC):
     def __init__(self, db):
         super(Session, self).__init__(db, blackbook.database.models.Session)
 
-    def delete(self, *args, **kwargs):
+    def _generate_document(self, *args, **kwargs):
         pass
 
-    def generate_document(self, *args, **kwargs):
+    def delete(self, *args, **kwargs):
         pass
 
     def get(self, *args, **kwargs):
@@ -641,14 +431,235 @@ class Session(ABC):
 
 
 class User(ABC):
+    """
+    User API class
+
+    /user/[?[page=<pagenum>][username=<name>][email=<email>]]
+
+        GET: retrieve list of users
+            - serves creation template
+            - requires authenticated admin user to see user list
+            - optionally requires authenticated admin user to see creation template
+            - if not authenticated:
+                - if public registration is off:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if public registration is on:
+                    - HTTP 200 response
+                    - collection.items will be empty
+                    - collection.template will contain creation template
+            - if authenticated:
+                - if not authorized:
+                    - HTTP 403 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 403 error code, title and message
+                - if authorized:
+                    - HTTP 200 response
+                    - collection.items will contain a paginated list of users
+                    - collection.links will contain a list of pagination links
+                    - collection.queries will contain a list of queries that can be performed
+                        - username: search the list by username
+                        - email: search the list by email
+                    - collection.template will contain creation template
+
+        POST: create a new user
+            - optionally allows public creation of user accounts
+            - requires completed creation form
+                - if (not authenticated and public registration is on) or (authenticated admin user):
+                    - if form is complete:
+                        - HTTP 201 response
+                        - collection.items will contain a one-item list of the new user's information
+                        - collection.template will contain the creation template
+                    - if form is incomplete:
+                        - HTTP 400 response
+                        - collection.items will be empty
+                        - collection.template will contain the creation template
+                        - collection.error will contain 400 error code, title and message
+                - if not authenticated and public registration is off:
+                    - HTTP 401 response
+                    - collection.items will be empty
+                    - collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated non-admin user:
+                    - HTTP 403 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 403 error code, title and message
+
+
+    /user/<id>/
+
+        GET: retrieve information about a specific user
+            - serves update template
+            - requires authenticated user
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - non-admin users may only retrieve their own info
+                    - admin users may retrieve info about any user
+                    - certain info (such as passwords) cannot be retrieved through the api
+                    - if (non-admin user and <id> == user.id) or (admin user):
+                        - HTTP 200 response
+                        - collection.items will contain a one-item list with the user's information
+                        - collection.template will contain the update template
+                    - if non-admin user and (<id> != user.id or <id> does not exist):
+                        - HTTP 403 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 403 error code, title and message
+                    - if admin user and <id> does not exist:
+                        - HTTP 404 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 404 error code, title and message
+
+        PUT: update information about a specific user
+            - requires authenticated user and complete template
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - non-admin users may only update themselves
+                    - admin users may update any user
+                    - certain info (such as passwords) can only be modified by a user's own self through the api
+                    - if (non-admin user and <id> == user.id) or (admin user):
+                        - if template complete:
+                            - HTTP 200 response
+                            - collection.items will contain a one-item list with the user's updated information
+                            - collection.template will contain the update template
+                        - if template incomplete:
+                            - 400 HTTP response
+                            - collection.items will be empty
+                            - collection.template will contain update template
+                            - collection.error will contain 400 error code, title and message
+                    - if non-admin user and (<id> != user.id or <id> does not exist):
+                        - HTTP 403 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 403 error code, title and message
+                    - if admin user and <id> does not exist:
+                        - HTTP 404 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 404 error code, title and message
+
+        PATCH: update information about a specific user
+            - requires authenticated user and partial or complete template
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - non-admin users may only update themselves
+                    - admin users may update any user
+                    - certain info (such as passwords) can only be modified by a user's own self through the api
+                    - data in submitted template that does not match the server's template will be ignored
+                    - if (non-admin user and <id> == user.id) or (admin user):
+                        - if template contains matching data:
+                            - HTTP 200 response
+                            - collection.items will contain a one-item list with the user's updated information
+                            - collection.template will contain the update template
+                        - if template does not contain any matching data:
+                            - 400 HTTP response
+                            - collection.items will be empty
+                            - collection.template will contain update template
+                            - collection.error will contain 400 error code, title and message
+                    - if non-admin user and (<id> != user.id or <id> does not exist):
+                        - HTTP 403 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 403 error code, title and message
+                    - if admin user and <id> does not exist:
+                        - HTTP 404 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 404 error code, title and message
+
+        DELETE: delete a specific user
+            - requires authenticated user
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - if (non-admin user and <id> == user.id) or (admin user):
+                        - HTTP 204 response
+                        - No body
+                    - if non-admin user and (<id> != user.id or <id> does not exist):
+                        - HTTP 403 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 403 error code, title and message
+                    - if admin and <id> does not exist:
+                        - HTTP 404 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 404 error code, title and message
+
+
+    /user/<id>/contacts/[?[page=<pagenum>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
+
+        GET: retrieve list of contacts for a particular user
+            - only displays contacts a specific user has created
+            - requires authenticated user
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - non-admin users may only view their own contacts
+                    - admin users may view contacts for all users
+                    - if (non-admin user and <id> == user.id) or (admin user):
+                        - HTTP 200 response
+                        - collection.items will contain a paginated list of the user's contacts
+                        - collection.links will contain a list of pagination links
+                            - also contains a special "rel=owner" link, referring to the owning user
+                        - collection.queries will contain a list of queries that can be performed
+                            - q: general query/search (searches all fields)
+                            - name: search by first name
+                            - surname: search by last name
+                            - email: search by email
+                            - phone: search by phone number
+                        - collection.template will contain the creation template
+                    - if non-admin user and (<id> != user.id or <id> does not exist):
+                        - HTTP 403 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 403 error code, title and message
+                    - if admin user and <id> does not exist:
+                        - HTTP 404 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 404 error code, title and message
+
+        POST: create a new contact for a particular user
+            - requires authenticated user and completed creation form
+                - if not authenticated:
+                    - unauthenticated users cannot create new contacts
+                    - HTTP 401 response
+                    - collection.items will be empty
+                    - collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if (authenticated non-admin and <id> == user.id) or (authenticated admin user):
+                    - non-admins may only create contacts for themselves
+                    - admins may create contacts for any user
+                    - if form is complete:
+                        - HTTP 201 response
+                        - collection.items will contain a one-item list of the new user's information
+                        - collection.template will contain the creation template
+                    - if form is incomplete:
+                        - HTTP 400 response
+                        - collection.items will be empty
+                        - collection.template will contain the creation template
+                        - collection.error will contain 400 error code, title and message
+                - if authenticated non-admin and <id> != user.id:
+                    - non-admins may not create contacts for other users
+                    - HTTP 403 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 403 error code, title and message
+
+    """
 
     def __init__(self, db):
         super(User, self).__init__(db, blackbook.database.models.User)
 
-    def delete(self, *args, **kwargs):
+    def _generate_document(self, *args, **kwargs):
         pass
 
-    def generate_document(self, *args, **kwargs):
+    def delete(self, *args, **kwargs):
         pass
 
     def get(self, *args, **kwargs):
