@@ -366,7 +366,7 @@ import collection_plus_json
 import couchdb
 import couchdb.mapping
 import blackbook.tools
-from flask import Blueprint
+from flask import Blueprint, current_app, Response
 from flask.views import MethodView
 
 
@@ -478,3 +478,28 @@ class ABC(MethodView):
     def search(self, *args, **kwargs):
         raise NotImplementedError()
 
+
+class APIError(collection_plus_json.Error, BaseException):
+    """
+    Wrapper class for API Errors
+
+    May be raised as a python exception, i.e.:
+        raise APIError()
+
+    May be inserted into a collection_plus_json.Collection instance, i.e.:
+        collection_plus_json.Collection(href="/foo/", error=APIError())
+    """
+
+    def __init__(self,
+                 code="500",
+                 title="Internal Server Error",
+                 message="The server could not complete the request because it encountered an error internally."
+                 ):
+        """
+        APIError Constructor
+        :param code: The HTTP error code
+        :param title: The title of the error
+        :param message: The detailed error description
+        :return:
+        """
+        super(APIError, self).__init__(code=code, message=message, title=title)
