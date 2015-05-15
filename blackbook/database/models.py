@@ -40,13 +40,13 @@ class Permissible(Document):
         if self.groups:
             for group in self.groups:
                 if group not in groups_checked:
+                    groups_checked.append(group)
                     g = Permissible.load(db, group)
                     permissions, groups_checked = g.get_permissions(
                         db,
-                        permissions= permissions,
+                        permissions=permissions,
                         groups_checked=groups_checked
                     )
-                    groups_checked.append(group)
 
         return permissions, groups_checked
 
