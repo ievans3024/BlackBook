@@ -595,6 +595,12 @@ class Contact(ABC):
                         - collection.items and collection.template will be empty
                         - collection.error will contain 404 error code, title and message
 
+        POST: unsupported
+            - HTTP 405 response
+            - All collection fields will be empty, if possible, except error
+            - collection.error will contain 405 error code, title and message
+
+
         DELETE: delete a specific contact
             - requires authenticated user
                 - if not authenticated:
@@ -611,6 +617,67 @@ class Contact(ABC):
                         - HTTP 404 response
                         - collection.items and collection.template will be empty
                         - collection.error will contain 404 error code, title and message
+
+
+    /user/<id>/contacts/[?[page=<pagenum>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
+
+        GET: retrieve list of contacts for a particular user
+            - only displays contacts a specific user has created
+            - requires authenticated user
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - non-admin users may only view their own contacts
+                    - admin users may view contacts for all users
+                    - if (non-admin user and <id> == user.id) or (admin user):
+                        - HTTP 200 response
+                        - collection.items will contain a paginated list of the user's contacts
+                        - collection.links will contain a list of pagination links
+                            - also contains a special "rel=owner" link, referring to the owning user
+                        - collection.queries will contain a list of queries that can be performed
+                            - q: general query/search (searches all fields)
+                            - name: search by first name
+                            - surname: search by last name
+                            - email: search by email
+                            - phone: search by phone number
+                        - collection.template will contain the creation template
+                    - if non-admin user and (<id> != user.id or <id> does not exist):
+                        - HTTP 403 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 403 error code, title and message
+                    - if admin user and <id> does not exist:
+                        - HTTP 404 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 404 error code, title and message
+
+        POST: create a new contact for a particular user
+            - requires authenticated user and completed creation form
+                - if not authenticated:
+                    - unauthenticated users cannot create new contacts
+                    - HTTP 401 response
+                    - collection.items will be empty
+                    - collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if (authenticated non-admin and <id> == user.id) or (authenticated admin user):
+                    - non-admins may only create contacts for themselves
+                    - admins may create contacts for any user
+                    - if form is complete:
+                        - HTTP 201 response
+                        - collection.items will contain a one-item list of the new user's information
+                        - collection.template will contain the creation template
+                    - if form is incomplete:
+                        - HTTP 400 response
+                        - collection.items will be empty
+                        - collection.template will contain the creation template
+                        - collection.error will contain 400 error code, title and message
+                - if authenticated non-admin and <id> != user.id:
+                    - non-admins may not create contacts for other users
+                    - HTTP 403 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 403 error code, title and message
+
     """
 
     def __init__(self, db):
@@ -653,6 +720,103 @@ class Contact(ABC):
 
 
 class Session(ABC):
+    """
+    Session API Class
+
+    /session/
+
+        GET: get authentication information
+            - HTTP 200 response
+            - if authenticated and authentication has not expired or not authenticated:
+                - if authenticated:
+                    - collection.items will be a one-item list containing the user's session info
+                    - collection.template will be empty
+                - if not authenticated:
+                    - collection.items will be empty
+                    - collection.template will contain creation template (login form)
+            - if authenticated and authentication has expired:
+                - HTTP 419 response
+                - collection.items will be empty
+                - collection.template will contain creation template (login form)
+                - collection.error will contain 419 error code, title and message
+
+        POST: create a new session (log in)
+            - requires complete creation template
+            - if creation template is complete and login is successful:
+                - HTTP 201 response
+                - session var id set to Session.token value
+                - collection.items will be a one-item list containing new session info
+                - collection.template will be empty
+            - if creation template is complete and login is unsuccessful:
+                - HTTP 401 response
+                - collection.items will be empty
+                - collection.template will contain creation template
+                - collection.error will contain 401 error code, title and message
+            - if creation template is not complete:
+                - HTTP 400 response
+                - collection.items will be empty
+                - collection.template will contain creation template
+                - collection.error will contain 400 error code, title and message
+
+
+    /session/<token>/
+
+        GET: get information about a session
+            - requires authenticated user
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items will be empty
+                    - collection.template will contain creation template
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated and session.user == user.id:
+                    - HTTP 200 response
+                    - collection.items will be a one-item list containing the session info
+                    - collection.template will be empty
+                - if (authenticated and session.user != user.id) or token does not exist:
+                    - HTTP 404 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 404 error code, title and message
+
+        PUT: update session expiry
+            - requires authenticated user
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items will be empty
+                    - collection.template will contain creation template
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated and session.user == user.id:
+                    - HTTP 200 response
+                    - session.expiry gets updated
+                    - collection.items will be a one-item list containing updated session info
+                    - collection.template will be empty
+                - if (authenticated and session.user != user.id) or token does not exist:
+                    - HTTP 404 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 404 error code, title and message
+
+        PATCH: update session expiry
+            - clone functionality of PUT method for this endpoint
+
+        POST: unsupported
+            - HTTP 405 response
+            - All collection fields will be empty, if possible, except error
+            - collection.error will contain 405 error code, title and message
+
+        DELETE: de-authenticate and delete the current session (log out)
+            - requires authenticated user
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items will be empty
+                    - collection.template will contain creation template
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated and session.user == user.id:
+                    - HTTP 204 response
+                    - No response body
+                - if (authenticated and session.user != user.id) or token does not exist:
+                    - HTTP 404 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 404 error code, title and message
+    """
 
     def __init__(self, db):
         super(Session, self).__init__(db, blackbook.database.models.Session)
@@ -839,66 +1003,6 @@ class User(ABC):
                         - HTTP 404 response
                         - collection.items and collection.template will be empty
                         - collection.error will contain 404 error code, title and message
-
-
-    /user/<id>/contacts/[?[page=<pagenum>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
-
-        GET: retrieve list of contacts for a particular user
-            - only displays contacts a specific user has created
-            - requires authenticated user
-                - if not authenticated:
-                    - HTTP 401 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 401 error code, title and message
-                - if authenticated:
-                    - non-admin users may only view their own contacts
-                    - admin users may view contacts for all users
-                    - if (non-admin user and <id> == user.id) or (admin user):
-                        - HTTP 200 response
-                        - collection.items will contain a paginated list of the user's contacts
-                        - collection.links will contain a list of pagination links
-                            - also contains a special "rel=owner" link, referring to the owning user
-                        - collection.queries will contain a list of queries that can be performed
-                            - q: general query/search (searches all fields)
-                            - name: search by first name
-                            - surname: search by last name
-                            - email: search by email
-                            - phone: search by phone number
-                        - collection.template will contain the creation template
-                    - if non-admin user and (<id> != user.id or <id> does not exist):
-                        - HTTP 403 response
-                        - collection.items and collection.template will be empty
-                        - collection.error will contain 403 error code, title and message
-                    - if admin user and <id> does not exist:
-                        - HTTP 404 response
-                        - collection.items and collection.template will be empty
-                        - collection.error will contain 404 error code, title and message
-
-        POST: create a new contact for a particular user
-            - requires authenticated user and completed creation form
-                - if not authenticated:
-                    - unauthenticated users cannot create new contacts
-                    - HTTP 401 response
-                    - collection.items will be empty
-                    - collection.template will be empty
-                    - collection.error will contain 401 error code, title and message
-                - if (authenticated non-admin and <id> == user.id) or (authenticated admin user):
-                    - non-admins may only create contacts for themselves
-                    - admins may create contacts for any user
-                    - if form is complete:
-                        - HTTP 201 response
-                        - collection.items will contain a one-item list of the new user's information
-                        - collection.template will contain the creation template
-                    - if form is incomplete:
-                        - HTTP 400 response
-                        - collection.items will be empty
-                        - collection.template will contain the creation template
-                        - collection.error will contain 400 error code, title and message
-                - if authenticated non-admin and <id> != user.id:
-                    - non-admins may not create contacts for other users
-                    - HTTP 403 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 403 error code, title and message
 
     """
 
