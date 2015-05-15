@@ -366,6 +366,7 @@ import collection_plus_json
 import couchdb
 import couchdb.mapping
 import blackbook.tools
+import blackbook.database.models
 from flask import Blueprint, current_app, Response
 from flask.views import MethodView
 
@@ -450,6 +451,9 @@ class ABC(MethodView):
             ]
         )
 
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError()
+
     def generate_document(self, *args, **kwargs):
         """
         Generate a document object
@@ -458,9 +462,6 @@ class ABC(MethodView):
         that can be manipulated and then serialized into
         a string to be returned in the HTTP response body.
         """
-        raise NotImplementedError()
-
-    def delete(self, *args, **kwargs):
         raise NotImplementedError()
 
     def get(self, *args, **kwargs):
@@ -554,3 +555,40 @@ class APINotFoundError(APIError):
         :return:
         """
         super(APINotFoundError, self).__init__(code=code, title=title, message=message, **kwargs)
+
+
+class Contact(ABC):
+
+    def __init__(self, db):
+        super(Contact, self).__init__(db, blackbook.database.models.Contact)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def generate_document(self, *args, **kwargs):
+        """Generate a Contact document representation."""
+
+        document = collection_plus_json.Collection(self.api_spec["endpoint"])
+        document.template = collection_plus_json.Template(data=self.api_spec["template_data"]["create"])
+        return document
+
+    def get(self, _id=None):
+
+        user = None
+        document = self.generate_document()
+
+        # check request header for consistent "Origin" HTTP header
+        # check session vars for authenticated session
+        #
+
+    def patch(self, *args, **kwargs):
+        pass
+
+    def post(self, *args, **kwargs):
+        pass
+
+    def put(self, *args, **kwargs):
+        pass
+
+    def search(self, *args, **kwargs):
+        pass
