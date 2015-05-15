@@ -488,6 +488,35 @@ class APIError(collection_plus_json.Error, BaseException):
 
     May be inserted into a collection_plus_json.Collection instance, i.e.:
         collection_plus_json.Collection(href="/foo/", error=APIError())
+
+    Convenience classes that subclass this:
+
+        APINotFoundError
+
+    These convenience classes are to allow for catching certain types of errors, e.g.:
+
+        try:
+            # stuff...
+        except APINotFoundError:
+            # handle resource not found
+        else:
+            # let other types of APIErrors get raised
+
+    Additionally, easier than typing out common errors every time they come up:
+
+        collection_plus_json.Collection(href="/foo/", error=APINotFoundError())
+
+    instead of
+
+        collection_plus_json.Collection(
+            href="/foo/",
+            error=APIError(
+                code="404",
+                title="Not Found",
+                message="The server could not find the requested resource."
+            )
+        )
+
     """
 
     def __init__(self,
@@ -508,34 +537,7 @@ class APIError(collection_plus_json.Error, BaseException):
 
 
 class APINotFoundError(APIError):
-    """
-    Convenience class for HTTP 404 errors
-
-    Catching specific types of APIErrors being raised, e.g.:
-
-    try:
-        # stuff...
-    except APINotFoundError:
-        # handle resource not found
-    else:
-        # let other types of APIErrors get raised
-
-    Additionally, easier than typing out common errors every time they may come up:
-
-        collection_plus_json.Collection(href="/foo/", error=APINotFoundError())
-
-    instead of
-
-        collection_plus_json.Collection(
-            href="/foo/",
-            error=APIError(
-                code="404",
-                title="Not Found",
-                message="The server could not find the requested resource."
-            )
-        )
-
-    """
+    """Convenience class for HTTP 404 errors"""
 
     def __init__(self,
                  code="404",
