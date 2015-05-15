@@ -459,16 +459,19 @@ class ABC(MethodView):
         """
         raise NotImplementedError()
 
-    def get(self, *args, **kwargs):
+    def delete(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def post(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
         raise NotImplementedError()
 
     def patch(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def delete(self, *args, **kwargs):
+    def post(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def put(self, *args, **kwargs):
         raise NotImplementedError()
 
     def search(self, *args, **kwargs):
