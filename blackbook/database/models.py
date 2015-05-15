@@ -203,9 +203,16 @@ class User(Permissible, TypedDocument):
     contacts = ListField(TextField())
     by_name = ViewField("user", "")
     by_email = ViewField("user", "")
+    by_salt = ViewField("user", "")
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password, method='pbkdf2:sha512', salt_length=12)
+        while True:
+            new_hash = generate_password_hash(password, method="pbkdf2:sha512", salt_length=12)
+            salt = new_hash.split("$")[1]
+            users = self.by_salt(key=salt)
+            if not users.rows:
+                self.password_hash = new_hash
+                break
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
