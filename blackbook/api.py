@@ -494,12 +494,61 @@ class APIError(collection_plus_json.Error, BaseException):
                  code="500",
                  title="Internal Server Error",
                  message="The server could not complete the request because it encountered an error internally.",
-                 **kwargs):
+                 **kwargs
+                 ):
         """
         APIError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
+        :param kwargs: Other nonstandard error information
         :return:
         """
         super(APIError, self).__init__(code=code, message=message, title=title, **kwargs)
+
+
+class APINotFoundError(APIError):
+    """
+    Convenience class for HTTP 404 errors
+
+    Catching specific types of APIErrors being raised, e.g.:
+
+    try:
+        # stuff...
+    except APINotFoundError:
+        # handle resource not found
+    else:
+        # let other types of APIErrors get raised
+
+    Additionally, easier than typing out common errors every time they may come up:
+
+        collection_plus_json.Collection(href="/foo/", error=APINotFoundError())
+
+    instead of
+
+        collection_plus_json.Collection(
+            href="/foo/",
+            error=APIError(
+                code="404",
+                title="Not Found",
+                message="The server could not find the requested resource."
+            )
+        )
+
+    """
+
+    def __init__(self,
+                 code="404",
+                 title="Not Found",
+                 message="The server could not find the requested resource.",
+                 **kwargs
+                 ):
+        """
+        APINotFoundError Constructor
+        :param code: The HTTP error code
+        :param title: The title of the error
+        :param message: The detailed error description
+        :param kwargs: Other nonstandard error information
+        :return:
+        """
+        super(APINotFoundError, self).__init__(code=code, title=title, message=message, **kwargs)
