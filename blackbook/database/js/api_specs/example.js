@@ -59,7 +59,11 @@ exports.spec = function (dbname) {
                 }
             }
         ],
-        "templates": {
+        "template_data": {
+            "create": [],
+            "update": []
+        },
+        "template_meta": {
             "create": {
                 "permissions": {
                     "public": true,
@@ -70,7 +74,6 @@ exports.spec = function (dbname) {
             },
             "update": {
                 "permissions": {},
-                "data": [],
                 "validators": {}
             }
         }
