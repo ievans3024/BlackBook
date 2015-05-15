@@ -6,7 +6,8 @@ __author__ = 'ievans3024'
 import re
 
 from couchdb.mapping import DateTimeField, DictField, Document, ListField, Mapping, TextField, ViewField
-from datetime import datetime
+from datetime import datetime, timedelta
+from flask import current_app
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -192,6 +193,16 @@ class Group(Permissible, TypedDocument):
     name = TextField()
     description = TextField()
     by_name = ViewField("group", "")
+
+
+class Session(TypedDocument):
+    """Session data for Users"""
+
+    token = TextField()
+    user = TextField()  # references User.id
+    expiry = DateTimeField(
+        default=lambda: datetime.now() + current_app.config.get("PERMANENT_SESSION_LIFETIME") or timedelta(days=14)
+    )
 
 
 class User(Permissible, TypedDocument):
