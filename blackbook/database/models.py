@@ -205,11 +205,11 @@ class User(Permissible, TypedDocument):
     by_email = ViewField("user", "")
     by_salt = ViewField("user", "")
 
-    def set_password(self, password):
+    def set_password(self, db, password):
         while True:
             new_hash = generate_password_hash(password, method="pbkdf2:sha512", salt_length=12)
             salt = new_hash.split("$")[1]
-            users = self.by_salt(key=salt)
+            users = self.by_salt(db, key=salt)
             if not users.rows:
                 self.password_hash = new_hash
                 break
