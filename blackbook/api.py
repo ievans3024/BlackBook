@@ -432,6 +432,12 @@ class ABC(MethodView):
     model = APIType(couchdb.mapping.Document)
 
     def __init__(self, db, model):
+        """
+        Constructor
+        :param db: The couchdb database to draw data from.
+        :param model: The couchdb document class to represent data with.
+        :return:
+        """
         super(ABC, self).__init__()
         self.db = db
         self.model = model
@@ -442,6 +448,16 @@ class ABC(MethodView):
                 } for cls in self.__class__.mro() if cls is not ABC and issubclass(cls, ABC)
             ]
         )
+
+    def generate_document(self, *args, **kwargs):
+        """
+        Generate a document object
+
+        Implementations should return a document object
+        that can be manipulated and then serialized into
+        a string to be returned in the HTTP response body.
+        """
+        raise NotImplementedError()
 
     def get(self, *args, **kwargs):
         raise NotImplementedError()
