@@ -5,7 +5,8 @@ __author__ = 'ievans3024'
 
 import re
 
-from couchdb.mapping import DictField, Document, ListField, Mapping, TextField, ViewField
+from couchdb.mapping import DateTimeField, DictField, Document, ListField, Mapping, TextField, ViewField
+from datetime import datetime
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -111,6 +112,8 @@ class Contact(TypedDocument):
     user = TextField()  # references User.id
     name_first = TextField()
     name_last = TextField()
+    date_created = DateTimeField(default=datetime.now)
+    date_modified = DateTimeField(default=datetime.now)
     defaults = DictField(
         Mapping.build(
             address=DictField(
@@ -167,12 +170,12 @@ class Contact(TypedDocument):
             )
         )
     )
-    by_address = ViewField("contact", "")  # searches key against line_1, line_2, city, state, zip, country
-    by_email = ViewField("contact", "")  # searches key against email in every entry in emails
-    by_name = ViewField("contact", "")  # searches key against name_first
-    by_phone_number = ViewField("contact", "")  # searches key against number in every entry in phone numbers
-    by_surname = ViewField("contact", "")  # searches key against name_last
-    by_user = ViewField("contact", "")  # searches key against user
+    by_address = ViewField("contact", "")
+    by_email = ViewField("contact", "")
+    by_name = ViewField("contact", "")
+    by_phone_number = ViewField("contact", "")
+    by_surname = ViewField("contact", "")
+    by_user = ViewField("contact", "")
 
     @property
     def name(self):
@@ -186,10 +189,23 @@ class Contact(TypedDocument):
 class Group(Permissible, TypedDocument):
     """A group for users of the system."""
 
-    pass
+    name = TextField()
+    description = TextField()
+    by_name = ViewField("group", "")
 
 
 class User(Permissible, TypedDocument):
     """A user of the system."""
 
-    pass
+    password_hash = TextField()
+    name = TextField()
+    email = TextField()
+    contacts = ListField(TextField())
+    by_name = ViewField("user", "")
+    by_email = ViewField("user", "")
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha512', salt_length=12)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
