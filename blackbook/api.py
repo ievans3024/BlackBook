@@ -362,95 +362,99 @@ __author__ = 'ievans3024'
 
 """
 
-from blackbook import app, db, render_template, request_accepts, request
-from blackbook.collection import MIMETYPE as CPJSON
-from collection_json import Collection, Link
-from flask import abort, json, Response
-
-API_ROOT = app.config.get('API_ROOT')
-
-
-@app.route('/api/')
-def api():
-    if not request_accepts(CPJSON):
-        abort(406)
-    response = Collection(API_ROOT)
-    response.links.append(Link('/api/entry/', 'index', prompt='List all entries or add an entry'))
-    return Response(json.dumps(response.to_dict()), mimetype=CPJSON)
+import couchdb
+import couchdb.mapping
+import blackbook.tools
+from flask import Blueprint
+from flask.views import MethodView
 
 
-@app.route('/api/doc/')
-def api_doc():
-    return render_template('api.html')
+class APIType(object):
+    """Descriptor for properties that need to a class or a subclass of such."""
 
-
-@app.route('/api/entry/', methods=['GET', 'POST'])
-def api_entries():
-    if not request_accepts(CPJSON):
-        abort(406)
-    if request.method == 'GET':
-        # return paginated contact info
-        response = db.read(
-            page=request.args.get('page') or 1,
-            per_page=request.args.get('per_page') or 5
-        )
-        return Response(json.dumps(response.to_dict()), mimetype=CPJSON)
-    else:
-        if request.mimetype != CPJSON:
-            abort(415)
-        # TODO: Form validation
-        try:
-            created_entry = db.create(json.loads(request.data.decode()))
-        except (TypeError, ValueError) as e:
-            # TODO: Create custom error classes in database code, raise those instead.
-            abort(400)
-        return Response(json.dumps(created_entry.to_dict()), mimetype=CPJSON), 201
-
-
-@app.route('/api/entry/<int:person_id>/', methods=['GET', 'DELETE', 'PATCH'])
-def api_entry(person_id=None):
-    if isinstance(person_id, int):
-        if not request_accepts(CPJSON):
-            abort(406)
+    def __init__(self, cls):
+        if isinstance(cls, type):
+            self.cls = cls
         else:
-            if request.method == 'GET':
-                # return person info
-                response = db.read(
-                    id=person_id,
-                    page=request.args.get('page') or 1,
-                    per_page=request.args.get('per_page') or 5
-                )
-                return Response(json.dumps(response.to_dict()), mimetype=CPJSON)
-            elif request.method == 'DELETE':
-                # process contact deletion request
-                try:
-                    deleted = db.delete(person_id)
-                except Exception as e:
-                    raise e
-                else:
-                    if not deleted:
-                        return '', 204
-                    else:
-                        return Response(
-                            json.dumps(deleted.to_dict()), mimetype=CPJSON
-                        ), int(deleted.error.code)
+            raise TypeError("Parameter 'cls' must be a class.")
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        else:
+            if self.get_own_name(owner) in instance.__dict__.keys():
+                return instance.__dict__.get(self.get_own_name(owner))
             else:
-                if request.mimetype != CPJSON:
-                    abort(415)
-                pass  # assume PATCH? process contact modification request
-    else:
-        abort(404)
+                raise AttributeError(
+                    "'{cls}' object has no attribute '{name}'".format(
+                        cls=owner.__name__,
+                        name=self.get_own_name(owner)
+                    )
+                )
+
+    def __set__(self, instance, value):
+        if instance:
+            if not (value is self.cls) or (issubclass(value, self.cls)):
+                raise ValueError(
+                    "Value must be {cls} or a subclass of it.".format(
+                        cls=".".join([self.cls.__module__, self.cls.__name__])
+                    )
+                )
+            instance.__dict__[self.get_own_name(type(instance))] = value
+
+    def __delete__(self, instance):
+        if instance:
+            del instance.__dict__[self.get_own_name(type(instance))]
+
+    def get_own_name(self, owner):
+        for attr in dir(owner):
+            if getattr(owner, attr) is self:
+                return attr
 
 
-@app.route('/api/search/')
-def api_search():
-    # Coming soon!
-    abort(501)
+class APIField(APIType):
+    """Descriptor for properties that need to be an instance of a class or subclass of such."""
 
-if app.config.get('TESTING'):
-    @app.route('/tests/')
-    def tests():
-        """
-        Front-to-back api unittests
-        """
-        return render_template('tests.html')
+    def __set__(self, instance, value):
+        if not isinstance(value, self.cls):
+            raise TypeError(
+                "Value must be an instance of {cls} or one of its subclasses.".format(
+                    cls=".".join([self.cls.__module__, self.cls.__name__])
+                )
+            )
+        instance.__dict__[self.get_own_name(type(instance))] = value
+
+
+class ABC(MethodView):
+    """Abstract Base Class for interfacing with couchdb Document classes"""
+
+    db = APIField(couchdb.Database)
+    model = APIType(couchdb.mapping.Document)
+
+    def __init__(self, db, model):
+        super(ABC, self).__init__()
+        self.db = db
+        self.model = model
+        self.api_spec = blackbook.tools.merge_complex_dicts(
+            *[
+                {
+                    k: v for k, v in db.get("_api/{cls}".format(cls=cls.__name__.lower())).items()
+                } for cls in self.__class__.mro() if cls is not ABC and issubclass(cls, ABC)
+            ]
+        )
+
+    def get(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def post(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def patch(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def search(self, *args, **kwargs):
+        raise NotImplementedError()
+
