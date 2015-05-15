@@ -231,7 +231,9 @@ import couchdb
 import couchdb.mapping
 import blackbook.tools
 import blackbook.database.models
-from flask import Blueprint, current_app, Response
+
+from datetime import datetime
+from flask import Blueprint, current_app, request, Response, session
 from flask.views import MethodView
 
 
@@ -315,10 +317,11 @@ class ABC(MethodView):
             ]
         )
 
-    def delete(self, *args, **kwargs):
-        raise NotImplementedError()
+    @staticmethod
+    def _request_origin_consistent():
+        return request.headers.get("Origin") == current_app.config.get("SERVER_NAME")
 
-    def generate_document(self, *args, **kwargs):
+    def _generate_document(self, *args, **kwargs):
         """
         Generate a document object
 
@@ -326,6 +329,19 @@ class ABC(MethodView):
         that can be manipulated and then serialized into
         a string to be returned in the HTTP response body.
         """
+        raise NotImplementedError()
+
+    def _get_authenticated_user(self):
+        user = None
+        if session.get("id"):
+            sessions_by_token = Session.model.by_token(key=session["id"])
+            if sessions_by_token.rows:
+                get_session = sessions_by_token.rows[0]
+                if get_session.expiry > datetime.now():
+                    user = User.model.load(self.db, get_session.user)
+        return user
+
+    def delete(self, *args, **kwargs):
         raise NotImplementedError()
 
     def get(self, *args, **kwargs):
@@ -564,29 +580,81 @@ class Contact(ABC):
     def __init__(self, db):
         super(Contact, self).__init__(db, blackbook.database.models.Contact)
 
-    def delete(self, *args, **kwargs):
-        pass
-
-    def generate_document(self, *args, **kwargs):
+    def _generate_document(self, *args, **kwargs):
         """Generate a Contact document representation."""
 
         document = collection_plus_json.Collection(self.api_spec["endpoint"])
         document.template = collection_plus_json.Template(data=self.api_spec["template_data"]["create"])
         return document
 
+    def delete(self, *args, **kwargs):
+        pass
+
     def get(self, _id=None):
 
-        user = None
-        document = self.generate_document()
+        user = self._get_authenticated_user()
+        document = self._generate_document()
 
         # check request header for consistent "Origin" HTTP header
+        if not self._request_origin_consistent():
+            pass
+
         # check session vars for authenticated session
-        #
+        if session.get("id"):
+            pass
 
     def patch(self, *args, **kwargs):
         pass
 
     def post(self, *args, **kwargs):
+        pass
+
+    def put(self, *args, **kwargs):
+        pass
+
+    def search(self, *args, **kwargs):
+        pass
+
+
+class Session(ABC):
+
+    def __init__(self, db):
+        super(Session, self).__init__(db, blackbook.database.models.Session)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def generate_document(self, *args, **kwargs):
+        pass
+
+    def get(self, *args, **kwargs):
+        pass
+
+    def patch(self, *args, **kwargs):
+        pass
+
+    def put(self, *args, **kwargs):
+        pass
+
+    def search(self, *args, **kwargs):
+        pass
+
+
+class User(ABC):
+
+    def __init__(self, db):
+        super(User, self).__init__(db, blackbook.database.models.User)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def generate_document(self, *args, **kwargs):
+        pass
+
+    def get(self, *args, **kwargs):
+        pass
+
+    def patch(self, *args, **kwargs):
         pass
 
     def put(self, *args, **kwargs):
