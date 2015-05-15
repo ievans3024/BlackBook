@@ -203,6 +203,8 @@ class Session(TypedDocument):
     expiry = DateTimeField(
         default=lambda: datetime.now() + current_app.config.get("PERMANENT_SESSION_LIFETIME") or timedelta(days=14)
     )
+    by_token = ViewField("session", "")
+    by_user = ViewField("session", "")
 
 
 class User(Permissible, TypedDocument):
