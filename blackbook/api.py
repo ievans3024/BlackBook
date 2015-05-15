@@ -362,6 +362,7 @@ __author__ = 'ievans3024'
 
 """
 
+import collection_plus_json
 import couchdb
 import couchdb.mapping
 import blackbook.tools
