@@ -493,8 +493,8 @@ class APIError(collection_plus_json.Error, BaseException):
     def __init__(self,
                  code="500",
                  title="Internal Server Error",
-                 message="The server could not complete the request because it encountered an error internally."
-                 ):
+                 message="The server could not complete the request because it encountered an error internally.",
+                 **kwargs):
         """
         APIError Constructor
         :param code: The HTTP error code
@@ -502,4 +502,4 @@ class APIError(collection_plus_json.Error, BaseException):
         :param message: The detailed error description
         :return:
         """
-        super(APIError, self).__init__(code=code, message=message, title=title)
+        super(APIError, self).__init__(code=code, message=message, title=title, **kwargs)
