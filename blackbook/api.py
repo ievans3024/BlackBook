@@ -669,6 +669,9 @@ class Session(ABC):
     def patch(self, *args, **kwargs):
         pass
 
+    def post(self, *args, **kwargs):
+        pass
+
     def put(self, *args, **kwargs):
         pass
 
@@ -912,6 +915,9 @@ class User(ABC):
         pass
 
     def patch(self, *args, **kwargs):
+        pass
+
+    def post(self, *args, **kwargs):
         pass
 
     def put(self, *args, **kwargs):
