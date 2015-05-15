@@ -224,142 +224,6 @@ __author__ = 'ievans3024'
                 - collection.items and collection.template will be empty
                 - collection.error will contain 403 error code, title and message
 
-
-/contact/[?[page=<pagenum>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
-
-    GET: retrieve list of contacts
-        - requires authenticated admin user
-            - if not authenticated:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - non-admin users may only view their own contacts
-                - admin users may view contacts for all users
-                - HTTP 200 response
-                - collection.items will contain a paginated list of contacts
-                - collection.links will contain a list of pagination links
-                - collection.queries will contain a list of queries that can be performed
-                    - q: general query/search (searches all fields)
-                    - name: search by first name
-                    - surname: search by last name
-                    - email: search by email
-                    - phone: search by phone number
-                - collection.template will contain the creation template
-
-    POST: create a new contact
-        - requires authenticated user and completed creation form
-            - if not authenticated:
-                - unauthenticated users cannot create new contacts
-                - HTTP 401 response
-                - collection.items will be empty
-                - collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - new contact will be associated with authenticated user
-                - if form is complete:
-                    - HTTP 201 response
-                    - collection.items will contain a one-item list of the new user's information
-                    - collection.template will contain the creation template
-                - if form is incomplete:
-                    - HTTP 400 response
-                    - collection.items will be empty
-                    - collection.template will contain the creation template
-                    - collection.error will contain 400 error code, title and message
-
-
-/contact/<id>/
-
-    GET: retrieve information about a specific contact
-        - requires authenticated admin user
-            - if not authenticated:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - non-admin users may only view their own contacts
-                - admin users may view contacts for all users
-                - if (non-admin user and contact.user == user.id) or (admin user):
-                    - HTTP 200 response
-                    - collection.items will contain one-item list containing the contact's information
-                    - collection.links will contain a one-link list containing a link to the contact's owner User
-                        - link rel=owner
-                    - collection.template will contain the update template
-                - if non-admin user and (contact.user != user.id or <id> does not exist):
-                    - HTTP 404 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 404 error code, title and message
-
-    PUT: update information about a specific contact
-        - requires authenticated user and complete template
-            - if not authenticated:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - non-admin users may only update their own contacts
-                - admin users may update contacts for all users
-                - if (non-admin user and contact.user == user.id) or (admin user):
-                    - if template complete:
-                        - HTTP 200 response
-                        - collection.items will contain one-item list containing the contact's updated information
-                        - collection.links will contain a one-link list containing a link to the contact's owner User
-                            - link rel=owner
-                        - collection.template will contain the update template
-                    - if template incomplete:
-                        - HTTP 400 response
-                        - collection.items will be empty
-                        - collection.template will contain the update template
-                        - collection.error will contain 400 error code, title and message
-                - if non-admin user and (contact.user != user.id or <id> does not exist):
-                    - HTTP 404 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 404 error code, title and message
-
-    PATCH: update information about a specific contact
-        - requires authenticated user and partial or complete template
-            - if not authenticated:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - non-admin users may only update their own contacts
-                - admin users may update contacts for all users
-                - data in the submitted template that does not match the server's template will be ignored
-                - if (non-admin user and contact.user == user.id) or (admin user):
-                    - if template contains matching data:
-                        - HTTP 200 response
-                        - collection.items will contain one-item list containing the contact's updated information
-                        - collection.links will contain a one-link list containing a link to the contact's owner User
-                            - link rel=owner
-                        - collection.template will contain the update template
-                    - if template does not contain any matching data:
-                        - HTTP 400 response
-                        - collection.items will be empty
-                        - collection.template will contain the update template
-                        - collection.error will contain 400 error code, title and message
-                - if non-admin user and (contact.user != user.id or <id> does not exist):
-                    - HTTP 404 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 404 error code, title and message
-
-    DELETE: delete a specific contact
-        - requires authenticated user
-            - if not authenticated:
-                - HTTP 401 response
-                - collection.items and collection.template will be empty
-                - collection.error will contain 401 error code, title and message
-            - if authenticated:
-                - non-admin users may only delete their own contacts
-                - admin users may delete any contact
-                - if (non-admin user and contact.user == user.id) or (admin user):
-                    - HTTP 204 response
-                    - No body
-                - if (non-admin user and contact.user != user.id) or <id> does not exist:
-                    - HTTP 404 response
-                    - collection.items and collection.template will be empty
-                    - collection.error will contain 404 error code, title and message
-
 """
 
 import collection_plus_json
@@ -558,6 +422,144 @@ class APINotFoundError(APIError):
 
 
 class Contact(ABC):
+    """
+    Contact API class
+
+    /contact/[?[page=<pagenum>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
+
+        GET: retrieve list of contacts
+            - requires authenticated admin user
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - non-admin users may only view their own contacts
+                    - admin users may view contacts for all users
+                    - HTTP 200 response
+                    - collection.items will contain a paginated list of contacts
+                    - collection.links will contain a list of pagination links
+                    - collection.queries will contain a list of queries that can be performed
+                        - q: general query/search (searches all fields)
+                        - name: search by first name
+                        - surname: search by last name
+                        - email: search by email
+                        - phone: search by phone number
+                    - collection.template will contain the creation template
+
+        POST: create a new contact
+            - requires authenticated user and completed creation form
+                - if not authenticated:
+                    - unauthenticated users cannot create new contacts
+                    - HTTP 401 response
+                    - collection.items will be empty
+                    - collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - new contact will be associated with authenticated user
+                    - if form is complete:
+                        - HTTP 201 response
+                        - collection.items will contain a one-item list of the new user's information
+                        - collection.template will contain the creation template
+                    - if form is incomplete:
+                        - HTTP 400 response
+                        - collection.items will be empty
+                        - collection.template will contain the creation template
+                        - collection.error will contain 400 error code, title and message
+
+
+    /contact/<id>/
+
+        GET: retrieve information about a specific contact
+            - requires authenticated admin user
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - non-admin users may only view their own contacts
+                    - admin users may view contacts for all users
+                    - if (non-admin user and contact.user == user.id) or (admin user):
+                        - HTTP 200 response
+                        - collection.items will contain one-item list containing the contact's information
+                        - collection.links will contain a one-link list containing a link to the contact's owner User
+                            - link rel=owner
+                        - collection.template will contain the update template
+                    - if non-admin user and (contact.user != user.id or <id> does not exist):
+                        - HTTP 404 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 404 error code, title and message
+
+        PUT: update information about a specific contact
+            - requires authenticated user and complete template
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - non-admin users may only update their own contacts
+                    - admin users may update contacts for all users
+                    - if (non-admin user and contact.user == user.id) or (admin user):
+                        - if template complete:
+                            - HTTP 200 response
+                            - collection.items will contain one-item list containing the contact's updated information
+                            - collection.links will contain a one-link list containing a link to the contact's owner User
+                                - link rel=owner
+                            - collection.template will contain the update template
+                        - if template incomplete:
+                            - HTTP 400 response
+                            - collection.items will be empty
+                            - collection.template will contain the update template
+                            - collection.error will contain 400 error code, title and message
+                    - if non-admin user and (contact.user != user.id or <id> does not exist):
+                        - HTTP 404 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 404 error code, title and message
+
+        PATCH: update information about a specific contact
+            - requires authenticated user and partial or complete template
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - non-admin users may only update their own contacts
+                    - admin users may update contacts for all users
+                    - data in the submitted template that does not match the server's template will be ignored
+                    - if (non-admin user and contact.user == user.id) or (admin user):
+                        - if template contains matching data:
+                            - HTTP 200 response
+                            - collection.items will contain one-item list containing the contact's updated information
+                            - collection.links will contain a one-link list containing a link to the contact's owner User
+                                - link rel=owner
+                            - collection.template will contain the update template
+                        - if template does not contain any matching data:
+                            - HTTP 400 response
+                            - collection.items will be empty
+                            - collection.template will contain the update template
+                            - collection.error will contain 400 error code, title and message
+                    - if non-admin user and (contact.user != user.id or <id> does not exist):
+                        - HTTP 404 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 404 error code, title and message
+
+        DELETE: delete a specific contact
+            - requires authenticated user
+                - if not authenticated:
+                    - HTTP 401 response
+                    - collection.items and collection.template will be empty
+                    - collection.error will contain 401 error code, title and message
+                - if authenticated:
+                    - non-admin users may only delete their own contacts
+                    - admin users may delete any contact
+                    - if (non-admin user and contact.user == user.id) or (admin user):
+                        - HTTP 204 response
+                        - No body
+                    - if (non-admin user and contact.user != user.id) or <id> does not exist:
+                        - HTTP 404 response
+                        - collection.items and collection.template will be empty
+                        - collection.error will contain 404 error code, title and message
+    """
 
     def __init__(self, db):
         super(Contact, self).__init__(db, blackbook.database.models.Contact)
