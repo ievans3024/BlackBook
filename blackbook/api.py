@@ -192,8 +192,7 @@ class APIError(collection_plus_json.Error, BaseException):
                  title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
                          "fulfilling the request.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIError Constructor
         :param code: The HTTP error code
@@ -212,8 +211,7 @@ class APIBadRequestError(APIError):
                  code="400",
                  title="Bad Request",
                  message="The request could not be understood by the server due to malformed syntax.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIBadRequestError Constructor
         :param code: The HTTP error code
@@ -232,8 +230,7 @@ class APIUnauthorizedError(APIError):
                  code="401",
                  title="Unauthorized",
                  message="The request requires user authentication.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIUnauthorizedError Constructor
         :param code: The HTTP error code
@@ -252,8 +249,7 @@ class APIForbiddenError(APIError):
                  code="403",
                  title="Forbidden",
                  message="The server understood the request, but is refusing to fulfill it.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIForbiddenError Constructor
         :param code: The HTTP error code
@@ -272,8 +268,7 @@ class APINotFoundError(APIError):
                  code="404",
                  title="Not Found",
                  message="The server could not find the requested resource.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APINotFoundError Constructor
         :param code: The HTTP error code
@@ -292,8 +287,7 @@ class APIMethodNotAllowedError(APIError):
                  code="405",
                  title="Method Not Allowed",
                  message="The HTTP method specified in the request is not allowed for the requested resource.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIMethodNotAllowedError Constructor
         :param code: The HTTP error code
@@ -312,8 +306,7 @@ class APINotAcceptableError(APIError):
                  code="406",
                  title="Not Acceptable",
                  message="The requested resource cannot generate content deemed acceptable by the request.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APINotAcceptableError Constructor
         :param code: The HTTP error code
@@ -332,8 +325,7 @@ class APIConflictError(APIError):
                  code="409",
                  title="Conflict",
                  message="The request could not be completed due to a conflict with the current state of the resource.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIConflictError Constructor
         :param code: The HTTP error code
@@ -352,8 +344,7 @@ class APIGoneError(APIError):
                  code="410",
                  title="Gone",
                  message="The requested resource is no longer available and no forwarding address is known.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIGoneError Constructor
         :param code: The HTTP error code
@@ -372,8 +363,7 @@ class APIUnsupportableMediaTypeError(APIError):
                  code="415",
                  title="Unsupportable Media Type",
                  message="The content supplied in the request is not a type supported by the requested resource.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIUnsupportableMediaTypeError Constructor
         :param code: The HTTP error code
@@ -392,8 +382,7 @@ class APIAuthenticationTimeoutError(APIError):
                  code="419",
                  title="Authentication Timeout",
                  message="Previously valid authentication has expired. Please re-authenticate and try again.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIAuthenticationTimeoutError Constructor
         :param code: The HTTP error code
@@ -413,8 +402,7 @@ class APITooManyRequestsError(APIError):
                  title="Too Many Requests",
                  message="The server is temporarily refusing to service requests made by the client " +
                          "due to too many requests being made by the client too frequently.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APITooManyRequestsError Constructor
         :param code: The HTTP error code
@@ -434,8 +422,7 @@ class APIInternalServerError(APIError):
                  title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
                          "fulfilling the request.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIInternalServerError Constructor
         :param code: The HTTP error code
@@ -454,8 +441,7 @@ class APINotImplementedError(APIError):
                  code="501",
                  title="Not Implemented",
                  message="The server does not support the functionality required to fulfill the request.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APINotImplementedError Constructor
         :param code: The HTTP error code
@@ -475,8 +461,7 @@ class APIServiceUnavailableError(APIError):
                  title="Service Unavailable",
                  message="The server is currently unable to handle the request due to a temporary " +
                          "overloading or maintenance of the server.",
-                 **kwargs
-                 ):
+                 **kwargs):
         """
         APIServiceUnavailableError Constructor
         :param code: The HTTP error code
