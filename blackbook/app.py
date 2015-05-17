@@ -13,7 +13,11 @@ except AttributeError:
 except ValueError:
     raise ValueError("Config option 'DATABASE_HANDLER' cannot be empty.")
 except ImportError:
-    raise ValueError("Config option 'DATABASE_HANDLER' is {value} but there is no module to support that".format(value=app.config.get("DATABASE_HANDLER")))
+    raise ValueError(
+        "Config option 'DATABASE_HANDLER' is {value} but there is no such module".format(
+            value=app.config.get("DATABASE_HANDLER")
+        )
+    )
 
 app.register_blueprint(plugin.api)
 
