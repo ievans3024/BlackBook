@@ -1,14 +1,15 @@
 __author__ = 'ievans3024'
 
-import collection_plus_json
+from datetime import datetime
+
 import couchdb
 import couchdb.mapping
-import blackbook.tools
-import blackbook.database.models
-
-from datetime import datetime
-from flask import Blueprint, current_app, request, Response, session
+from flask import current_app, request, Response, session
 from flask.views import MethodView
+
+import collection_plus_json
+import blackbook.tools
+import blackbook.couchdb.database.models
 
 
 class APIType(object):
@@ -681,7 +682,7 @@ class Contact(ABC):
     """
 
     def __init__(self, db):
-        super(Contact, self).__init__(db, blackbook.database.models.Contact)
+        super(Contact, self).__init__(db, blackbook.couchdb.database.models.Contact)
 
     def _generate_document(self, *args, **kwargs):
         """Generate a Contact document representation."""
@@ -905,7 +906,7 @@ class Session(ABC):
     """
 
     def __init__(self, db):
-        super(Session, self).__init__(db, blackbook.database.models.Session)
+        super(Session, self).__init__(db, blackbook.couchdb.database.models.Session)
 
     def _generate_document(self, *args, **kwargs):
         pass
@@ -1093,7 +1094,7 @@ class User(ABC):
     """
 
     def __init__(self, db):
-        super(User, self).__init__(db, blackbook.database.models.User)
+        super(User, self).__init__(db, blackbook.couchdb.database.models.User)
 
     def _generate_document(self, *args, **kwargs):
         pass
