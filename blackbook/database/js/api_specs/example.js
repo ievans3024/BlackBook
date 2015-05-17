@@ -3,58 +3,30 @@
  */
 
 exports.spec = function (dbname) {
+    var modelname = "example";
+
     return {
-        "_id": "_api/employee",
-        "endpoint": "/api/users/employee/",
+        "_id": "_api/" + modelname,
+        "endpoint": "/api/" + modelname + "/",
         "properties": [
             {
-                "prompt": "Employee ID",
+                "data": {"name": "", "prompt": ""},
                 "permissions": {
                     "public": false,
                     "read": [
-                        [dbname, "read", "employee", "employee_id"].join("."),
-                        [dbname, "read", "employee", "employee_id", "self"].join(".")
+                        /*
+                        list of permission strings user must have to
+                        read this property. if this list is empty,
+                        nobody has permission, except special root user
+                         */
                     ],
                     "update": [
-                        [dbname, "update", "employee", "employee_id"].join(".")
-                    ]
-                }
-            },
-            {
-                "prompt": "Authorized Employee",
-                "permissions": {
-                    "public": false,
-                    "read": [
-                        [dbname, "read", "employee", "employee_authorized"].join(".")
-                    ],
-                    "update": [
-                        [dbname, "update", "employee", "employee_authorized"].join(".")
-                    ]
-                }
-            },
-            {
-                "prompt": "Employee Discount",
-                "permissions": {
-                    "public": false,
-                    "read": [
-                        [dbname, "read", "employee", "employee_discount"].join("."),
-                        [dbname, "read", "employee", "employee_discount", "self"].join("."),
-                    ],
-                    "update": [
-                        [dbname, "update", "employee", "employee_discount"].join(".")
-                    ]
-                }
-            },
-            {
-                "data": {"name": "employee_department", "prompt": "Department", "placeholder": "Department"},
-                "permissions": {
-                    "public": false,
-                    "read": [
-                        [dbname, "read", "employee", "employee_department"].join("."),
-                        [dbname, "read", "employee", "employee_department", "self"].join(".")
-                    ],
-                    "update": [
-                        [dbname, "update", "employee", "employee_department"].join(".")
+                        /*
+                        list of permission strings user must have to
+                        change or delete the value of this property.
+                        if this list is empty, nobody has permission,
+                        except special root user.
+                         */
                     ]
                 }
             }
@@ -73,7 +45,11 @@ exports.spec = function (dbname) {
                 "validators": {}
             },
             "update": {
-                "permissions": {},
+                "permissions": {
+                    "public": true,
+                    "read": [],
+                    "write": []
+                },
                 "validators": {}
             }
         }
