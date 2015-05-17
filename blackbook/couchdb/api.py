@@ -7,7 +7,7 @@ import couchdb.mapping
 from flask import Blueprint, current_app, request, Response, session
 from flask.views import MethodView
 
-import collection_plus_json
+from blackbook.lib import collection_plus_json
 import blackbook.tools
 import blackbook.couchdb.database.models
 
