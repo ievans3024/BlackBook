@@ -745,14 +745,18 @@ class Contact(ABC):
                 _range["limit"] = current_app.config.get("API_PAGINATION_PER_PAGE") or 10
 
             if user_id:
-                # TODO: verify user_id is an existing user
-                # TODO: 404 if user_id does not exist or user doesn't have permission
+                if not user_api.model.load(self.db, id=user_id):
+                    document.error = APINotFoundError()
+                    return Response(response=str(document), status=int(document.error.code), mimetype=document.mimetype)
                 if user.id == user_id or user.has_permission(
                         ".".join([self.db.name, "read", user_api.model.__name__.lower()])):
                     contacts = self.model.by_user(key=user_id, **_range)
                     # TODO: get next and prev pagination ids
                     # get next page start by separate view request where startkey_docid=_range["endkey_docid"], limit=2
                     # get prev page end by separate view request where endkey_docid=_range["startkey_docid"], limit=2
+                else:
+                    document.error = APINotFoundError()
+                    return Response(str(document), status=int(document.error.code), mimetype=document.mimetype)
             elif user.has_permission(".".join([self.db.name, "read", self.model.__name__.lower()])):
                 contacts = self.model.view(self.db, "_all_docs", **_range)
                 # TODO: get next and prev pagination ids
