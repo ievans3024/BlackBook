@@ -177,6 +177,7 @@ class Contact(TypedDocument):
             )
         )
     )
+    all = ViewField("contact", "")
     by_address = ViewField("contact", "")
     by_email = ViewField("contact", "")
     by_name = ViewField("contact", "")
