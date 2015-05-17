@@ -18,8 +18,8 @@ except ImportError:
             value=app.config.get("DATABASE_HANDLER")
         )
     )
-
-app.register_blueprint(plugin.api)
+else:
+    app.register_blueprint(plugin.api)
 
 @app.route("/")
 @app.route("/book/")
