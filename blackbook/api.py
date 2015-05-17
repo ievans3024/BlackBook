@@ -105,14 +105,14 @@ class ABC(MethodView):
         """
         raise NotImplementedError()
 
-    def _get_authenticated_user(self):
+    def _get_authenticated_user(self, user_api, session_api):
         user = None
         if session.get("id"):
-            sessions_by_token = Session.model.by_token(key=session["id"])
+            sessions_by_token = session_api.model.by_token(key=session["id"])
             if sessions_by_token.rows:
                 get_session = sessions_by_token.rows[0]
                 if get_session.expiry > datetime.now():
-                    user = User.model.load(self.db, get_session.user)
+                    user = user_api.model.load(self.db, get_session.user)
         return user
 
     def delete(self, *args, **kwargs):
@@ -477,7 +477,7 @@ class Contact(ABC):
     """
     Contact API class
 
-    /contact/[?[page=<pagenum>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
+    /contact/[?[after=<id>][before=<id>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
 
         GET: retrieve list of contacts
             - requires authenticated admin user
@@ -523,7 +523,7 @@ class Contact(ABC):
     /contact/<id>/
 
         GET: retrieve information about a specific contact
-            - requires authenticated admin user
+            - requires authenticated user
                 - if not authenticated:
                     - HTTP 401 response
                     - collection.items and collection.template will be empty
@@ -619,7 +619,7 @@ class Contact(ABC):
                         - collection.error will contain 404 error code, title and message
 
 
-    /user/<id>/contacts/[?[page=<pagenum>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
+    /user/<user_id>/contacts/[?[page=<pagenum>][q=<query>][name=<name>][surname=<surname>][email=<email>][phone=<phone_number>]]
 
         GET: retrieve list of contacts for a particular user
             - only displays contacts a specific user has created
@@ -686,25 +686,111 @@ class Contact(ABC):
     def _generate_document(self, *args, **kwargs):
         """Generate a Contact document representation."""
 
-        document = collection_plus_json.Collection(self.api_spec["endpoint"])
-        document.template = collection_plus_json.Template(data=self.api_spec["template_data"]["create"])
+        document = collection_plus_json.Collection(href=self.api_spec["endpoint"])
         return document
 
     def delete(self, *args, **kwargs):
         pass
 
-    def get(self, _id=None):
+    def get(self, contact_id=None, user_id=None):
 
-        user = self._get_authenticated_user()
+        user_api = User(self.db)
+        session_api = Session(self.db)
+
+        contacts = []
+        user = self._get_authenticated_user(user_api, session_api)
         document = self._generate_document()
+        spec_properties = self.api_spec["properties"]
 
-        # check request header for consistent "Origin" HTTP header
         if not self._request_origin_consistent():
+            # TODO: handle bad CSRF
             pass
 
-        # check session vars for authenticated session
-        if session.get("id"):
-            pass
+        if not user:
+            document.error = APIUnauthorizedError()
+            return Response(str(document), status=int(document.error.code), mimetype=document.mimetype)
+
+        if contact_id:
+            contact = self.model.load(id=contact_id)
+            template_data = self.api_spec["template_data"]["update"]
+            template_meta = self.api_spec["template_meta"]["update"]
+
+            if (not contact) or \
+                    (
+                        contact.user != user.id and
+                        not user.has_permission(
+                            self.db,
+                            ".".join([self.db.name, "read", self.model.__name__.lower()])
+                        )
+                    ):
+                document.error = APINotFoundError()
+                return Response(str(document), status=int(document.error.code), mimetype=document.mimetype)
+            else:
+                contacts = [contact]
+        else:
+            prev = None
+            next = None
+            _range = {}
+            template_data = self.api_spec["template_data"]["create"]
+            template_meta = self.api_spec["template_meta"]["create"]
+
+            if request.args.get("end"):
+                _range["endkey_docid"] = request.args.get("end")
+            if request.args.get("start"):
+                _range["startkey_docid"] = request.args.get("start")
+
+            if (request.args.get("start") and not request.args.get("end")) or \
+                    (request.args.get("end") and not request.args.get("start")):
+                _range["limit"] = current_app.config.get("API_PAGINATION_PER_PAGE") or 10
+
+            if user_id:
+                # TODO: verify user_id is an existing user
+                # TODO: 404 if user_id does not exist or user doesn't have permission
+                if user.id == user_id or user.has_permission(
+                        ".".join([self.db.name, "read", user_api.model.__name__.lower()])):
+                    contacts = self.model.by_user(key=user_id, **_range)
+                    # TODO: get next and prev pagination ids
+                    # get next page start by separate view request where startkey_docid=_range["endkey_docid"], limit=2
+                    # get prev page end by separate view request where endkey_docid=_range["startkey_docid"], limit=2
+            elif user.has_permission(".".join([self.db.name, "read", self.model.__name__.lower()])):
+                contacts = self.model.view(self.db, "_all_docs", **_range)
+                # TODO: get next and prev pagination ids
+            else:
+                contacts = self.model.by_user(key=user.id, **_range)
+                # TODO: get next and prev pagination ids
+
+            if prev:
+                document.links.append(collection_plus_json.Link(href=prev, rel="prev", name="Previous", prompt="<"))
+            if next:
+                document.links.append(collection_plus_json.Link(href=next, rel="next", name="Next", prompt=">"))
+
+        for contact in contacts:
+            document.items.append(
+                collection_plus_json.Item(
+                    href="{endpoint}{id}/".format(endpoint=self.api_spec["endpoint"], id=contact.id),
+                    data=[
+                        prop["data"] for prop in spec_properties
+                        # owning users have <dbname>.read.<modelname>.<propertyname>
+                        # admin users have <dbname>.read.<modelname>
+                        if prop["permissions"]["public"] or user.has_permission(*prop["permisisons"]["read"])
+                        ],
+                    links=[
+                        collection_plus_json.Link(
+                            href="{endpoint}{id}/".format(endpoint=user_api.api_spec["endpoint"], id=user.id),
+                            rel="owner",
+                            prompt="Created by {name}".format(user.name)
+                        )
+                    ]
+                )
+            )
+
+        # authenticated users have permission <dbname>.update.<modelname>
+        # therefore they can see the update template
+        if template_meta["permissions"]["public"] or \
+                user.has_permission(self.db, *template_meta["permissions"]["read"]):
+            document.template = collection_plus_json.Template(data=template_data)
+
+        return Response(response=str(document), mimetype=document.mimetype)
 
     def patch(self, *args, **kwargs):
         pass
