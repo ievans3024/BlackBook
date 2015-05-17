@@ -64,6 +64,11 @@ class Permissible(Document):
         """
         operations = {"or", "and"}
 
+        # if no permissions are supplied,
+        # we assume nobody can have permission
+        if not perms:
+            return False
+
         # compile a collection of all permissions and groups provided in the hierarchy
         # need to do this for situations where multiple required permissions span the hierarchy
         permissions, groups = self.get_permissions(db)
@@ -71,6 +76,7 @@ class Permissible(Document):
         if str(operation).lower() in operations:
             permission_matches = {}
             for perm in perms:
+                permission_matches[perm] = False  # assume no permission until permission is found
                 for permission in permissions:
                     # match will be truthy:
                     # permission = "one"
@@ -84,7 +90,7 @@ class Permissible(Document):
                     regex = re.compile("^" + permission.replace(".", "\."))
                     match = regex.match(perm)
                     if match:
-                        permission_matches[perm] = bool(match)
+                        permission_matches[perm] = True
                         break  # only need to look for the first matching permission
 
             if operation == "or":
