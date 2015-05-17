@@ -4,7 +4,7 @@ from datetime import datetime
 
 import couchdb
 import couchdb.mapping
-from flask import current_app, request, Response, session
+from flask import Blueprint, current_app, request, Response, session
 from flask.views import MethodView
 
 import collection_plus_json
@@ -1116,3 +1116,12 @@ class User(ABC):
 
     def search(self, *args, **kwargs):
         pass
+
+api = Blueprint("api", __name__, url_prefix="/api")
+
+contact_view = Contact.as_view('contact_api')
+api.add_url_rule('/contact/', defaults={'user_id': None}, view_func=contact_view, methods=["GET", "POST"])
+api.add_url_rule('/contact/<contact_id>/', defaults={'user_id': None, 'contact_id': None},
+                 view_func=contact_view, methods=["GET", "PATCH", "PUT", "DELETE"])
+api.add_url_rule('/user/<user_id>/contacts/', defaults={'user_id': None},
+                 view_func=contact_view, methods=["GET", "POST"])
