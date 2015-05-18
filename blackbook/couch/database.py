@@ -1,4 +1,4 @@
-__author__ = 'ian'
+__author__ = 'ievans3024'
 
 from couchdb import ResourceNotFound, Server
 from couchdb.mapping import Document
