@@ -728,8 +728,8 @@ class Contact(ABC):
             else:
                 contacts = [contact]
         else:
-            prev = None
-            next = None
+            prev_viewargs = {}
+            next_viewargs = {}
             _range = {}
             template_data = self.api_spec["template_data"]["create"]
             template_meta = self.api_spec["template_meta"]["create"]
@@ -750,23 +750,43 @@ class Contact(ABC):
                 if user.id == user_id or user.has_permission(
                         ".".join([self.db.name, "read", user_api.model.__name__.lower()])):
                     contacts = self.model.by_user(key=user_id, **_range)
-                    # TODO: get next and prev pagination ids
-                    # get next page start by separate view request where startkey_docid=_range["endkey_docid"], limit=2
-                    # get prev page end by separate view request where endkey_docid=_range["startkey_docid"], limit=2
+                    viewfunc = self.model.by_user
+                    if _range.get("endkey_docid"):
+                        next_viewargs.update(key=user_id, startkey_docid=_range["endkey_docid"], limit=2)
+                    if _range.get("startkey_docid"):
+                        prev_viewargs.update(key=user_id, endkey_docid=_range["startkey_docid"], limit=2)
                 else:
                     document.error = APINotFoundError()
                     return Response(str(document), status=int(document.error.code), mimetype=document.mimetype)
             elif user.has_permission(".".join([self.db.name, "read", self.model.__name__.lower()])):
                 contacts = self.model.view(self.db, "_all_docs", **_range)
-                # TODO: get next and prev pagination ids
+                viewfunc = self.model.view
+                if _range.get("endkey_docid"):
+                    next_viewargs.update(viewname="_all_docs", startkey_docid=_range["endkey_docid"], limit=2)
+                if _range.get("startkey_docid"):
+                    prev_viewargs.update(viewname="_all_docs", endkey_docid=_range["startkey_docid"], limit=2)
             else:
                 contacts = self.model.by_user(key=user.id, **_range)
-                # TODO: get next and prev pagination ids
-
-            if prev:
-                document.links.append(collection_plus_json.Link(href=prev, rel="prev", name="Previous", prompt="<"))
-            if next:
-                document.links.append(collection_plus_json.Link(href=next, rel="next", name="Next", prompt=">"))
+                viewfunc = self.model.by_user
+                if _range.get("endkey_docid"):
+                    next_viewargs.update(key=user.id, startkey_docid=_range["endkey_docid"], limit=2)
+                if _range.get("startkey_docid"):
+                    prev_viewargs.update(key=user.id, endkey_docid=_range["startkey_docid"], limit=2)
+                
+            if _range.get("startkey_docid"):
+                # get prev page link, if applicable
+                prev_contacts_endkey = viewfunc(self.db, **prev_viewargs)
+                if prev_contacts_endkey.rows:
+                    key = prev_contacts_endkey.rows[0].id
+                    url = request.url_rule + "?end={docid}".format(docid=key)
+                    document.links.append(collection_plus_json.Link(href=url, rel="prev", name="Previous", prompt="<"))
+            if _range.get("endkey_docid"):
+                # get next page link, if applicable
+                next_contacts_startkey = viewfunc(self.db, **next_viewargs)
+                if next_contacts_startkey.rows:
+                    key = next_contacts_startkey.rows[1].id
+                    url = request.url_rule + "?start={docid}".format(docid=key)
+                    document.links.append(collection_plus_json.Link(href=url, rel="next", name="Next", prompt=">"))
 
         for contact in contacts:
             document.items.append(
