@@ -13,6 +13,9 @@ import blackbook.couch.database
 import blackbook.couch.models
 
 
+# TODO: add HEAD and OPTIONS to MethodViews
+
+
 class APIType(object):
     """Descriptor for properties that need to a class or a subclass of such."""
 
@@ -95,6 +98,7 @@ class ABC(MethodView):
 
     @staticmethod
     def _request_origin_consistent():
+        # TODO: make this actually use the right url type, can't rely on SERVER_NAME in config
         return request.headers.get("Origin") == current_app.config.get("SERVER_NAME")
 
     def _generate_document(self, *args, **kwargs):
@@ -1172,9 +1176,25 @@ def init_api(app):
 
     database = blackbook.couch.database.init_db(app)
 
-    api_blueprint = Blueprint("api", __name__, url_prefix="/api")
+    api_blueprint = Blueprint("api", __name__, url_prefix="/api")  # TODO: use config API_ROOT
+
+    def api_root():
+        document = collection_plus_json.Collection(
+            href="/api/",  # TODO: use config API_ROOT
+            links=[
+                collection_plus_json.Link(href="/api/contact/", rel="more", prompt="Contacts Endpoint"),
+                collection_plus_json.Link(href="/api/user/", rel="more", prompt="Users Endpoint"),
+                collection_plus_json.Link(href="/api/session/", rel="more", prompt="Sessions API")
+            ]
+        )
+        if request.method in {"GET", "OPTIONS"}:
+            return Response(response=document, mimetype=document.mimetype)
+        else:
+            return Response()
 
     contact_view = Contact(database).as_view('contact_api')
+
+    api_blueprint.add_url_rule('/', view_func=api_root, methods=["GET", "HEAD", "OPTIONS"])
     api_blueprint.add_url_rule('/contact/', defaults={'user_id': None}, view_func=contact_view, methods=["GET", "POST"])
     api_blueprint.add_url_rule('/contact/<contact_id>/', defaults={'user_id': None, 'contact_id': None},
                                view_func=contact_view, methods=["GET", "PATCH", "PUT", "DELETE"])
