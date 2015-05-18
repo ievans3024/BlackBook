@@ -24,7 +24,7 @@ except SystemError:
 except ValueError:
     raise ValueError("Config option 'DATABASE_HANDLER' cannot be empty.")
 else:
-    app.register_blueprint(api)
+    app.register_blueprint(plugin.api_blueprint)
 
 @app.route("/")
 @app.route("/book/")
