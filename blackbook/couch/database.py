@@ -10,7 +10,7 @@ def init_db(app):
     dbname = app.config.get("DB_NAME") or "blackbook"
     server = Server(app.config.get("COUCHDB_URI") or "http://localhost:5984")  # default to couch default uri
 
-    # Create database_old if it doesn't exist
+    # Create database if it doesn't exist
     try:
         db = server[dbname]
     except ResourceNotFound:
