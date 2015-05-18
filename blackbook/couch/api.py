@@ -13,9 +13,6 @@ import blackbook.couch.database
 import blackbook.couch.models
 
 
-# TODO: add HEAD and OPTIONS to MethodViews
-
-
 class APIType(object):
     """Descriptor for properties that need to a class or a subclass of such."""
 
@@ -98,8 +95,19 @@ class ABC(MethodView):
 
     @staticmethod
     def _request_origin_consistent():
-        # TODO: make this actually use the right url type, can't rely on SERVER_NAME in config
-        return request.headers.get("Origin") == current_app.config.get("SERVER_NAME")
+        """
+        Shallow CSRF checking
+
+        If present, verifies that the request "Origin" http header is consistent with the server address.
+        Returns True if Origin header does not exist, or if it exists and is consistent.
+
+        The application should be checking multiple facets of CSRF, and should not rely solely on this.
+        """
+        if request.headers.get("Origin") is None:
+            return True
+        else:
+            # TODO: make this actually use the right url type, can't rely on SERVER_NAME in config
+            return request.headers.get("Origin") == current_app.config.get("SERVER_NAME")
 
     def _generate_document(self, *args, **kwargs):
         """
@@ -125,6 +133,12 @@ class ABC(MethodView):
         raise NotImplementedError()
 
     def get(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def head(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def options(self, *args, **kwargs):
         raise NotImplementedError()
 
     def patch(self, *args, **kwargs):
@@ -701,6 +715,10 @@ class Contact(ABC):
 
         user = self._get_authenticated_user(user_api, session_api)
 
+        if not self._request_origin_consistent():
+            # TODO: handle bad CSRF -- APIBadRequestError?
+            pass
+
         if not user:
             document = self._generate_document()
             document.error = APIUnauthorizedError()
@@ -734,7 +752,7 @@ class Contact(ABC):
         spec_properties = self.api_spec["properties"]
 
         if not self._request_origin_consistent():
-            # TODO: handle bad CSRF
+            # TODO: handle bad CSRF -- APIBadRequestError?
             pass
 
         if not user:
@@ -846,6 +864,12 @@ class Contact(ABC):
             document.template = collection_plus_json.Template(data=template_data)
 
         return Response(response=str(document), mimetype=document.mimetype)
+
+    def head(self, *args, **kwargs):
+        pass
+
+    def options(self, *args, **kwargs):
+        pass
 
     def patch(self, *args, **kwargs):
         pass
@@ -969,6 +993,12 @@ class Session(ABC):
         pass
 
     def get(self, *args, **kwargs):
+        pass
+
+    def head(self, *args, **kwargs):
+        pass
+
+    def options(self, *args, **kwargs):
         pass
 
     def patch(self, *args, **kwargs):
@@ -1157,6 +1187,12 @@ class User(ABC):
         pass
 
     def get(self, *args, **kwargs):
+        pass
+
+    def head(self, *args, **kwargs):
+        pass
+
+    def options(self, *args, **kwargs):
         pass
 
     def patch(self, *args, **kwargs):
