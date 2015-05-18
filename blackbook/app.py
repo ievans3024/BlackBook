@@ -7,24 +7,24 @@ app = Flask('blackbook')
 app.config.from_pyfile('config.py', silent=True)
 
 try:
-    plugin = import_module(app.config.get("DATABASE_HANDLER"))
-    print(dir(plugin))
+    plugin = import_module(app.config.get("DATABASE_PLUGIN"))
 except AttributeError:
-    raise ValueError("Config option 'DATABASE_HANDLER' is an invalid value or does not exist.")
+    raise ValueError("Config option 'DATABASE_PLUGIN' is an invalid value or does not exist.")
 except ImportError:
     raise ValueError(
-        "Config option 'DATABASE_HANDLER' is {value} but there is no such module".format(
-            value=app.config.get("DATABASE_HANDLER")
+        "Config option 'DATABASE_PLUGIN' is {value} but there is no such module".format(
+            value=app.config.get("DATABASE_PLUGIN")
         )
     )
 except SystemError:
     raise ValueError(
-        "Config option 'DATABASE_HANDLER' "
+        "Module referenced by config option 'DATABASE_PLUGIN' cannot be imported."
     )
 except ValueError:
-    raise ValueError("Config option 'DATABASE_HANDLER' cannot be empty.")
+    raise ValueError("Config option 'DATABASE_PLUGIN' cannot be empty.")
 else:
-    app.register_blueprint(plugin.api_blueprint)
+    api = plugin.api.init_api(app)
+    app.register_blueprint(api)
 
 @app.route("/")
 @app.route("/book/")

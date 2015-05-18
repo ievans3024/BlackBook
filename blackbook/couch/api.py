@@ -4,11 +4,12 @@ from datetime import datetime
 
 import couchdb
 import couchdb.mapping
-from flask import current_app, request, Response, session
+from flask import Blueprint, current_app, request, Response, session
 from flask.views import MethodView
 
 from blackbook.lib import collection_plus_json
 import blackbook.tools
+import blackbook.couch.database
 import blackbook.couch.models
 
 
@@ -1139,3 +1140,19 @@ class User(ABC):
 
     def search(self, *args, **kwargs):
         pass
+
+
+def init_api(app):
+
+    database = blackbook.couch.database.init_db(app)
+
+    api_blueprint = Blueprint("api", __name__, url_prefix="/api")
+
+    contact_view = Contact(database).as_view('contact_api')
+    api_blueprint.add_url_rule('/contact/', defaults={'user_id': None}, view_func=contact_view, methods=["GET", "POST"])
+    api_blueprint.add_url_rule('/contact/<contact_id>/', defaults={'user_id': None, 'contact_id': None},
+                               view_func=contact_view, methods=["GET", "PATCH", "PUT", "DELETE"])
+    api_blueprint.add_url_rule('/user/<user_id>/contacts/', defaults={'user_id': None},
+                               view_func=contact_view, methods=["GET", "POST"])
+
+    return api_blueprint

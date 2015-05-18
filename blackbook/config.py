@@ -11,7 +11,7 @@ SESSION_COOKIE_SECURE = False  # True in https production
 
 # Custom Options
 PUBLIC_REGISTRATION = False  # Set to True to allow anyone to make an account
-DATABASE_HANDLER = "blackbook.couch"
+DATABASE_PLUGIN = "blackbook.couch"
 COUCHDB_URI = "http://localhost:5984"
 API_ROOT = '/api/'
 API_PAGINATION_PER_PAGE = 10
