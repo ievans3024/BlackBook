@@ -8,18 +8,23 @@ app.config.from_pyfile('config.py', silent=True)
 
 try:
     plugin = import_module(app.config.get("DATABASE_HANDLER"))
+    print(dir(plugin))
 except AttributeError:
     raise ValueError("Config option 'DATABASE_HANDLER' is an invalid value or does not exist.")
-except ValueError:
-    raise ValueError("Config option 'DATABASE_HANDLER' cannot be empty.")
 except ImportError:
     raise ValueError(
         "Config option 'DATABASE_HANDLER' is {value} but there is no such module".format(
             value=app.config.get("DATABASE_HANDLER")
         )
     )
+except SystemError:
+    raise ValueError(
+        "Config option 'DATABASE_HANDLER' "
+    )
+except ValueError:
+    raise ValueError("Config option 'DATABASE_HANDLER' cannot be empty.")
 else:
-    app.register_blueprint(plugin.api)
+    app.register_blueprint(api)
 
 @app.route("/")
 @app.route("/book/")

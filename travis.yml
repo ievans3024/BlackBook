@@ -2,7 +2,7 @@ language: python
 python:
   - "3.4"
 before_script:
-  - node blackbook/database/js/build.js
+  - node blackbook/database_old/js/build.js
   # TODO: AngularJS minifier
   # TODO: Collection+JSON minifier
   - python setup.py test

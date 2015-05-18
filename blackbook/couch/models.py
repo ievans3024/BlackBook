@@ -1,7 +1,7 @@
 __author__ = 'ievans3024'
 
-# TODO: full-text search with couchdb-lucene (and pylucene?)
-#   see: https://wiki.apache.org/couchdb/Full_text_search
+# TODO: full-text search with couch-lucene (and pylucene?)
+#   see: https://wiki.apache.org/couch/Full_text_search
 
 import re
 

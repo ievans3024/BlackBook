@@ -4,12 +4,12 @@ from datetime import datetime
 
 import couchdb
 import couchdb.mapping
-from flask import Blueprint, current_app, request, Response, session
+from flask import current_app, request, Response, session
 from flask.views import MethodView
 
 from blackbook.lib import collection_plus_json
 import blackbook.tools
-import blackbook.couchdb.database.models
+import blackbook.couch.models
 
 
 class APIType(object):
@@ -69,7 +69,7 @@ class APIField(APIType):
 
 
 class ABC(MethodView):
-    """Abstract Base Class for interfacing with couchdb Document classes"""
+    """Abstract Base Class for interfacing with couch Document classes"""
 
     db = APIField(couchdb.Database)
     model = APIType(couchdb.mapping.Document)
@@ -77,8 +77,8 @@ class ABC(MethodView):
     def __init__(self, db, model):
         """
         Constructor
-        :param db: The couchdb database to draw data from.
-        :param model: The couchdb document class to represent data with.
+        :param db: The couch database_old to draw data from.
+        :param model: The couch document class to represent data with.
         :return:
         """
         super(ABC, self).__init__()
@@ -682,7 +682,7 @@ class Contact(ABC):
     """
 
     def __init__(self, db):
-        super(Contact, self).__init__(db, blackbook.couchdb.database.models.Contact)
+        super(Contact, self).__init__(db, blackbook.couch.models.Contact)
 
     def _generate_document(self, *args, **kwargs):
         """Generate a Contact document representation."""
@@ -698,7 +698,6 @@ class Contact(ABC):
         user_api = User(self.db)
         session_api = Session(self.db)
 
-        contacts = []
         user = self._get_authenticated_user(user_api, session_api)
         document = self._generate_document()
         spec_properties = self.api_spec["properties"]
@@ -910,7 +909,7 @@ class Session(ABC):
     """
 
     def __init__(self, db):
-        super(Session, self).__init__(db, blackbook.couchdb.database.models.Session)
+        super(Session, self).__init__(db, blackbook.couch.models.Session)
 
     def _generate_document(self, *args, **kwargs):
         pass
@@ -1098,7 +1097,7 @@ class User(ABC):
     """
 
     def __init__(self, db):
-        super(User, self).__init__(db, blackbook.couchdb.database.models.User)
+        super(User, self).__init__(db, blackbook.couch.models.User)
 
     def _generate_document(self, *args, **kwargs):
         pass
@@ -1120,12 +1119,3 @@ class User(ABC):
 
     def search(self, *args, **kwargs):
         pass
-
-api = Blueprint("api", __name__, url_prefix="/api")
-
-contact_view = Contact.as_view('contact_api')
-api.add_url_rule('/contact/', defaults={'user_id': None}, view_func=contact_view, methods=["GET", "POST"])
-api.add_url_rule('/contact/<contact_id>/', defaults={'user_id': None, 'contact_id': None},
-                 view_func=contact_view, methods=["GET", "PATCH", "PUT", "DELETE"])
-api.add_url_rule('/user/<user_id>/contacts/', defaults={'user_id': None},
-                 view_func=contact_view, methods=["GET", "POST"])

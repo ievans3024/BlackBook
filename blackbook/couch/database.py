@@ -2,15 +2,15 @@ __author__ = 'ian'
 
 from couchdb import ResourceNotFound, Server
 from couchdb.mapping import Document
-from flask import current_app
+from flask import current_app  # FIXME: RuntimeError: "working outside of application context"
 from json import load
 from os.path import abspath, dirname, join
 
 
 dbname = current_app.config.get("DB_NAME") or "blackbook"
-server = Server(current_app.config.get("COUCHDB_URI") or "http://localhost:5984")  # default to couchdb default uri
+server = Server(current_app.config.get("COUCHDB_URI") or "http://localhost:5984")  # default to couch default uri
 
-# Create database if it doesn't exist
+# Create database_old if it doesn't exist
 try:
     db = server[dbname]
 except ResourceNotFound:
