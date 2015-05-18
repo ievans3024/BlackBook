@@ -691,8 +691,34 @@ class Contact(ABC):
         document = collection_plus_json.Collection(href=self.api_spec["endpoint"])
         return document
 
-    def delete(self, *args, **kwargs):
-        pass
+    def delete(self, contact_id=None, *args, **kwargs):
+        user_api = User(self.db)
+        session_api = Session(self.db)
+
+        user = self._get_authenticated_user(user_api, session_api)
+
+        if not user:
+            document = self._generate_document()
+            document.error = APIUnauthorizedError()
+            return Response(response=str(document), status=int(document.error.code), mimetype=document.mimetype)
+
+        if contact_id:
+            contact = self.model.load(id=contact_id)
+
+            if (not contact) or \
+                    (
+                        contact.user != user.id and
+                        not user.has_permission(
+                            self.db,
+                            ".".join([self.db.name, "delete", self.model.__name__.lower()])
+                        )
+                    ):
+                document = self._generate_document()
+                document.error = APINotFoundError()
+                return Response(response=str(document), status=int(document.error.code), mimetype=document.mimetype)
+            else:
+                self.db.delete(contact)
+                return Response(response="", status=204)
 
     def get(self, contact_id=None, user_id=None):
 
