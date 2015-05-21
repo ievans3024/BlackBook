@@ -38,7 +38,7 @@ class APIType(object):
 
     def __set__(self, instance, value):
         if instance:
-            if not (value is self.cls) or (issubclass(value, self.cls)):
+            if not ((value is self.cls) or (issubclass(value, self.cls))):
                 raise ValueError(
                     "Value must be {cls} or a subclass of it.".format(
                         cls=".".join([self.cls.__module__, self.cls.__name__])
@@ -88,7 +88,7 @@ class ABC(MethodView):
         self.api_spec = blackbook.tools.merge_complex_dicts(
             *[
                 {
-                    k: v for k, v in db.get("_api/{cls}".format(cls=cls.__name__.lower())).items()
+                    k: v for k, v in db.get("api/{cls}".format(cls=cls.__name__.lower())).items()
                 } for cls in self.__class__.mro() if cls is not ABC and issubclass(cls, ABC)
             ]
         )
