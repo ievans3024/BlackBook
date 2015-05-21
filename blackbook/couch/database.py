@@ -20,16 +20,18 @@ def init_db(app):
     with open(join(join(dirname(abspath(__file__)), "js"), "{db}.json".format(db=dbname))) as schema_file:
         schema = load(schema_file)
 
-    # Update design docs and api specs according to schema file
+    # Update design docs and api specs according to schema file,
+    # create new docs if they don't exist
     for doc in schema:
         d = Document.load(db, doc.get("_id"))
-        if d:
-            for k, v in doc.items():
-                if k in d:
-                    if d[k] != v:
-                        d[k] = v
-                else:
+        if not d:
+            d = Document(id=doc.get("_id"))
+        for k, v in doc.items():
+            if k in d:
+                if d[k] != v:
                     d[k] = v
-            d.store(db)
+            else:
+                d[k] = v
+        d.store(db)
 
     return db
