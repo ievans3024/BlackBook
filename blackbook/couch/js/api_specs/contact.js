@@ -7,7 +7,7 @@ exports.spec = function (dbname) {
     var modelname = "contact";
     
     return {
-        "_id": "_api/" + modelname,
+        "_id": "api/" + modelname,
         "endpoint": "/api/" + modelname + "/",
         "properties": [
             {
