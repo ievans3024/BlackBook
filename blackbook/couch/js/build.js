@@ -14,9 +14,11 @@ var emit = function(){},  // so node doesn't bitch about emit not existing
     schema = [
         // Design Docs
         // require("./design_docs/example.js").design
+        require("./design_docs/contact.js").design,
 
         // API Specs
         // require("./api_specs/example.js").spec(dbname)
+        require("./api_specs/contact.js").spec(dbname)
     ];
 
 schema_string = JSON.stringify(schema, replacer);
