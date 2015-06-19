@@ -16,7 +16,7 @@ This project is a small pet learning project I put together to document my exper
 This is still currently a work in progress. I can make no guarantee or warranty of the security or stability of it.
 Use or re-use at your own risk.
 
-My ReST API notes can be found [here](https://gist.github.com/04815a9e450562cccec9.git)
+My ReST API notes for this project can be found [here](https://gist.github.com/04815a9e450562cccec9)
 
 
 Requirements
