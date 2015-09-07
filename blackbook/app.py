@@ -1,7 +1,7 @@
-__author__ = 'ievans3024'
-
 from flask import Flask, render_template
 from importlib import import_module
+
+__author__ = 'ievans3024'
 
 app = Flask('blackbook')
 app.config.from_pyfile('config.py', silent=True)
