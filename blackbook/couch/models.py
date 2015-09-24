@@ -18,6 +18,8 @@ class BaseDocument(couchdb.mapping.Document):
     modification_time = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
     types = couchdb.mapping.ListField(couchdb.mapping.TextField())
 
+    # Set the document id here to prevent generating duplicate docs
+    # see https://pythonhosted.org/CouchDB/client.html#couchdb.client.Database.save
     def __init__(self, id=uuid.uuid4(), **kwargs):
         super(BaseDocument, self).__init__(id=id, **kwargs)
         self.types = [c.__name__ for c in self.__class__.__mro__ if issubclass(c, BaseDocument)]
