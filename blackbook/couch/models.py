@@ -1,6 +1,7 @@
 import couchdb.mapping
 import datetime
 import re
+import uuid
 
 from flask import current_app
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -17,7 +18,7 @@ class BaseDocument(couchdb.mapping.Document):
     modification_time = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
     types = couchdb.mapping.ListField(couchdb.mapping.TextField())
 
-    def __init__(self, id=None, **kwargs):
+    def __init__(self, id=uuid.uuid4(), **kwargs):
         super(BaseDocument, self).__init__(id=id, **kwargs)
         self.types = [c.__name__ for c in self.__class__.__mro__ if issubclass(c, BaseDocument)]
 
@@ -213,7 +214,7 @@ class Group(Permissible):
 class Session(BaseDocument):
     """Session data for Users"""
 
-    token = couchdb.mapping.TextField()  # TODO: default to uuid
+    token = couchdb.mapping.TextField(default=uuid.uuid4())
     user = couchdb.mapping.TextField()  # references User.id
     expiry = couchdb.mapping.DateTimeField(
         default=lambda: datetime.datetime.now() + current_app.config.get("PERMANENT_SESSION_LIFETIME") or datetime.timedelta(days=14)
