@@ -1,4 +1,16 @@
+from flask import request, session
+
 __author__ = 'ievans3024'
+
+
+def check_angular_xsrf():
+    if request.headers['X-XSRF-TOKEN']:
+        if not session.get('XSRF-TOKEN'):
+            return False
+        elif request.headers['X-XSRF-TOKEN'] == session.get('XSRF-TOKEN'):
+            return True
+    else:
+        return False
 
 
 def request_accepts(request, *mimetypes):
