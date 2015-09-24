@@ -1,8 +1,3 @@
-import blackbook.errors
-import blackbook.tools
-import couchdb
-import couchdb.mapping
-
 __author__ = 'ievans3024'
 
 from datetime import datetime
@@ -13,9 +8,8 @@ from flask import Blueprint, current_app, request, Response, session
 from flask.views import MethodView
 
 from blackbook.lib import collection_plus_json
-import blackbook.tools
-import blackbook.couch.database
-import blackbook.couch.models
+import blackbook.tools.tools
+import blackbook.database.couch.database
 
 
 class APIType(object):
@@ -344,7 +338,7 @@ class Contact(API):
     """
 
     def __init__(self, db):
-        super(Contact, self).__init__(db, blackbook.couch.models.Contact)
+        super(Contact, self).__init__(db, blackbook.database.couch.models.Contact)
 
     def _generate_document(self):
         """Generate a Contact document representation."""
@@ -357,9 +351,9 @@ class Contact(API):
 
         user = self._get_authenticated_user(user_api, session_api)
 
-        if not blackbook.tools.check_angular_xsrf():
+        if not blackbook.tools.tools.check_angular_xsrf():
             document = self._generate_document()
-            document.error = blackbook.errors.APIBadRequestError()
+            document.error = blackbook.tools.errors.APIBadRequestError()
             # TODO: handle bad CSRF -- APIBadRequestError?
             pass
 
@@ -628,7 +622,7 @@ class Session(API):
     """
 
     def __init__(self, db):
-        super(Session, self).__init__(db, blackbook.couch.models.Session)
+        super(Session, self).__init__(db, blackbook.database.couch.models.Session)
 
     def _generate_document(self, *args, **kwargs):
         pass
@@ -822,7 +816,7 @@ class User(API):
     """
 
     def __init__(self, db):
-        super(User, self).__init__(db, blackbook.couch.models.User)
+        super(User, self).__init__(db, blackbook.database.couch.models.User)
 
     def _generate_document(self, *args, **kwargs):
         pass
@@ -854,7 +848,7 @@ class User(API):
 
 def init_api(app):
 
-    database = blackbook.couch.database.init_db(app)
+    database = database.couch.database.init_db(app)
 
     api_blueprint = Blueprint("api", __name__, url_prefix="/api")  # TODO: use config API_ROOT
 

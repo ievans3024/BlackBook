@@ -1,2 +1,2 @@
 .idea
-blackbook/couch/js/blackbook.json
+blackbook/database/couch/design_docs/*.json
