@@ -1,38 +1,55 @@
 import couchdb
-import couchdb.mapping
 import json
+import glob
 import os.path
+
+from flask import current_app
 
 __author__ = 'ievans3024'
 
+server = couchdb.Server(current_app.config.get('COUCHDB_URI') or 'http://localhost:5984')
+dbname = current_app.config.get('DB_NAME') or 'blackbook'
 
-def init_db(app):
-    dbname = app.config.get("DB_NAME") or "blackbook"
-    server = couchdb.Server(app.config.get("COUCHDB_URI") or "http://localhost:5984")  # default to couch default uri
-
-    # Create database if it doesn't exist
+# Attempt to connect to the database, create it if it doesn't exist
+try:
+    db = server[dbname]
+except couchdb.ResourceNotFound:
     try:
-        db = server[dbname]
-    except couchdb.ResourceNotFound:
         db = server.create(dbname)
+    except couchdb.http.ServerError as e:
+        raise ValueError(
+            'CouchDB returned an error when trying to create database "{dbname}" (Error {error}.)\n' +
+            'Please ensure options "COUCHDB_URI" and "DB_NAME" are set and correct in config.py'.format(
+                dbname=dbname,
+                error=e.args[0]
+            )
+        )
 
-    # Load in schema file
-    schema_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "{0}.json".format(dbname))
-    with open(schema_path) as schema_file:
-        schema = json.load(schema_file)
 
-    # Update design docs and api specs according to schema file,
-    # create new docs if they don't exist
-    for doc in schema:
-        d = couchdb.mapping.Document.load(db, doc.get("_id"))
-        if not d:
-            d = couchdb.mapping.Document(id=doc.get("_id"))
-        for k, v in doc.items():
-            if k in d:
-                if d[k] != v:
-                    d[k] = v
+def setup(db=db):
+    """
+    Place the database schema in the database
+    :param db: The Database to place the schema into, defaults to current app configuration.
+    :return:
+    """
+    design_doc_path = os.path.join(os.path.dirname(__file__), 'design_docs', '*.json')
+    design_docs = glob.glob(design_doc_path)
+
+    for design in design_docs:
+        with open(design) as docfile:
+            doc = json.load(docfile)
+            existing = db.get(doc.get('_id'))
+            # Check for and update existing schema.
+            # Create new schema docs otherwise.
+            if not existing:
+                db.save(doc)
             else:
-                d[k] = v
-        d.store(db)
+                for k, v in doc.items():
+                    if k in existing:
+                        if existing[k] != v:
+                            existing[k] = v
+                    else:
+                        existing[k] = v
+                db.save(existing)
 
     return db
