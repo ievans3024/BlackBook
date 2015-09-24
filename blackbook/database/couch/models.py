@@ -12,6 +12,10 @@ __author__ = 'ievans3024'
 #   see: https://wiki.apache.org/couch/Full_text_search
 
 
+class ModelError(BaseException):
+    pass
+
+
 class BaseDocument(couchdb.mapping.Document):
 
     creation_time = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
@@ -237,11 +241,11 @@ class User(Permissible):
     by_salt = couchdb.mapping.ViewField("user", "")
 
     def set_email(self, db, email):
-        while True:
-            users = self.by_email(db, key=email)
-            if not users.rows:
-                self.email = email
-                break
+        users = self.by_email(db, key=email)
+        if not users.rows:
+            self.email = email
+        else:
+            raise ModelError('A user with that email already exists.')
 
     def set_password(self, db, password):
         hash_method = current_app.config.get('PASSWORD_HASH_METHOD') or 'pbkdf2:sha512'
