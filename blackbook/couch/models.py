@@ -1,21 +1,21 @@
+import couchdb.mapping
+import datetime
+import re
+
+from flask import current_app
+from werkzeug.security import check_password_hash, generate_password_hash
+
 __author__ = 'ievans3024'
 
 # TODO: full-text search with couch-lucene (and pylucene?)
 #   see: https://wiki.apache.org/couch/Full_text_search
 
-import re
 
-from couchdb.mapping import DateTimeField, DictField, Document, ListField, Mapping, TextField, ViewField
-from datetime import datetime, timedelta
-from flask import current_app
-from werkzeug.security import check_password_hash, generate_password_hash
-
-
-class Permissible(Document):
+class Permissible(couchdb.mapping.Document):
     """A document that is part of a permissions hierarchy."""
 
-    permissions = ListField(TextField())  # list of permission node strings
-    groups = ListField(TextField())  # list of Group ids
+    permissions = couchdb.mapping.ListField(couchdb.mapping.TextField())  # list of permission node strings
+    groups = couchdb.mapping.ListField(couchdb.mapping.TextField())  # list of Group ids
 
     def get_permissions(self, db, permissions=None, groups_checked=None):
         """
@@ -102,11 +102,11 @@ class Permissible(Document):
             raise ValueError("Parameter 'operator' must be in {ops}".format(ops=operations))
 
 
-class TypedDocument(Document):
+class TypedDocument(couchdb.mapping.Document):
     """A document that has a type and subtype."""
 
-    type = TextField()
-    subtype = TextField()
+    type = couchdb.mapping.TextField()
+    subtype = couchdb.mapping.TextField()
 
     def __init__(self, *args, _type=None, subtype=None, **kwargs):
         super(TypedDocument, self).__init__(*args, **kwargs)
@@ -116,74 +116,74 @@ class TypedDocument(Document):
 
 class Contact(TypedDocument):
     """A contact being stored in the "book"."""
-    user = TextField()  # references User.id
-    name_first = TextField()
-    name_last = TextField()
-    date_created = DateTimeField(default=datetime.now)
-    date_modified = DateTimeField(default=datetime.now)
-    defaults = DictField(
-        Mapping.build(
-            address=DictField(
-                Mapping.build(
-                    label=TextField(),
-                    line_1=TextField(),
-                    line_2=TextField(),
-                    city=TextField(),
-                    state=TextField(),
-                    zip=TextField(),
-                    country=TextField()
+    user = couchdb.mapping.TextField()  # references User.id
+    name_first = couchdb.mapping.TextField()
+    name_last = couchdb.mapping.TextField()
+    date_created = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
+    date_modified = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
+    defaults = couchdb.mapping.DictField(
+        couchdb.mapping.Mapping.build(
+            address=couchdb.mapping.DictField(
+                couchdb.mapping.Mapping.build(
+                    label=couchdb.mapping.TextField(),
+                    line_1=couchdb.mapping.TextField(),
+                    line_2=couchdb.mapping.TextField(),
+                    city=couchdb.mapping.TextField(),
+                    state=couchdb.mapping.TextField(),
+                    zip=couchdb.mapping.TextField(),
+                    country=couchdb.mapping.TextField()
                 )
             ),
-            email=DictField(
-                Mapping.build(
-                    label=TextField(),
-                    email=TextField()
+            email=couchdb.mapping.DictField(
+                couchdb.mapping.Mapping.build(
+                    label=couchdb.mapping.TextField(),
+                    email=couchdb.mapping.TextField()
                 )
             ),
-            phone_number=DictField(
-                Mapping.build(
-                    label=TextField(),
-                    number=TextField()
+            phone_number=couchdb.mapping.DictField(
+                couchdb.mapping.Mapping.build(
+                    label=couchdb.mapping.TextField(),
+                    number=couchdb.mapping.TextField()
                 )
             )
         )
     )
-    addresses = ListField(
-        DictField(
-            Mapping.build(
-                label=TextField(),
-                line_1=TextField(),
-                line_2=TextField(),
-                city=TextField(),
-                state=TextField(),
-                zip=TextField(),
-                country=TextField()
+    addresses = couchdb.mapping.ListField(
+        couchdb.mapping.DictField(
+            couchdb.mapping.Mapping.build(
+                label=couchdb.mapping.TextField(),
+                line_1=couchdb.mapping.TextField(),
+                line_2=couchdb.mapping.TextField(),
+                city=couchdb.mapping.TextField(),
+                state=couchdb.mapping.TextField(),
+                zip=couchdb.mapping.TextField(),
+                country=couchdb.mapping.TextField()
             )
         )
     )
-    emails = ListField(
-        DictField(
-            Mapping.build(
-                label=TextField(),
-                email=TextField()
+    emails = couchdb.mapping.ListField(
+        couchdb.mapping.DictField(
+            couchdb.mapping.Mapping.build(
+                label=couchdb.mapping.TextField(),
+                email=couchdb.mapping.TextField()
             )
         )
     )
-    phone_numbers = ListField(
-        DictField(
-            Mapping.build(
-                label=TextField(),
-                number=TextField()
+    phone_numbers = couchdb.mapping.ListField(
+        couchdb.mapping.DictField(
+            couchdb.mapping.Mapping.build(
+                label=couchdb.mapping.TextField(),
+                number=couchdb.mapping.TextField()
             )
         )
     )
-    all = ViewField("contact", "")
-    by_address = ViewField("contact", "")
-    by_email = ViewField("contact", "")
-    by_name = ViewField("contact", "")
-    by_phone_number = ViewField("contact", "")
-    by_surname = ViewField("contact", "")
-    by_user = ViewField("contact", "")
+    all = couchdb.mapping.ViewField("contact", "")
+    by_address = couchdb.mapping.ViewField("contact", "")
+    by_email = couchdb.mapping.ViewField("contact", "")
+    by_name = couchdb.mapping.ViewField("contact", "")
+    by_phone_number = couchdb.mapping.ViewField("contact", "")
+    by_surname = couchdb.mapping.ViewField("contact", "")
+    by_user = couchdb.mapping.ViewField("contact", "")
 
     @property
     def name(self):
@@ -197,33 +197,33 @@ class Contact(TypedDocument):
 class Group(Permissible, TypedDocument):
     """A group for users of the system."""
 
-    name = TextField()
-    description = TextField()
-    by_name = ViewField("group", "")
+    name = couchdb.mapping.TextField()
+    description = couchdb.mapping.TextField()
+    by_name = couchdb.mapping.ViewField("group", "")
 
 
 class Session(TypedDocument):
     """Session data for Users"""
 
-    token = TextField()
-    user = TextField()  # references User.id
-    expiry = DateTimeField(
-        default=lambda: datetime.now() + current_app.config.get("PERMANENT_SESSION_LIFETIME") or timedelta(days=14)
+    token = couchdb.mapping.TextField()
+    user = couchdb.mapping.TextField()  # references User.id
+    expiry = couchdb.mapping.DateTimeField(
+        default=lambda: datetime.datetime.now() + current_app.config.get("PERMANENT_SESSION_LIFETIME") or datetime.timedelta(days=14)
     )
-    by_token = ViewField("session", "")
-    by_user = ViewField("session", "")
+    by_token = couchdb.mapping.ViewField("session", "")
+    by_user = couchdb.mapping.ViewField("session", "")
 
 
 class User(Permissible, TypedDocument):
     """A user of the system."""
 
-    password_hash = TextField()
-    name = TextField()
-    email = TextField()
-    contacts = ListField(TextField())
-    by_name = ViewField("user", "")
-    by_email = ViewField("user", "")
-    by_salt = ViewField("user", "")
+    password_hash = couchdb.mapping.TextField()
+    name = couchdb.mapping.TextField()
+    email = couchdb.mapping.TextField()
+    contacts = couchdb.mapping.ListField(couchdb.mapping.TextField())
+    by_name = couchdb.mapping.ViewField("user", "")
+    by_email = couchdb.mapping.ViewField("user", "")
+    by_salt = couchdb.mapping.ViewField("user", "")
 
     def set_email(self, db, email):
         while True:
