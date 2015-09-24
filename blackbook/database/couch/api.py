@@ -1,71 +1,22 @@
-__author__ = 'ievans3024'
-
-from datetime import datetime
-
+import datetime
 import couchdb
 import couchdb.mapping
-from flask import Blueprint, current_app, request, Response, session
+import blackbook.database.couch.database
+import blackbook.tools.tools
+import blackbook.api.basecollection
+import blackbook.api.errors
+
+from blackbook.api import APIField
+from blackbook.api import APIType
+from blackbook.lib import collection_plus_json
+from flask import Blueprint
+from flask import current_app
+from flask import request
+from flask import Response
+from flask import session
 from flask.views import MethodView
 
-from blackbook.lib import collection_plus_json
-import blackbook.tools.tools
-import blackbook.database.couch.database
-
-
-class APIType(object):
-    """Descriptor for properties that need to a class or a subclass of such."""
-
-    def __init__(self, cls):
-        if isinstance(cls, type):
-            self.cls = cls
-        else:
-            raise TypeError("Parameter 'cls' must be a class.")
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        else:
-            if self.get_own_name(owner) in instance.__dict__.keys():
-                return instance.__dict__.get(self.get_own_name(owner))
-            else:
-                raise AttributeError(
-                    "'{cls}' object has no attribute '{name}'".format(
-                        cls=owner.__name__,
-                        name=self.get_own_name(owner)
-                    )
-                )
-
-    def __set__(self, instance, value):
-        if instance:
-            if not ((value is self.cls) or (issubclass(value, self.cls))):
-                raise ValueError(
-                    "Value must be {cls} or a subclass of it.".format(
-                        cls=".".join([self.cls.__module__, self.cls.__name__])
-                    )
-                )
-            instance.__dict__[self.get_own_name(type(instance))] = value
-
-    def __delete__(self, instance):
-        if instance:
-            del instance.__dict__[self.get_own_name(type(instance))]
-
-    def get_own_name(self, owner):
-        for attr in dir(owner):
-            if getattr(owner, attr) is self:
-                return attr
-
-
-class APIField(APIType):
-    """Descriptor for properties that need to be an instance of a class or subclass of such."""
-
-    def __set__(self, instance, value):
-        if not isinstance(value, self.cls):
-            raise TypeError(
-                "Value must be an instance of {cls} or one of its subclasses.".format(
-                    cls=".".join([self.cls.__module__, self.cls.__name__])
-                )
-            )
-        instance.__dict__[self.get_own_name(type(instance))] = value
+__author__ = 'ievans3024'
 
 
 class API(MethodView):
@@ -342,7 +293,7 @@ class Contact(API):
 
     def _generate_document(self):
         """Generate a Contact document representation."""
-        document = collection_plus_json.Collection(href=)
+        document = blackbook.api.basecollection.ContactCreateTemplate()
         return document
 
     def delete(self, contact_id=None, *args, **kwargs):
@@ -353,13 +304,12 @@ class Contact(API):
 
         if not blackbook.tools.tools.check_angular_xsrf():
             document = self._generate_document()
-            document.error = blackbook.tools.errors.APIBadRequestError()
-            # TODO: handle bad CSRF -- APIBadRequestError?
+            document.error = blackbook.api.errors.APIBadRequestError()
             pass
 
         if not user:
             document = self._generate_document()
-            document.error = APIUnauthorizedError()
+            document.error = blackbook.api.errors.APIUnauthorizedError()
             return Response(response=str(document), status=int(document.error.code), mimetype=document.mimetype)
 
         if contact_id:
@@ -374,7 +324,7 @@ class Contact(API):
                         )
                     ):
                 document = self._generate_document()
-                document.error = APINotFoundError()
+                document.error = blackbook.api.errors.APINotFoundError()
                 return Response(response=str(document), status=int(document.error.code), mimetype=document.mimetype)
             else:
                 self.db.delete(contact)
@@ -394,7 +344,7 @@ class Contact(API):
             pass
 
         if not user:
-            document.error = APIUnauthorizedError()
+            document.error = blackbook.api.errors.APIUnauthorizedError()
             return Response(str(document), status=int(document.error.code), mimetype=document.mimetype)
 
         if contact_id:
@@ -410,7 +360,7 @@ class Contact(API):
                             ".".join([self.db.name, "read", self.model.__name__.lower()])
                         )
                     ):
-                document.error = APINotFoundError()
+                document.error = blackbook.api.errors.APINotFoundError()
                 return Response(str(document), status=int(document.error.code), mimetype=document.mimetype)
             else:
                 contacts = [contact]
@@ -432,7 +382,7 @@ class Contact(API):
 
             if user_id:
                 if not user_api.model.load(self.db, id=user_id):
-                    document.error = APINotFoundError()
+                    document.error = blackbook.api.errors.APINotFoundError()
                     return Response(response=str(document), status=int(document.error.code), mimetype=document.mimetype)
                 if user.id == user_id or user.has_permission(
                         ".".join([self.db.name, "read", user_api.model.__name__.lower()])):
@@ -443,7 +393,7 @@ class Contact(API):
                     if _range.get("startkey_docid"):
                         prev_viewargs.update(key=user_id, endkey_docid=_range["startkey_docid"], limit=2)
                 else:
-                    document.error = APINotFoundError()
+                    document.error = blackbook.api.errors.APINotFoundError()
                     return Response(str(document), status=int(document.error.code), mimetype=document.mimetype)
             elif user.has_permission(".".join([self.db.name, "read", self.model.__name__.lower()])):
                 contacts = self.model.view(self.db, "_all_docs", **_range)
@@ -848,7 +798,7 @@ class User(API):
 
 def init_api(app):
 
-    database = database.couch.database.init_db(app)
+    database = blackbook.database.couch.database.init_db(app)
 
     api_blueprint = Blueprint("api", __name__, url_prefix="/api")  # TODO: use config API_ROOT
 
