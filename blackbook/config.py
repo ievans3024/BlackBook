@@ -10,6 +10,8 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False  # True in https production
 
 # Custom Options
+PASSWORD_HASH_METHOD = 'pbkdf2:sha512'  # only methods supported by functions in werkzueg.security
+PASSWORD_SALT_LENGTH = 12
 PUBLIC_REGISTRATION = False  # Set to True to allow anyone to make an account
 DATABASE_PLUGIN = "blackbook.couch"
 COUCHDB_URI = "http://localhost:5984"

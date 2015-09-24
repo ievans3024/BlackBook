@@ -11,7 +11,27 @@ __author__ = 'ievans3024'
 #   see: https://wiki.apache.org/couch/Full_text_search
 
 
-class Permissible(couchdb.mapping.Document):
+class BaseDocument(couchdb.mapping.Document):
+
+    creation_time = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
+    modification_time = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
+    types = couchdb.mapping.ListField(couchdb.mapping.TextField())
+
+    def __init__(self, id=None, **kwargs):
+        super(BaseDocument, self).__init__(id=id, **kwargs)
+        self.types = [c.__name__ for c in self.__class__.__mro__ if issubclass(c, BaseDocument)]
+
+    def __setattr__(self, key, value):
+        if key == 'creation_time' and self.creation_time is not None:
+            # Prevent overwriting existing creation time
+            value = self.creation_time
+        elif key == 'modification_time':
+            # Prevent setting modification time to anything other than now
+            value = datetime.datetime.now()
+        super(BaseDocument, self).__setattr__(key, value)
+
+
+class Permissible(BaseDocument):
     """A document that is part of a permissions hierarchy."""
 
     permissions = couchdb.mapping.ListField(couchdb.mapping.TextField())  # list of permission node strings
@@ -99,22 +119,10 @@ class Permissible(couchdb.mapping.Document):
                 return all([permission_matches.get(perm) for perm in perms])
 
         else:
-            raise ValueError("Parameter 'operator' must be in {ops}".format(ops=operations))
+            raise ValueError("Parameter 'operator' must be one of {ops}".format(ops=operations))
 
 
-class TypedDocument(couchdb.mapping.Document):
-    """A document that has a type and subtype."""
-
-    type = couchdb.mapping.TextField()
-    subtype = couchdb.mapping.TextField()
-
-    def __init__(self, *args, _type=None, subtype=None, **kwargs):
-        super(TypedDocument, self).__init__(*args, **kwargs)
-        self.type = _type or self.__class__.__name__.lower()
-        self.subtype = subtype or self.__class__.__name__.lower()
-
-
-class Contact(TypedDocument):
+class Contact(BaseDocument):
     """A contact being stored in the "book"."""
     user = couchdb.mapping.TextField()  # references User.id
     name_first = couchdb.mapping.TextField()
@@ -194,7 +202,7 @@ class Contact(TypedDocument):
         return ", ".join([self.name_last, self.name_first])
 
 
-class Group(Permissible, TypedDocument):
+class Group(Permissible):
     """A group for users of the system."""
 
     name = couchdb.mapping.TextField()
@@ -202,10 +210,10 @@ class Group(Permissible, TypedDocument):
     by_name = couchdb.mapping.ViewField("group", "")
 
 
-class Session(TypedDocument):
+class Session(BaseDocument):
     """Session data for Users"""
 
-    token = couchdb.mapping.TextField()
+    token = couchdb.mapping.TextField()  # TODO: default to uuid
     user = couchdb.mapping.TextField()  # references User.id
     expiry = couchdb.mapping.DateTimeField(
         default=lambda: datetime.datetime.now() + current_app.config.get("PERMANENT_SESSION_LIFETIME") or datetime.timedelta(days=14)
@@ -214,7 +222,7 @@ class Session(TypedDocument):
     by_user = couchdb.mapping.ViewField("session", "")
 
 
-class User(Permissible, TypedDocument):
+class User(Permissible):
     """A user of the system."""
 
     password_hash = couchdb.mapping.TextField()
@@ -233,8 +241,10 @@ class User(Permissible, TypedDocument):
                 break
 
     def set_password(self, db, password):
+        hash_method = current_app.config.get('PASSWORD_HASH_METHOD') or 'pbkdf2:sha512'
+        salt_length = current_app.config.get('PASSWORD_SALT_LENGTH') or 12
         while True:
-            new_hash = generate_password_hash(password, method="pbkdf2:sha512", salt_length=12)
+            new_hash = generate_password_hash(password, method=hash_method, salt_length=salt_length)
             salt = new_hash.split("$")[1]
             users = self.by_salt(db, key=salt)
             if not users.rows:
