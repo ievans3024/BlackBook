@@ -1,3 +1,4 @@
+import blackbook.database
 import couchdb.mapping
 import datetime
 import re
@@ -12,11 +13,7 @@ __author__ = 'ievans3024'
 #   see: https://wiki.apache.org/couch/Full_text_search
 
 
-class ModelError(BaseException):
-    pass
-
-
-class BaseDocument(couchdb.mapping.Document):
+class BaseDocument(couchdb.mapping.Document, blackbook.database.Model):
 
     creation_time = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
     modification_time = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
@@ -37,12 +34,18 @@ class BaseDocument(couchdb.mapping.Document):
             value = datetime.datetime.now()
         super(BaseDocument, self).__setattr__(key, value)
 
+    def get_collection_items(self):
+        raise NotImplementedError()
+
 
 class Permissible(BaseDocument):
     """A document that is part of a permissions hierarchy."""
 
     permissions = couchdb.mapping.ListField(couchdb.mapping.TextField())  # list of permission node strings
     groups = couchdb.mapping.ListField(couchdb.mapping.TextField())  # list of Group ids
+
+    def get_collection_items(self):
+        raise NotImplementedError()
 
     def get_permissions(self, db, permissions=None, groups_checked=None):
         """
@@ -208,6 +211,9 @@ class Contact(BaseDocument):
     def rname(self):
         return ", ".join([self.name_last, self.name_first])
 
+    def get_collection_items(self):
+        pass
+
 
 class Group(Permissible):
     """A group for users of the system."""
@@ -215,6 +221,9 @@ class Group(Permissible):
     name = couchdb.mapping.TextField()
     description = couchdb.mapping.TextField()
     by_name = couchdb.mapping.ViewField("group", "")
+
+    def get_collection_items(self):
+        pass
 
 
 class Session(BaseDocument):
@@ -228,6 +237,9 @@ class Session(BaseDocument):
     by_token = couchdb.mapping.ViewField("session", "")
     by_user = couchdb.mapping.ViewField("session", "")
 
+    def get_collection_items(self):
+        pass
+
 
 class User(Permissible):
     """A user of the system."""
@@ -240,12 +252,18 @@ class User(Permissible):
     by_email = couchdb.mapping.ViewField("user", "")
     by_salt = couchdb.mapping.ViewField("user", "")
 
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def get_collection_items(self):
+        pass
+
     def set_email(self, db, email):
         users = self.by_email(db, key=email)
         if not users.rows:
             self.email = email
         else:
-            raise ModelError('A user with that email already exists.')
+            raise blackbook.database.ModelError('A user with that email already exists.')
 
     def set_password(self, db, password):
         hash_method = current_app.config.get('PASSWORD_HASH_METHOD') or 'pbkdf2:sha512'
@@ -257,6 +275,3 @@ class User(Permissible):
             if not users.rows:
                 self.password_hash = new_hash
                 break
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
