@@ -36,7 +36,7 @@ class API(MethodView):
         self.db = db
         self.model = model
 
-    def _generate_document(self, *args, **kwargs):
+    def _generate_document(self, *args, href='/', **kwargs):
         """
         Generate a document object
 
@@ -291,9 +291,10 @@ class Contact(API):
     def __init__(self, db):
         super(Contact, self).__init__(db, blackbook.database.couch.models.Contact)
 
-    def _generate_document(self):
+    def _generate_document(self, href):
         """Generate a Contact document representation."""
-        document = blackbook.api.basecollection.ContactCreateTemplate()
+        document = blackbook.api.basecollection.ContactCollection(href=href)
+        document.add_items(self)
         return document
 
     def delete(self, contact_id=None, *args, **kwargs):
