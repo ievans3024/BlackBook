@@ -291,10 +291,12 @@ class Contact(API):
     def __init__(self, db):
         super(Contact, self).__init__(db, blackbook.database.couch.models.Contact)
 
-    def _generate_document(self, href):
-        """Generate a Contact document representation."""
+    def _generate_document(self, *args, href='/contact/', **kwargs):
+        """
+        Generate a Contact document representation.
+        :param **kwargs:
+        """
         document = blackbook.api.basecollection.ContactCollection(href=href)
-        document.add_items(self)
         return document
 
     def delete(self, contact_id=None, *args, **kwargs):
