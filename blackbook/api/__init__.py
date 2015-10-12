@@ -1,6 +1,6 @@
 from flask import current_app
 
-__all__ = ['basedocs']
+__all__ = ['basecollection', 'errors']
 __author__ = 'ievans3024'
 
 API_URI_PREFIX = current_app.config.get('API_ROOT') or '/api'
