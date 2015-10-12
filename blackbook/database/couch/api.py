@@ -52,7 +52,7 @@ class API(MethodView):
             sessions_by_token = session_api.model.by_token(key=session["id"])
             if sessions_by_token.rows:
                 get_session = sessions_by_token.rows[0]
-                if get_session.expiry > datetime.now():
+                if get_session.expiry > datetime.datetime.now():
                     user = user_api.model.load(self.db, get_session.user)
         return user
 
