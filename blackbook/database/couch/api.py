@@ -8,41 +8,28 @@ import blackbook.api.errors
 
 from blackbook.api import APIField
 from blackbook.api import APIType
+from blackbook.api import API
 from blackbook.lib import collection_plus_json
 from flask import Blueprint
 from flask import current_app
 from flask import request
 from flask import Response
 from flask import session
-from flask.views import MethodView
 
 __author__ = 'ievans3024'
 
 
-class API(MethodView):
+class CouchAPI(API):
     """Abstract Base Class for interfacing with couch Document classes"""
 
     db = APIField(couchdb.Database)
     model = APIType(couchdb.mapping.Document)
 
-    def __init__(self, db, model):
-        """
-        Constructor
-        :param db: The couch database to draw data from.
-        :param model: The couch document class to represent data with.
-        :return:
-        """
-        super(API, self).__init__()
-        self.db = db
-        self.model = model
-
     def _generate_document(self, *args, href='/', **kwargs):
         """
-        Generate a document object
+        Generate a document
 
-        Implementations should return a document object
-        that can be manipulated and then serialized into
-        a string to be returned in the HTTP response body.
+        Implementations should return a collection+json document object.
         """
         raise NotImplementedError()
 
@@ -81,7 +68,7 @@ class API(MethodView):
         raise NotImplementedError()
 
 
-class Contact(API):
+class Contact(CouchAPI):
     """
     Contact API class
 
@@ -475,7 +462,7 @@ class Contact(API):
         pass
 
 
-class Session(API):
+class Session(CouchAPI):
     """
     Session API Class
 
@@ -605,7 +592,7 @@ class Session(API):
         pass
 
 
-class User(API):
+class User(CouchAPI):
     """
     User API class
 

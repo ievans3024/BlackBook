@@ -1,4 +1,8 @@
-from flask import current_app
+import blackbook.database
+import datetime
+
+from flask import current_app, session
+from flask.views import MethodView
 
 __all__ = ['basecollection', 'errors']
 __author__ = 'ievans3024'
@@ -60,3 +64,56 @@ class APIField(APIType):
                 )
             )
         instance.__dict__[self.get_own_name(type(instance))] = value
+
+
+class API(MethodView):
+    """Abstract Base Class for API Method Views"""
+
+    db = APIField(object)
+    model = APIType(blackbook.database.Model)
+
+    def __init__(self, db, model):
+        """
+        Constructor
+        :param db: The couch database to draw data from.
+        :param model: The couch document class to represent data with.
+        :return:
+        """
+        super(API, self).__init__()
+        self.db = db
+        self.model = model
+
+    def _generate_document(self, *args, href='/', **kwargs):
+        """
+        Generate a document
+
+        Implementations should return a collection+json document object.
+        """
+        raise NotImplementedError()
+
+    def _get_authenticated_user(self, user_api, session_api):
+        raise NotImplementedError()
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def get(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def head(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def options(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def patch(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def post(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def put(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def search(self, *args, **kwargs):
+        raise NotImplementedError()
