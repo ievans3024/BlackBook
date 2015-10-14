@@ -1,7 +1,6 @@
 import blackbook.database
-import datetime
 
-from flask import current_app, session
+from flask import current_app
 from flask.views import MethodView
 
 __all__ = ['basecollection', 'errors']
