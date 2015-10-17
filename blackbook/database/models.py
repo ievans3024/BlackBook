@@ -295,13 +295,13 @@ class ContactAddress(ContactInformation):
     zip = ModelField(str)
     country = ModelField(str)
 
-    def __init__(self, line_1, line_2, city, state, zip, *args, country='', **kwargs):
+    def __init__(self, line_1, line_2, city, state, zip_code, *args, country='', **kwargs):
         super(ContactAddress, self).__init__(*args, **kwargs)
         self.line_1 = line_1
         self.line_2 = line_2
         self.city = city
         self.state = state
-        self.zip = zip
+        self.zip = zip_code
         self.country = country
 
 
@@ -363,11 +363,11 @@ class Permissible(Model):
             if not len(perms):
                 # If no perms are provided, assume nobody has permission
                 return False
-
+            permissions = self.compile_permissions()
             permission_matches = {}
             for perm in perms:
                 permission_matches[perm] = False  # assume no permission until permission is found
-                for permission in self.permissions:
+                for permission in permissions:
                     # match will be truthy:
                     # permission = "one"
                     # perm is "one.two", "one.three", "one.two.three", "one.two.four", etc.
