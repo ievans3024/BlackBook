@@ -29,14 +29,21 @@ class CouchDatabase(blackbook.database.Database):
         except ConnectionRefusedError as e:
             raise blackbook.database.DatabaseUnreachableError(
                 'The connection to the database was refused. (Error: {error})\n' +
-                ' Please ensure option "COUCHDB_URI" is set and correct in config.py'.format(error=e.args[0])
+                'Please ensure option "COUCHDB_URI" is set and correct in config.py'.format(error=e.args[0])
             )
         except couchdb.Unauthorized as e:
-            # TODO: raise DatabaseUnreachableError with credentials config message
-            pass
+            raise blackbook.database.DatabaseUnreachableError(
+                'The connection to the database was refused. (Error: {error})\n' +
+                'Please ensure options "COUCHDB_USER" and "COUCHDB_PASSWORD" are set and correct in config.py '.format(
+                    error=e.args[0]
+                )
+            )
         except couchdb.HTTPError as e:
-            # TODO: raise DatabaseUnreachableError with message about HTTP error
-            pass
+            raise blackbook.database.DatabaseUnreachableError(
+                'There was an HTTP error when attempting to connect to the database. (Error: {error})'.format(
+                    error=e.args[0]
+                )
+            )
         try:
             self.db = self.server[self.dbname]
         except couchdb.ResourceNotFound:
@@ -87,11 +94,23 @@ class CouchDatabase(blackbook.database.Database):
     def setup(self):
         if not self.is_setup:
             try:
+                # Try to create new db
                 self.db = self.server.create(self.dbname)
+            except couchdb.http.PreconditionFailed as e:
+                if e.args[0][0] == 'file_exists':
+                    # db exists, use it
+                    self.db = self.server[self.dbname]
+                else:
+                    raise blackbook.database.DatabaseError(
+                        'There was an error when trying to create database "{dbname}" (Error: {error})'.format(
+                            dbname=self.dbname,
+                            error=e.args[0]
+                        )
+                    )
             except couchdb.http.ServerError as e:
-                raise blackbook.database.DatabaseUnreachableError(
-                    'There was an error when trying to create database "{dbname}" (Error {error}.)\n' +
-                    'Please ensure options "COUCHDB_URI" and "COUCHDB_NAME" are set and correct in config.py'.format(
+                raise blackbook.database.DatabaseError(
+                    'There was an error when trying to create database "{dbname}" (Error: {error})\n' +
+                    'Please ensure couchdb options are set and correct in config.py'.format(
                         dbname=self.dbname,
                         error=e.args[0]
                     )
@@ -100,14 +119,22 @@ class CouchDatabase(blackbook.database.Database):
             for design in self.__iterate_design_docs():
                 existing = self.db.get(design.get('_id'))
                 if not existing:
+                    # Create new
                     self.db.save(design)
                 else:
+                    # Update existing
                     for k, v in design.items():
                         if k in existing:
+                            # Update existing from spec
                             if existing[k] != v:
                                 existing[k] = v
                         else:
+                            # Add new from spec
                             existing[k] = v
+                    for k in existing:
+                        # Delete items not in spec
+                        if k not in design:
+                            del existing[k]
                     self.db.save(existing)
 
     def update(self, data):
