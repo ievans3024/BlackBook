@@ -1,8 +1,49 @@
 __author__ = 'ievans3024'
 
 
+class DatabaseError(BaseException):
+    """Base class for database errors."""
+    pass
+
+
+class DatabaseNotReadyError(DatabaseError):
+    """Error class for databases that need to run Database.setup()"""
+    pass
+
+
+class DatabaseUnreachableError(DatabaseError):
+    """Error class for databases that cannot be reached."""
+    pass
+
+
+class EntryExistsError(DatabaseError):
+    """Error class for when an entry by that id/primary key already exists."""
+    pass
+
+
 class Database(object):
     """Abstract base class for databases"""
+
+    @property
+    def is_setup(self):
+        """
+        Check if Database.setup() needs to be run.
+
+        Implementations should perform any and all functionality
+        to ensure that:
+
+           1. The database server is reachable
+           2. All databases, tables and schema exist
+
+        Implementations should return True if the database has
+        everything it needs in place, False if not.
+
+        Implementations should raise DatabaseUnreachableError if
+        the database is not reachable.
+
+        :return: bool
+        """
+        raise NotImplementedError()
 
     def create(self, data):
         """
@@ -17,7 +58,7 @@ class Database(object):
         stored is left to the discretion of implementation.
 
         :param data: The Model instance to extract new data from.
-        :return:
+        :return: An iterable of one blackbook.database.models.Model instance.
         """
         raise NotImplementedError()
 
@@ -32,6 +73,9 @@ class Database(object):
 
         How the data is used to find and delete the existing entry
         is left to the discretion of the implementation.
+
+        Implementations should not return anything and should raise
+        informative errors should any problems occur.
 
         :param data: The Model instance to find and delete the entry for.
         :return:
@@ -62,7 +106,7 @@ class Database(object):
 
         :param model: The Model subclass to instantiate
         :param _id: Optional. The id of a specific entry to get.
-        :return:
+        :return: An iterable of one or more blackbook.database.models.Model instances.
         """
         raise NotImplementedError()
 
@@ -78,7 +122,10 @@ class Database(object):
         it dissects and stores the information supplied by the read()
         method of the other database.
 
-        :param database:
+        Implementations should not return anything and should raise
+        informative errors should any problems occur.
+
+        :param database: An instance of blackbook.database.Database
         :return:
         """
         raise NotImplementedError()
@@ -93,6 +140,20 @@ class Database(object):
 
         :param query: The search terms to try to find matching data for.
         :param model: Optional. The model to contstrain the search to.
+        :return: An iterable of one or more blackbook.database.models.Model instances.
+        """
+        raise NotImplementedError()
+
+    def setup(self):
+        """
+        Initialize the database for the first time.
+
+        This method should be used to create tables, schema, stored
+        procedures, etc. in the database.
+
+        Implementations should not return anything, and should raise
+        informative errors should any problems occur.
+
         :return:
         """
         raise NotImplementedError()
@@ -114,21 +175,6 @@ class Database(object):
         raise the appropriate DatabaseError
 
         :param data:
-        :return:
+        :return: An iterable of one or more blackbook.database.models.Model instances.
         """
         raise NotImplementedError()
-
-
-class Model(object):
-
-    def get_collection_items(self):
-        """
-        Get a collection_plus_json.Array of collection_plus_json.Items
-        representing one or more instances of the model.
-        :return:
-        """
-        raise NotImplementedError()
-
-
-class ModelError(BaseException):
-    pass

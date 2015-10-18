@@ -172,6 +172,10 @@ group
 '''
 
 
+class ModelError(BaseException):
+    pass
+
+
 class ModelField(object):
     """Descriptor for Model fields that need to be of a certain type."""
 
