@@ -21,6 +21,11 @@ class EntryExistsError(DatabaseError):
     pass
 
 
+class InvalidModelError(DatabaseError):
+    """Error class for when the data supplied from the API is not expected by the database."""
+    pass
+
+
 class Database(object):
     """Abstract base class for databases"""
 
