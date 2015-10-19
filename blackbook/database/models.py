@@ -218,11 +218,10 @@ class ModelField(object):
     """Descriptor for Model fields that need to be of a certain type."""
 
     def __init__(self, cls, nullable=False):
-        if isinstance(cls, type):
-            self.cls = cls
-            self.nullable = bool(nullable)
-        else:
+        if not isinstance(cls, type):
             raise TypeError('Parameter "cls" must be a class.')
+        self.cls = cls
+        self.nullable = bool(nullable)
 
     def __get__(self, instance, owner):
         if instance is None:
@@ -270,6 +269,14 @@ class Array(collections.UserList):
         self.cls = cls
         self.allow_none = bool(allow_none)
 
+    def __setitem__(self, key, value):
+        # TODO: code to handle obj[n] = x
+        pass
+
+    def __add__(self, other):
+        # TODO: code to handle obj + other_iterable
+        pass
+
     def append(self, item):
         if (not self.allow_none) and isinstance(item, self.cls):
             raise TypeError('Parameter "item" must be an instance of "{cls}"'.format(cls=self.cls.__name__))
@@ -281,13 +288,24 @@ class Array(collections.UserList):
 
 class ArrayField(ModelField):
     """Descriptor for Model fields that need to be an iterable containing instances of a type."""
-    # TODO: deprecate and remove once Array code is in place.
+
+    def __init__(self, cls, allow_none=False, nullable=False):
+        if not isinstance(cls, type):
+            raise TypeError('Parameter "cls" must be a class, i.e., isinstance(cls, type)')
+        self.contains = cls
+        self.allow_none = allow_none
+        super(ArrayField, self).__init__(Array, nullable=nullable)
+
     def __set__(self, instance, value):
         if isinstance(value, collections.Iterable):
             if not all([isinstance(i, self.cls) for i in value]):
                 raise ValueError('Value must be an iterable containing {cls} instances.'.format(cls=self.cls.__name__))
             else:
-                instance.__dict__[self._get_own_name(type(instance))] = value
+                instance.__dict__[self._get_own_name(type(instance))] = Array(
+                    iterable=value,
+                    cls=self.contains,
+                    allow_none=self.allow_none
+                )
         else:
             raise TypeError('Value must be iterable.')
 
@@ -521,7 +539,7 @@ class Permissible(Model):
             if not len(perms):
                 # If no perms are provided, assume nobody has permission
                 return False
-            permissions = self.compile_permissions()
+            permissions, groups = self.compile_permissions()
             permission_matches = {}
             for perm in perms:
                 permission_matches[perm] = False  # assume no permission until permission is found
