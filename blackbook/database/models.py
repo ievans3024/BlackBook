@@ -213,9 +213,15 @@ class ModelField(object):
                 return attr
 
 
+class Array(collections.UserList):
+    """A special kind of iterable that only wants to store instances of a certain type."""
+    # TODO: Type enforcement
+    pass
+
+
 class ArrayField(ModelField):
     """Descriptor for Model fields that need to be an iterable containing instances of a type."""
-
+    # TODO: deprecate and remove once Array code is in place.
     def __set__(self, instance, value):
         if isinstance(value, collections.Iterable):
             if not all([isinstance(i, self.cls) for i in value]):
