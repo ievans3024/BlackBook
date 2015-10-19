@@ -190,32 +190,24 @@ class ModelField(object):
         if instance is None:
             return self
         else:
-            if self.__get_own_name(owner) in instance.__dict__.keys():
-                return instance.__dict__.get(self.__get_own_name(owner))
-            else:
-                raise AttributeError(
-                    '"{cls" object has no attribute "{name}"'.format(
-                        cls=owner.__name__,
-                        name=self.__get_own_name(owner)
-                    )
-                )
+            return instance.__dict__.get(self._get_own_name(owner))
 
     def __set__(self, instance, value):
         if value is None and not self.nullable:
             raise TypeError('Value cannot be None.')
-        elif not isinstance(value, self.cls):
+        elif not isinstance(value, self.cls) and not self.nullable:
             raise TypeError(
                 'Value must be an instance of {cls}.'.format(
                     cls='.'.join([self.cls.__module__, self.cls.__name__])
                 )
             )
-        instance.__dict__[self.__get_own_name(type(instance))] = value
+        instance.__dict__[self._get_own_name(type(instance))] = value
 
     def __delete__(self, instance):
         if instance:
-            del instance.__dict__[self.__get_own_name(type(instance))]
+            del instance.__dict__[self._get_own_name(type(instance))]
 
-    def __get_own_name(self, owner):
+    def _get_own_name(self, owner):
         for attr in dir(owner):
             if getattr(owner, attr) is self:
                 return attr
@@ -229,7 +221,7 @@ class ArrayField(ModelField):
             if not all([isinstance(i, self.cls) for i in value]):
                 raise ValueError('Value must be an iterable containing {cls} instances.'.format(cls=self.cls.__name__))
             else:
-                instance.__dict__[self.__get_own_name(type(instance))] = value
+                instance.__dict__[self._get_own_name(type(instance))] = value
         else:
             raise TypeError('Value must be iterable.')
 
@@ -237,7 +229,7 @@ class ArrayField(ModelField):
 class Model(object):
     """Abstract base class for generic Models"""
 
-    id = ModelField(object)
+    id = ModelField(object, nullable=True)
     date_created = ModelField(datetime.datetime)
     date_modified = ModelField(datetime.datetime)
 
