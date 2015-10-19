@@ -1,6 +1,7 @@
 import collections
 import datetime
 import re
+import uuid
 import werkzeug.security
 
 __author__ = 'ievans3024'
@@ -252,8 +253,30 @@ class ModelField(object):
 
 class Array(collections.UserList):
     """A special kind of iterable that only wants to store instances of a certain type."""
-    # TODO: Type enforcement
-    pass
+
+    def __init__(self, iterable=(), cls=object, allow_none=False):
+        if not isinstance(cls, type):
+            raise TypeError('Parameter "cls" must be a class, i.e., isinstance(cls, type)')
+        if not isinstance(iterable, collections.Iterable):
+            raise TypeError('Parameter "iterable" must be iterable.')
+        if not all([isinstance(i, cls) for i in iterable]):
+            raise ValueError('Parameter "iterable" must contain instances of "{cls}"'.format(cls=cls.__name__))
+        elif (not allow_none) and (not all([i is not None for i in iterable])):
+            raise ValueError(
+                'Parameter "iterable" cannot contain "None" values. Use allow_none=True to bypass this.'
+            )
+        else:
+            super(Array, self).__init__([i for i in iterable])
+        self.cls = cls
+        self.allow_none = bool(allow_none)
+
+    def append(self, item):
+        if (not self.allow_none) and isinstance(item, self.cls):
+            raise TypeError('Parameter "item" must be an instance of "{cls}"'.format(cls=self.cls.__name__))
+        elif (not self.allow_none) and (item is None):
+            raise ValueError('Parameter "item" cannot be None.')
+        else:
+            super(Array, self).append(item)
 
 
 class ArrayField(ModelField):
@@ -359,6 +382,17 @@ class GroupBase(Model):
     """
     Base class for Group, intentionally empty.
     Only Group should subclass this.
+
+    Part of a set of empty classes to allow ModelField descriptors to be assigned a model
+    whose class may not have been declared yet.
+    """
+    pass
+
+
+class SessionBase(Model):
+    """
+    Base class for Session, intentionally empty.
+    Only Session should subclass this.
 
     Part of a set of empty classes to allow ModelField descriptors to be assigned a model
     whose class may not have been declared yet.
@@ -523,6 +557,14 @@ class Group(Permissible, GroupBase):
         super(Group, self).__init__(**kwargs)
         self.name = name
         self.description = description
+
+
+class Session(SessionBase):
+    """A User Session"""
+
+    user = ModelField(UserBase)
+    token = ModelField(uuid.uuid4)
+    expiry = ModelField(datetime.datetime)
 
 
 class User(Permissible, UserBase):
