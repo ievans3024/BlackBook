@@ -7,20 +7,6 @@ __author__ = 'ievans3024'
 
 '''
 
-user
-  id
-  email
-  display_name
-  password_hash
-  date_created
-  date_modified
-  contacts[<contact>]
-  permissions[<str:permission>]
-  groups[<group>]
-  email_verified
-  active
-  last_active
-
 contact
   id
   date_created
@@ -70,6 +56,122 @@ group
   permissions[<str:permission>]
   groups[<group>]
 
+session
+  id
+  date_created
+  date_modified
+  user (<user>)
+  token
+  expiry
+
+user
+  id
+  email
+  display_name
+  password_hash
+  date_created
+  date_modified
+  contacts[<contact>]
+  permissions[<str:permission>]
+  groups[<group>]
+  email_verified
+  active
+  last_active
+
+/address/
+  restricted - must be logged in, must have permission if not session user's contact
+  list of addresses for a contact
+  link to owning contact
+  pagination links (if applicable)
+  address creation template
+
+/address/<aid>/
+  restricted - must be logged in, must have permission if not session user's contact
+  a specific address for a contact
+  link to owning contact
+  address update template
+
+/contact/
+  restricted - requires being logged in, will only display session user's contacts
+  list of contacts
+  pagination links (if applicable)
+  contact creation template (creates for session user)
+
+/contact/<cid>/
+  restricted - must be logged in, must have permission if not session user's contact
+  a specific contact
+  link to owning user
+  link to phone numbers
+  link to emails
+  link to addresses
+  pagination links (if applicable)
+  contact update template
+
+/email/
+  restricted - must be logged in, must have permission if not session user's contact
+  list of emails for a contact
+  link to owning contact
+  pagination links (if applicable)
+  email creation template
+
+/email/<eid>/
+  restricted - must be logged in, must have permission if not session user's contact
+  a specific email for a contact
+  link to owning contact
+  email update template
+
+/group/
+  restricted - must have permission
+  list of groups
+  pagination links (if applicable)
+  group creation template
+
+/group/<id>/
+  restricted - must have permission
+  a specific group
+
+/phone/
+  restricted - must be logged in, must have permission if not session user's contact
+  list of phone numbers for a contact
+  link to owning contact
+  pagination links (if applicable)
+  phone number creation template
+
+/phone/<pid>/
+  restricted - must be logged in, must have permission if not session user's contact
+  a specific phone number for a contact
+  link to owning contact
+  phone number update template
+
+/session/
+  public
+  log into the system, check if you are logged in.
+  all requests return minimal collection with template
+  if session exists and is valid, link to get session user info (i.e., /user/id/)
+  login credentials template
+  DELETE:
+    log out
+    does not require any data in body or url args.
+    200 OK              Session exists
+  GET:
+    check if logged in
+    does not require any data in body or url args.
+    200 OK              Session exists and is valid
+    400 Bad Request     Session data not in cookies, malformed, or supplied but does not exist, try POST w/ form data
+    419 Auth Timeout    Session exists, but has expired. Create new session with POST
+  PUT:
+    update logged in session expiry
+    does not require any data in body or url args.
+    200 OK              Session exists, was not expired, and has updated its expiry.
+    400 Bad Request     Session data not in cookies, malformed, or supplied but does not exist, try POST w/ form data
+    419 Auth Timeout    Session exists, but has expired. Create new sessoin with POST
+  POST:
+    log in
+    requires login credentials template as x-www-form-urlencoded in POST body.
+    201 Created         Login form supplied was valid, session has been created and session token is in cookies.
+    400 Bad Request     Incomplete or malformed form data.
+    401 Unauthorized    Form data was complete, but invalid credentials.
+    429 Too Many        There have been too many attempts in too short of a time.
 
 /user/
   public - some restricted behavior, can be completely restricted in config
@@ -91,61 +193,6 @@ group
   link to owning user
   contact creation template (creates for user in uri)
 
-/contact/
-  restricted - requires being logged in, will only display session user's contacts
-  list of contacts
-  pagination links (if applicable)
-  contact creation template (creates for session user)
-
-/contact/<cid>/
-  restricted - must be logged in, must have permission if not session user's contact
-  a specific contact
-  link to owning user
-  link to phone numbers
-  link to emails
-  link to addresses
-  pagination links (if applicable)
-  contact update template
-
-/phone/
-  restricted - must be logged in, must have permission if not session user's contact
-  list of phone numbers for a contact
-  link to owning contact
-  pagination links (if applicable)
-  phone number creation template
-
-/phone/<pid>/
-  restricted - must be logged in, must have permission if not session user's contact
-  a specific phone number for a contact
-  link to owning contact
-  phone number update template
-
-/email/
-  restricted - must be logged in, must have permission if not session user's contact
-  list of emails for a contact
-  link to owning contact
-  pagination links (if applicable)
-  email creation template
-
-/email/<eid>/
-  restricted - must be logged in, must have permission if not session user's contact
-  a specific email for a contact
-  link to owning contact
-  email update template
-
-/address/
-  restricted - must be logged in, must have permission if not session user's contact
-  list of addresses for a contact
-  link to owning contact
-  pagination links (if applicable)
-  address creation template
-
-/address/<aid>/
-  restricted - must be logged in, must have permission if not session user's contact
-  a specific address for a contact
-  link to owning contact
-  address update template
-
 /user/<id>/permissions/
   restricted - must have permission
   list of user permissions
@@ -159,16 +206,6 @@ group
   link to owning user
   pagination links (if applicable)
   user groups update template (POST to add groups, DELETE to remove)
-
-/group/
-  restricted - must have permission
-  list of groups
-  pagination links (if applicable)
-  group creation template
-
-/group/<id>/
-  restricted - must have permission
-  a specific group
 '''
 
 
