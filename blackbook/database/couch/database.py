@@ -90,7 +90,7 @@ class CouchDatabase(blackbook.database.Database):
 
         if data.id is None:
             data.id = saved[0].id
-        
+
         return data
 
     def delete(self, data):

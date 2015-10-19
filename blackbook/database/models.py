@@ -256,16 +256,101 @@ class Model(object):
             self.date_modified = datetime.datetime.now()
         super(Model, self).__setattr__(key, value)
 
+    def serialize(self):
+        data = dict(**self.__dict__)
+        for k, v in data.items():
+            try:
+                k_descriptor = getattr(self.__class__, k)
+            except AttributeError:
+                del data[k]
+            else:
+                if isinstance(k_descriptor, ArrayField):
+                    # ArrayField before ModelField because ArrayField is a subclass of ModelField
+                    if isinstance(k_descriptor.cls, Model):
+                        data[k] = [i.serialize() for i in v]
+                    else:
+                        data[k] = list(v)
+                elif isinstance(k_descriptor, ModelField):
+                    if isinstance(k_descriptor.cls, Model):
+                        data[k] = v.serialize()
+        return data
 
-class Contact(Model):
+
+class ContactBase(Model):
+    """
+    Base class for Contact, intentionally empty.
+    Only Contact should subclass this.
+
+    Part of a set of empty classes to allow ModelField descriptors to be assigned a model
+    whose class may not have been declared yet.
+    """
+    pass
+
+
+class ContactAddressBase(Model):
+    """
+    Base class for ContactAddress, intentionally empty.
+    Only ContactAddress should subclass this.
+
+    Part of a set of empty classes to allow ModelField descriptors to be assigned a model
+    whose class may not have been declared yet.
+    """
+    pass
+
+
+class ContactEmailBase(Model):
+    """
+    Base class for ContactEmail, intentionally empty.
+    Only ContactEmail should subclass this.
+
+    Part of a set of empty classes to allow ModelField descriptors to be assigned a model
+    whose class may not have been declared yet.
+    """
+    pass
+
+
+class ContactPhoneBase(Model):
+    """
+    Base class for ContactPhone, intentionally empty.
+    Only ContactPhone should subclass this.
+
+    Part of a set of empty classes to allow ModelField descriptors to be assigned a model
+    whose class may not have been declared yet.
+    """
+    pass
+
+
+class GroupBase(Model):
+    """
+    Base class for Group, intentionally empty.
+    Only Group should subclass this.
+
+    Part of a set of empty classes to allow ModelField descriptors to be assigned a model
+    whose class may not have been declared yet.
+    """
+    pass
+
+
+class UserBase(Model):
+    """
+    Base class for User, intentionally empty.
+    Only User should subclass this.
+
+    Part of a set of empty classes to allow ModelField descriptors to be assigned a model
+    whose class may not have been declared yet.
+    """
+    pass
+
+
+class Contact(ContactBase):
     """User contacts"""
 
-    user = ModelField(User)
+    user = ModelField(UserBase)
     name_first = ModelField(str)
     name_last = ModelField(str)
-    addresses = ArrayField(ContactAddress)
-    emails = ArrayField(ContactEmail)
-    phone_numbers = ArrayField(ContactPhone)
+    addresses = ArrayField(ContactAddressBase)
+    emails = ArrayField(ContactEmailBase)
+    phone_numbers = ArrayField(ContactPhoneBase)
 
     def __init__(self, user, name_first, name_last, addresses=(), emails=(), phone_numbers=(), **kwargs):
         super(Contact, self).__init__(**kwargs)
@@ -289,7 +374,7 @@ class ContactInformation(Model):
         self.label = label
 
 
-class ContactAddress(ContactInformation):
+class ContactAddress(ContactInformation, ContactAddressBase):
     """Contact Address"""
 
     line_1 = ModelField(str)
@@ -309,7 +394,7 @@ class ContactAddress(ContactInformation):
         self.country = country
 
 
-class ContactEmail(ContactInformation):
+class ContactEmail(ContactInformation, ContactEmailBase):
     """Contact Email Address"""
 
     address = ModelField(str)
@@ -319,7 +404,7 @@ class ContactEmail(ContactInformation):
         self.address = address
 
 
-class ContactPhone(ContactInformation):
+class ContactPhone(ContactInformation, ContactPhoneBase):
     """Contact Phone Number"""
 
     number = ModelField(str)
@@ -333,7 +418,7 @@ class Permissible(Model):
     """A model that is part of a permissions hierarchy"""
 
     permissions = ArrayField(str)
-    groups = ArrayField(Group)
+    groups = ArrayField(GroupBase)
 
     def __init__(self, permissions=(), groups=(), **kwargs):
         super(Permissible, self).__init__(**kwargs)
@@ -393,7 +478,7 @@ class Permissible(Model):
                 return all([permission_matches.get(perm) for perm in perms])
 
 
-class Group(Permissible):
+class Group(Permissible, GroupBase):
     """A User group containing permissions"""
 
     name = ModelField(str)
@@ -405,13 +490,13 @@ class Group(Permissible):
         self.description = description
 
 
-class User(Permissible):
+class User(Permissible, UserBase):
     """A User"""
 
     email = ModelField(str)
     display_name = ModelField(str)
     password_hash = ModelField(str)
-    contacts = ArrayField(Contact)
+    contacts = ArrayField(ContactBase)
     email_verified = ModelField(bool)
     active = ModelField(bool)
     last_active = ModelField(datetime.datetime, nullable=True)
