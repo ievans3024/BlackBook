@@ -77,7 +77,21 @@ class CouchDatabase(blackbook.database.Database):
         return True
 
     def create(self, data):
-        pass
+        model = self.model_map.get(data.__class__)
+        if model is None:
+            raise blackbook.database.InvalidModelError()
+
+        data_dict = data.serialize()
+        del data_dict['id']
+        data_dict['_id'] = data.id
+
+        doc = model(**data_dict)
+        saved = self.db.save(doc)
+
+        if data.id is None:
+            data.id = saved[0].id
+        
+        return data
 
     def delete(self, data):
         pass
