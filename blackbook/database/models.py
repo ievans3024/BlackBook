@@ -623,7 +623,7 @@ class Session(SessionBase):
     """A User Session"""
 
     user = ModelField(UserBase)
-    token = ModelField(uuid.uuid4)
+    token = ModelField(uuid.UUID)
     expiry = ModelField(datetime.datetime)
 
 
