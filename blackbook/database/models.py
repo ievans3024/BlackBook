@@ -254,31 +254,73 @@ class Array(collections.UserList):
     """A special kind of iterable that only wants to store instances of a certain type."""
 
     def __init__(self, iterable=(), cls=object, allow_none=False):
-        if not isinstance(cls, type):
-            raise TypeError('Parameter "cls" must be a class, i.e., isinstance(cls, type)')
-        if not isinstance(iterable, collections.Iterable):
-            raise TypeError('Parameter "iterable" must be iterable.')
-        if not all([isinstance(i, cls) for i in iterable]):
-            raise ValueError('Parameter "iterable" must contain instances of "{cls}"'.format(cls=cls.__name__))
-        elif (not allow_none) and (not all([i is not None for i in iterable])):
-            raise ValueError(
-                'Parameter "iterable" cannot contain "None" values. Use allow_none=True to bypass this.'
-            )
-        else:
-            super(Array, self).__init__([i for i in iterable])
-        self.cls = cls
+
         self.allow_none = bool(allow_none)
 
+        if not isinstance(cls, type):
+            raise TypeError('Parameter "cls" must be a class, i.e., isinstance(cls, type)')
+        else:
+            self.cls = cls
+
+        if not isinstance(iterable, collections.Iterable):
+            raise TypeError('Parameter "iterable" must be iterable.')
+        else:
+            iterable_ok, reason = self._items_allowed(*iterable)
+            if not iterable_ok:
+                if reason == 'not pure':
+                    raise ValueError('Parameter "iterable" must contain instances of "{cls}"'.format(cls=cls.__name__))
+                elif reason == 'none not allowed':
+                    raise ValueError(
+                        'Parameter "iterable" cannot contain "None" values. Use allow_none=True to bypass this.'
+                    )
+            else:
+                super(Array, self).__init__([i for i in iterable])
+
     def __setitem__(self, key, value):
-        # TODO: code to handle obj[n] = x
-        pass
+
+        value_ok, reason = self._items_allowed(value)
+
+        if not value_ok:
+            if reason == 'not pure':
+                raise TypeError('Value must be an instance of "{cls}"'.format(cls=self.cls.__name__))
+            elif reason == 'none not allowed':
+                raise TypeError('Value cannot be None.')
+        else:
+            super(Array, self).__setitem__(key, value)
 
     def __add__(self, other):
-        # TODO: code to handle obj + other_iterable
-        pass
+        if not isinstance(other, collections.Iterable):
+            raise TypeError('can only concatenate iterable (not "{cls}") to Array'.format(cls=other.__class__.__name__))
+        else:
+            iterable_ok, reason = self._items_allowed(*other)
+            if not iterable_ok:
+                if reason == 'not pure':
+                    raise ValueError(
+                        'other iterable must only contain instances of "{cls}"'.format(cls=self.cls.__name__)
+                    )
+                if reason == 'none not allowed':
+                    raise ValueError('other iterable cannot contain None.')
+            else:
+                super(Array, self).__add__(other)
+    
+    def _items_allowed(self, *items):
+        items_contains_none = any([i is None for i in items])
+        items_contents_pure = all([isinstance(i, self.cls) for i in items])
+        items_contents_pure_none = all(
+            [
+                (isinstance(i, self.cls) or i is None)
+                for i in items
+            ]
+        )
+        if (not self.allow_none and not items_contents_pure) or (self.allow_none and not items_contents_pure_none):
+            return False, 'not pure'
+        elif (not self.allow_none) and items_contains_none:
+            return False, 'none not allowed'
+        else:
+            return True, 'ok'
 
     def append(self, item):
-        if (not self.allow_none) and isinstance(item, self.cls):
+        if (not self.allow_none) and (not isinstance(item, self.cls)):
             raise TypeError('Parameter "item" must be an instance of "{cls}"'.format(cls=self.cls.__name__))
         elif (not self.allow_none) and (item is None):
             raise ValueError('Parameter "item" cannot be None.')
