@@ -18,6 +18,7 @@ class CouchModel(couchdb.mapping.Document):
     id = couchdb.mapping.TextField(default=uuid.uuid4)
     date_created = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
     date_modified = couchdb.mapping.DateTimeField(default=datetime.datetime.now)
+    type = couchdb.mapping.TextField()
 
     def __init__(self, *args, **kwargs):
         super(CouchModel, self).__init__(*args, **kwargs)
@@ -31,6 +32,41 @@ class CouchModel(couchdb.mapping.Document):
         else:
             self.date_modified = datetime.datetime.now()
         super(CouchModel, self).__setattr__(key, value)
+
+    @property
+    def owner(self):
+        """
+        Retrieve the ID(s) of owner documents
+
+        Implementations should always return a list, even if
+        there is no owner.
+
+        :return:
+        """
+        raise NotImplementedError()
+
+    @property
+    def owns(self):
+        """
+        Retrief the ID(s) of owned documents
+
+        Implementations should always return a list, even if
+        this document doesn't own any others.
+
+        :return:
+        """
+        raise NotImplementedError()
+    
+    def dereference(self, key):
+        """
+        Remove a reference to another document.
+        
+        Implementations should know where references to other documents are stored
+        and iterate over the possibilities appropriately to remove the provided reference.
+        
+        :return:
+        """
+        raise NotImplementedError()
 
 
 class Contact(CouchModel):
@@ -48,11 +84,32 @@ class Contact(CouchModel):
     by_surname = couchdb.mapping.ViewField("contact", "")
     by_user = couchdb.mapping.ViewField("contact", "")
 
+    @property
+    def owner(self):
+        return [self.user]
+
+    @property
+    def owns(self):
+        return self.addresses + self.emails + self.phone_numbers
+
+    def dereference(self, key):
+        for l in (self.addresses, self.emails, self.phone_numbers):
+            if key in l:
+                l.pop(l.index(key))
+
 
 class ContactInformation(CouchModel):
 
     contact = couchdb.mapping.TextField()  # Contact.id
     label = couchdb.mapping.TextField()
+
+    @property
+    def owner(self):
+        return [self.contact]
+
+    @property
+    def owns(self):
+        return []
 
 
 class ContactAddress(ContactInformation):
@@ -80,11 +137,33 @@ class Permissible(CouchModel):
     permissions = couchdb.mapping.ListField(couchdb.mapping.TextField())
     groups = couchdb.mapping.ListField(couchdb.mapping.TextField())  # list of Group.id
 
+    @property
+    def owner(self):
+        return []
+
+    @property
+    def owns(self):
+        return []
+
+    def dereference(self, key):
+        if key in self.groups:
+            self.groups.pop(self.groups.index(key))
+
 
 class Group(Permissible):
 
     name = couchdb.mapping.TextField()
     description = couchdb.mapping.TextField()
+
+    all = couchdb.mapping.ViewField('group', '')
+
+    @property
+    def owner(self):
+        return []
+
+    @property
+    def owns(self):
+        return []
 
 
 class Session(CouchModel):
@@ -93,6 +172,14 @@ class Session(CouchModel):
     expiry = couchdb.mapping.DateTimeField(
         default=lambda: datetime.datetime.now() + datetime.datetime.timedelta(**LOGIN_TIMEOUT)
     )
+
+    @property
+    def owner(self):
+        return [self.user]
+
+    @property
+    def owns(self):
+        return []
 
 
 class User(Permissible):
@@ -104,3 +191,19 @@ class User(Permissible):
     email_verified = couchdb.mapping.BooleanField()
     active = couchdb.mapping.BooleanField()
     last_active = couchdb.mapping.DateTimeField()
+
+    all = couchdb.mapping.ViewField('user', '')
+
+    @property
+    def owner(self):
+        return []
+
+    @property
+    def owns(self):
+        owns = super(User, self).owns
+        owns = owns + self.contacts
+        return owns
+
+    def dereference(self, key):
+        if key in self.contacts:
+            self.contacts.pop(self.contacts.index(key))
