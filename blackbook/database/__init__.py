@@ -26,6 +26,11 @@ class InvalidModelError(DatabaseError):
     pass
 
 
+class NotFoundError(DatabaseError):
+    """Error class for when the database cannot find an entry based on the supplied data."""
+    pass
+
+
 class Database(object):
     """Abstract base class for databases"""
 
