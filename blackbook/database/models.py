@@ -626,6 +626,12 @@ class Session(SessionBase):
     token = ModelField(uuid.UUID)
     expiry = ModelField(datetime.datetime)
 
+    def __init__(self, user, token, expiry, **kwargs):
+        super(Session, self).__init__(**kwargs)
+        self.user = user
+        self.token = token
+        self.expiry = expiry
+
 
 class User(Permissible, UserBase):
     """A User"""
