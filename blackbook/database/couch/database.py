@@ -19,6 +19,7 @@ class CouchDatabase(blackbook.database.Database):
         common_models.ContactEmail: couch_models.ContactEmail,
         common_models.ContactPhone: couch_models.ContactPhone,
         common_models.Group: couch_models.Group,
+        common_models.Session: couch_models.Session,
         common_models.User: couch_models.User
     }
 
@@ -81,6 +82,10 @@ class CouchDatabase(blackbook.database.Database):
         if model is None:
             raise blackbook.database.InvalidModelError()
 
+        existing = self.db.get(data.id)
+        if existing is not None:
+            raise blackbook.database.EntryExistsError()
+
         data_dict = data.serialize()
         del data_dict['id']
         data_dict['_id'] = data.id
@@ -94,7 +99,30 @@ class CouchDatabase(blackbook.database.Database):
         return data
 
     def delete(self, data):
-        pass
+        doc = self.db.get(data.id)
+        if doc is None:
+            raise blackbook.database.NotFoundError()
+
+        if isinstance(data, common_models.Contact):
+            # TODO: Find and delete all ContactInformation
+            # TODO: Find user and remove self from User.contacts
+            # TODO: Simple delete
+            pass
+        elif isinstance(data, common_models.ContactInformation):
+            # TODO: Simple delete
+            pass
+        elif isinstance(data, common_models.Group):
+            # TODO: Find all Groups with this group in Group.groups, remove self
+            # TODO: Find all users with this group in User.groups, remove self
+            # TODO: Simple delete
+            pass
+        elif isinstance(data, common_models.Session):
+            # TODO: Simple delete
+            pass
+        elif isinstance(data, common_models.User):
+            # TODO: Find and delete all Contacts
+            # TODO: Find and delete all Sessions
+            pass
 
     def read(self, model, _id=None):
         pass
