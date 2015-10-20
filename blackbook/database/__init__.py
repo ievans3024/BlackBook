@@ -84,6 +84,11 @@ class Database(object):
         How the data is used to find and delete the existing entry
         is left to the discretion of the implementation.
 
+        Implementations should not attempt to recurse through the data
+        to delete related entries, and should only delete entries for
+        the specified model. The API is expected to recurse through model
+        properties and call this method for each Model instance it comes across.
+
         Implementations should not return anything and should raise
         informative errors should any problems occur.
 

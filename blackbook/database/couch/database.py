@@ -23,6 +23,8 @@ class CouchDatabase(blackbook.database.Database):
         common_models.User: couch_models.User
     }
 
+    type_map = {v.__name__.lower(): v for k, v in model_map.items()}
+
     def __init__(self):
         self.dbname = current_app.config.get('COUCHDB_NAME') or 'blackbook'
         try:
@@ -91,38 +93,19 @@ class CouchDatabase(blackbook.database.Database):
         data_dict['_id'] = data.id
 
         doc = model(**data_dict)
-        saved = self.db.save(doc)
+        doc.save(self.db)
 
         if data.id is None:
-            data.id = saved[0].id
+            data.id = doc.id
 
         return data
 
     def delete(self, data):
-        doc = self.db.get(data.id)
-        if doc is None:
+        existing = self.db.get(data.id)
+        if existing is None:
             raise blackbook.database.NotFoundError()
 
-        if isinstance(data, common_models.Contact):
-            # TODO: Find and delete all ContactInformation
-            # TODO: Find user and remove self from User.contacts
-            # TODO: Simple delete
-            pass
-        elif isinstance(data, common_models.ContactInformation):
-            # TODO: Simple delete
-            pass
-        elif isinstance(data, common_models.Group):
-            # TODO: Find all Groups with this group in Group.groups, remove self
-            # TODO: Find all users with this group in User.groups, remove self
-            # TODO: Simple delete
-            pass
-        elif isinstance(data, common_models.Session):
-            # TODO: Simple delete
-            pass
-        elif isinstance(data, common_models.User):
-            # TODO: Find and delete all Contacts
-            # TODO: Find and delete all Sessions
-            pass
+        self.db.delete(existing)
 
     def read(self, model, _id=None):
         pass
