@@ -1,0 +1,199 @@
+
+ABCs:
+
+Errors:
+
+blackbook.database.DatabaseError(BaseException)
+
+    Base database error class
+
+blackbook.database.models.ModelError(BaseException)
+
+    Base model error class
+
+blackbook.database.DatabaseNotReadyError(DatabaseError)
+
+    Database.ready returned false
+    use inside database and/or model methods
+
+blackbook.database.DatabaseUnreachableError(DatabaseError)
+
+    Database server was unreachable
+
+blackbook.database.ReplicationError(DatabaseError)
+
+    There was a problem during replication
+
+blackbook.database.models.ExistsError(ModelError)
+
+    The object attempting to be created already exists
+
+blackbook.database.models.InvalidError(ModelError)
+
+    The object attempting to be created/modified has invalid or unexpected data
+
+blackbook.database.models.NotFoundError(ModelError)
+
+    The object attempting to be deleted/modified/read does not exist
+
+blackbook.database.Database(object)
+
+    A database connection
+
+    properties:
+
+        models:
+            returns: dict
+            params: none
+            raises: none
+            a mapping of all Models for this database
+            keys should be abstract base classes found in blackbook.database.models
+            values should be subclasses of above, specific to the type of database
+
+        ready:
+            returns: bool
+            params: none
+            raises:
+                DatabaseUnreachableError
+            checks that database server is reachable
+            checks that all necessary databases/tables/schema exist
+
+    methods:
+
+        __init__:
+            returns: self
+            params: self, uri, dbname, user, password
+            raises:
+                DatabaseUnreachableError
+            initializes an instance Database
+
+        replicate:
+            returns: None
+            params: database
+            raises:
+                ReplicationError
+                DatabaseUnreachableError
+            replicates the contents of another Database instance into this instance
+
+        setup:
+            returns: None
+            params: none
+            raises:
+                DatabaseUnreachableError
+
+blackbook.database.models.ModelInterface(object)
+
+    A data model interface
+
+    properties:
+
+        ready:
+            returns: bool
+            params: none
+            raises:
+                DatabaseUnreachableError
+            checks that the necessary database/tables/schema exist and are accurate
+
+    class properties:
+
+        model:
+            returns: a Model class this interface is made to handle
+            params: none
+            raises: none
+
+    methods:
+
+        __init__:
+            returns: self
+            params: self, db
+            raises:
+                DatabaseUnreachableError
+                TypeError (wrong database type)
+            initializes a ModelInterface instance
+
+        create:
+            returns: Model instance
+            params: self, data (a Model instance)
+            raises:
+                DatabaseUnreachableError
+                ExistsError
+                InvalidError
+            creates new data
+
+        delete:
+            returns: None
+            params: self, _id
+            raises:
+                DatabaseUnreachableError
+                InvalidError
+                NotFoundError
+            deletes existing data
+
+        read:
+            returns: a Model instance
+            params: self, _id
+            raises:
+                DatabaseUnreachableError
+                InvalidError
+                NotFoundError
+            reads existing data
+
+        search:
+            returns: a list of Model instances
+            params: self, query
+            raises:
+                DatabaseUnreachableError
+            searches existing data for matches to a query
+
+        setup:
+            returns: None
+            params: none
+            raises:
+                DatabaseUnreachableError
+            creates all necessary databases/tables/schema for a model
+
+        update:
+            returns: a Model instance
+            params: self, data (a Model instance)
+            raises:
+                DatabaseUnreachableError
+                NotFoundError
+                InvalidError
+            updates existing data, uses Model.id to find existing target for update
+
+blackbook.database.models.Model(object)
+
+    Some data
+
+    properties:
+
+        id:
+            returns: a unique identifier for the instance, or None
+            params: none
+            raises: none
+
+        date_created:
+            returns: a datetime.datetime instance representing the instance's creation time
+            params: none
+            raises: none
+
+        date_modified:
+            returns: a datetime.datetime instance representing the instance's last modification time
+            params: none
+            raises: none
+
+    methods:
+
+        __init__:
+            returns: self
+            params: self, _id, date_created, date_modified
+            raises:
+                InvalidError
+            initializes a Model instance
+
+        __setattr__:
+            returns: None
+            params: self, key, value
+            raises: none
+            modifies the current instance, preserving accurate values for date_created and date_modified
+
