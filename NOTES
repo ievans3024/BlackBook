@@ -36,6 +36,8 @@ blackbook.database.models.NotFoundError(ModelError)
 
     The object attempting to be deleted/modified/read does not exist
 
+Objects:
+
 blackbook.database.Database(object)
 
     A database connection
