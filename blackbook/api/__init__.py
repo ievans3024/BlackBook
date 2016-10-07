@@ -5,4 +5,11 @@ __author__ = 'ievans3024'
 
 
 class Api(MethodView):
-    pass
+
+    def __init__(self, db, mimetype):
+        self.db = db
+        self.mimetype = mimetype
+        super(Api, self).__init__()
+
+    def generate_document(self, *args, **kwargs):
+        raise NotImplementedError()
