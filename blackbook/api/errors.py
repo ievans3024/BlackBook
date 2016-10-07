@@ -1,17 +1,12 @@
-from blackbook.lib import collection_plus_json
-
 __author__ = 'ievans3024'
 
 
-class APIError(collection_plus_json.Error, BaseException):
+class APIError(BaseException):
     """
     Wrapper class for API Errors
 
     May be raised as a python exception, i.e.:
         raise APIError()
-
-    May be inserted into a collection_plus_json.Collection instance, i.e.:
-        collection_plus_json.Collection(href="/foo/", error=APIError())
 
     Convenience classes that subclass this:
 
@@ -39,21 +34,6 @@ class APIError(collection_plus_json.Error, BaseException):
         else:
             # let other types of APIErrors get raised
 
-    Additionally, easier than typing out common errors every time they come up:
-
-        collection_plus_json.Collection(href="/foo/", error=APINotFoundError())
-
-    instead of
-
-        collection_plus_json.Collection(
-            href="/foo/",
-            error=APIError(
-                code="404",
-                title="Not Found",
-                message="The server could not find the requested resource."
-            )
-        )
-
     """
 
     def __init__(self,
@@ -70,7 +50,13 @@ class APIError(collection_plus_json.Error, BaseException):
         :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIError, self).__init__(code=code, message=message, title=title, **kwargs)
+        self.code = code
+        self.message = message
+        self.title = title
+        super(APIError, self).__init__(**kwargs)
+
+    def __str__(self):
+        return 'HTTP {0} {1}: {2}'.format(self.code, self.title, self.message)
 
 
 class APIBadRequestError(APIError):
