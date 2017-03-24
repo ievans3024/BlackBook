@@ -2,34 +2,6 @@ from flask import current_app
 
 db = current_app.db
 
-
-class BaseModel(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date_created = db.Column(db.DateTime)
-    date_modified = db.Column(db.DateTime)
-
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            self.__setattr__(k, v)
-
-
-class Permissible(object):
-
-    def has_permission(self, *permissions, operator='or'):
-
-        ops = {'and', 'or'}
-
-        if operator not in ops:
-            operator = 'or'
-
-        permission_check = [p.permission in permissions for p in self.permissions]
-
-        if operator == 'and':
-            return all(permission_check)
-        else:
-            return any(permission_check)
-
-
 group_permissions = db.Table('group_permissions',
                              db.Column('group_id', db.Integer, db.ForeignKey('group.id')),
                              db.Column('permission', db.String, db.ForeignKey('permission.permission'))
@@ -51,7 +23,27 @@ contacts = db.Table('contacts',
                     )
 
 
-class User(BaseModel, Permissible):
+class Permissible(object):
+
+    def has_permission(self, *permissions, operator='or'):
+
+        ops = {'and', 'or'}
+
+        if operator not in ops:
+            operator = 'or'
+
+        permission_check = [p.permission in permissions for p in self.permissions]
+
+        if operator == 'and':
+            return all(permission_check)
+        else:
+            return any(permission_check)
+
+
+class User(db.Model, Permissible):
+    id = db.Column(db.Integer, primary_key=True)
+    date_created = db.Column(db.DateTime)
+    date_modified = db.Column(db.DateTime)
     email = db.Column(db.String, unique=True)
     password_hash = db.Column(db.String)
     display_name = db.Column(db.String)
@@ -61,6 +53,10 @@ class User(BaseModel, Permissible):
     permissions = db.relationship('Permission', secondary=user_permissions, backref='user', lazy='dynamic')
     groups = db.relationship('Group', secondary=user_groups, backref='user', lazy='dynamic')
 
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
+
     def has_permission(self, *permissions, operator='or'):
         has_permission = super(self, User).has_permission(*permissions, operator=operator)
         if not has_permission:
@@ -69,17 +65,30 @@ class User(BaseModel, Permissible):
             )
 
 
-class Group(BaseModel, Permissible):
+class Group(db.Model, Permissible):
+    id = db.Column(db.Integer, primary_key=True)
+    date_created = db.Column(db.DateTime)
+    date_modified = db.Column(db.DateTime)
     name = db.Column(db.String, unique=True)
     description = db.Column(db.String)
     permissions = db.relationship('Permission', secondary=group_permissions, backref='permissible', lazy='dynamic')
+
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
 
 
 class Permission(db.Model):
     permission = db.Column(db.String, unique=True)
 
+    def __init__(self, permission):
+        self.permission = permission
 
-class Contact(BaseModel):
+
+class Contact(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_created = db.Column(db.DateTime)
+    date_modified = db.Column(db.DateTime)
     name_prefix = db.Column(db.String)
     name_first = db.Column(db.String)
     name_middle = db.Column(db.String)
@@ -89,8 +98,15 @@ class Contact(BaseModel):
     emails = db.relationship('Email', backref='contact', lazy='dynamic')
     phone_numbers = db.relationship('PhoneNumber', backref='contact', lazy='dynamic')
 
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
 
-class Address(BaseModel):
+
+class Address(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_created = db.Column(db.DateTime)
+    date_modified = db.Column(db.DateTime)
     label = db.Column(db.String)
     company = db.Column(db.String)
     street = db.Column(db.String)
@@ -100,18 +116,43 @@ class Address(BaseModel):
     postal_code = db.Column(db.String)
     country = db.Column(db.String)
 
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
 
-class Email(BaseModel):
+
+class Email(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_created = db.Column(db.DateTime)
+    date_modified = db.Column(db.DateTime)
     label = db.Column(db.String)
     address = db.Column(db.String)
 
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
 
-class PhoneNumber(BaseModel):
+
+class PhoneNumber(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_created = db.Column(db.DateTime)
+    date_modified = db.Column(db.DateTime)
     label = db.Column(db.String)
     number = db.Column(db.String)
 
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
 
-class Session(BaseModel):
+
+class Session(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_created = db.Column(db.DateTime)
+    date_modified = db.Column(db.DateTime)
     expiry = db.Column(db.DateTime)
     token = db.Column(db.String)
     user = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
