@@ -1,7 +1,6 @@
 from flask import current_app
-from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy(current_app)
+db = current_app.db
 
 
 class BaseModel(db.Model):
