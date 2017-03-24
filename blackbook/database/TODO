@@ -1,1 +1,0 @@
-# TODO: Rewrite database/api plugins using Blueprints, register appropriate blueprint on app init based on config
