@@ -1,3 +1,5 @@
+from flask.views import MethodView
+
 __author__ = 'ievans3024'
 
 
@@ -326,3 +328,77 @@ class APIServiceUnavailableError(APIError):
         :return:
         """
         super(APIServiceUnavailableError, self).__init__(code=code, title=title, message=message, **kwargs)
+
+
+class API(MethodView):
+
+    def __init__(self, app, db):
+        self.app = app
+        self.db = db
+        super(API, self).__init__()
+
+    def _generate_document(self, model_instance):
+        raise NotImplementedError()
+
+
+class ContactAPI(API):
+
+    def delete(self):
+        pass
+
+    def _generate_document(self, model_instance):
+        pass
+
+    def get(self):
+        pass
+
+    def head(self):
+        pass
+
+    def patch(self):
+        pass
+
+    def post(self):
+        pass
+
+
+class SessionAPI(API):
+
+    def delete(self):
+        pass
+
+    def _generate_document(self, model_instance):
+        pass
+
+    def get(self):
+        pass
+
+    def head(self):
+        pass
+
+    def patch(self):
+        pass
+
+    def post(self):
+        pass
+
+
+class UserAPI(API):
+
+    def delete(self):
+        pass
+
+    def _generate_document(self, model_instance):
+        pass
+
+    def get(self):
+        pass
+
+    def head(self):
+        pass
+
+    def patch(self):
+        pass
+
+    def post(self):
+        pass
