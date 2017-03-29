@@ -1,4 +1,6 @@
+import blackbook.lib.collection_plus_json as collection_json
 from flask.views import MethodView
+from flask import session, request
 
 __author__ = 'ievans3024'
 
@@ -332,13 +334,36 @@ class APIServiceUnavailableError(APIError):
 
 class API(MethodView):
 
+    def __new__(cls, app, db, *args, **kwargs):
+        super(API, cls).__new__(*args, **kwargs)
+
     def __init__(self, app, db):
         self.app = app
         self.db = db
         super(API, self).__init__()
 
-    def _generate_document(self, model_instance):
-        raise NotImplementedError()
+    def _generate_document(self, *args, **kwargs):
+        return collection_json.Collection(href=request.url_rule)
+
+    def _error(self, error):
+        document = self._generate_document()
+        document.error = collection_json.Error(code=error.code, title=error.title, message=error.message)
+        return error.code, str(document)
+
+    def _session_ok(self):
+        # get session id and token from cookies
+        # get session from database
+        #   if not exists, raise APINotFoundError
+        # ensure session is unexpired
+        #   if expired, delete from db and raise APIAuthenticationTimeoutError
+        pass
+
+    def _user_by_session(self):
+        # call _session_ok
+        # allow errors to bubble
+        # get user by session
+        # return user model instance
+        pass
 
 
 class ContactAPI(API):
@@ -346,7 +371,11 @@ class ContactAPI(API):
     def delete(self):
         pass
 
-    def _generate_document(self, model_instance):
+    def _generate_document(self, model_instance=None):
+        document = super(ContactAPI, self)._generate_document()
+        # add endpoint specific features (template, queries, etc.)
+        # read model instance values and put them in document.items
+        #
         pass
 
     def get(self):
@@ -365,21 +394,36 @@ class ContactAPI(API):
 class SessionAPI(API):
 
     def delete(self):
+        # call _session_ok
+        # catch errors and return _error code
+        # remove from db and return 200 OK if no errors raise
         pass
 
-    def _generate_document(self, model_instance):
+    def _generate_document(self, model_instance=None):
         pass
 
     def get(self):
-        pass
+        return self.head()
 
     def head(self):
+        # call _session_ok
+        # catch errors and return _error code
+        # return 200 OK without body if no errors raise
         pass
 
     def patch(self):
+        # call _session_ok
+        # catch errors and return _error code
+        # update session expiry
+        # return 200 OK without body if no errors raise
         pass
 
     def post(self):
+        # get user from posted credentials
+        # return 400 Bad Request if credential failure
+        # generate session token
+        # create session in database
+        # return 200 OK with body containing session token
         pass
 
 
@@ -388,7 +432,7 @@ class UserAPI(API):
     def delete(self):
         pass
 
-    def _generate_document(self, model_instance):
+    def _generate_document(self, model_instance=None):
         pass
 
     def get(self):
