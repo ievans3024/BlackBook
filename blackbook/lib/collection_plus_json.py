@@ -1,8 +1,8 @@
-__author__ = 'Ian S. Evans'
-__version__ = '0.0.4'
-
 from json import dumps, JSONEncoder, loads
 from collections import UserList
+
+__author__ = 'Ian S. Evans'
+__version__ = '0.0.4'
 
 MIMETYPE = "application/vnd.collection+json"
 
@@ -397,7 +397,7 @@ class Item(Serializable, Comparable):
     __should__ = {"href": {"type": str, "truthy": True}}
     '''
 
-    def __init__(self, href=None, data=[], links=[], **kwargs):
+    def __init__(self, href=None, data=(), links=(), **kwargs):
 
         super(Item, self).__init__()
 
@@ -427,7 +427,7 @@ class Template(Serializable, Comparable):
     __should__ = {"data": {"type": (list, UserList), "truthy": False}}
     '''
 
-    def __init__(self, data=[], **kwargs):
+    def __init__(self, data=(), **kwargs):
 
         super(Template, self).__init__()
 
