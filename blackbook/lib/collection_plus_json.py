@@ -151,7 +151,7 @@ class Array(Serializable, Comparable, UserList):
     See: http://amundsen.com/media-types/collection/format/#arrays
     """
 
-    def __init__(self, iterable=[], cls=object, *args, **kwargs):
+    def __init__(self, iterable, cls=object, *args, **kwargs):
         super(Array, self).__init__(self, iterable, *args, **kwargs)
         self.required_class = cls
         for item in iterable:
@@ -465,8 +465,8 @@ class Collection(Serializable, Comparable):
     def mimetype(self):
         return self.__mimetype
 
-    def __init__(self, href=None, version="1.0", error=None, items=[],
-                 links=[], queries=[], template=None, **kwargs):
+    def __init__(self, href=None, version="1.0", error=None, items=None,
+                 links=None, queries=None, template=None, **kwargs):
         super(Collection, self).__init__()
         # Process like normal, apply restrictions to properties
         # from the standard, allow non-standard properties
