@@ -6,15 +6,6 @@ from blackbook.api import ContactAPI, SessionAPI, UserAPI
 __author__ = 'ievans3024'
 
 
-def load_config_from_env():
-    config = {}
-    for k in app.config.keys():
-        try:
-            config[k] = os.environ[k]
-        except KeyError:
-            pass
-    return config
-
 app = Flask('blackbook')
 
 app.config.setdefault('BLACKBOOK_PASSWORD_HASH_METHOD', 'pbkdf2:sha512')
@@ -23,8 +14,10 @@ app.config.setdefault('BLACKBOOK_API_URL_ROOT', '/api/')
 app.config.setdefault('BLACKBOOK_API_PAGINATION_PER_PAGE', 10)
 
 app.config.from_pyfile('config.py', silent=True)
-env_config = load_config_from_env()
-app.config.update(**env_config)
+
+# Downside to using os.environ like this is, extraneous
+# vars can leak in, but a good server op can prevent that.
+app.config.update(**os.environ)
 
 app.db = SQLAlchemy(app)
 
