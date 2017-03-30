@@ -154,6 +154,8 @@ class Array(Serializable, Comparable, UserList):
     def __init__(self, iterable, cls=object, *args, **kwargs):
         super(Array, self).__init__(self, iterable, *args, **kwargs)
         self.required_class = cls
+        if iterable is None:
+            iterable = []
         for item in iterable:
             if isinstance(item, cls):
                 self.data.append(item)

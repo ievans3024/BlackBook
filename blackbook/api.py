@@ -1,6 +1,6 @@
 import blackbook.lib.collection_plus_json as collection_json
 from flask.views import MethodView
-from flask import session, request
+from flask import session, request, Response
 
 __author__ = 'ievans3024'
 
@@ -334,16 +334,15 @@ class APIServiceUnavailableError(APIError):
 
 class API(MethodView):
 
-    def __new__(cls, app, db, *args, **kwargs):
-        super(API, cls).__new__(*args, **kwargs)
-
-    def __init__(self, app, db):
+    def __init__(self, app, db, endpoint_root):
         self.app = app
         self.db = db
+        self.endpoint_root = endpoint_root
         super(API, self).__init__()
 
     def _generate_document(self, *args, **kwargs):
-        return collection_json.Collection(href=request.url_rule)
+        document = collection_json.Collection(href=self.endpoint_root)
+        return document
 
     def _error(self, error):
         document = self._generate_document()
@@ -368,27 +367,35 @@ class API(MethodView):
 
 class ContactAPI(API):
 
-    def delete(self):
-        pass
+    def delete(self, contact_id):
+        return 'Contact API - DELETE'
 
     def _generate_document(self, model_instance=None):
         document = super(ContactAPI, self)._generate_document()
         # add endpoint specific features (template, queries, etc.)
         # read model instance values and put them in document.items
         #
-        pass
+        return document
 
-    def get(self):
-        pass
+    def get(self, contact_id=None):
+        document = self._generate_document()
+        if contact_id is not None:
+            data_array = collection_json.Array([], cls=collection_json.Data)
+            data = collection_json.Data(name='id', prompt='ID Number', value=contact_id)
+            data_array.append(data)
+            item = collection_json.Item(href=request.path, data=data_array)
+            document.items = collection_json.Array([], cls=collection_json.Item)
+            document.items.append(item)
+        return Response(response=str(document), mimetype=document.mimetype)
 
-    def head(self):
-        pass
+    def head(self, contact_id=None):
+        return ''
 
-    def patch(self):
-        pass
+    def patch(self, contact_id):
+        return 'Contact API - PATCH'
 
     def post(self):
-        pass
+        return 'Contact API - POST'
 
 
 class SessionAPI(API):
