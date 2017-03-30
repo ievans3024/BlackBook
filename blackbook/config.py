@@ -11,6 +11,7 @@ SESSION_COOKIE_SECURE = False  # True in https production
 
 # Flask-SQLAlchemy Options
 SQLALCHEMY_DATABASE_URI = ''
+SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Custom Options
 PASSWORD_HASH_METHOD = 'pbkdf2:sha512'  # only methods supported by functions in werkzueg.security
