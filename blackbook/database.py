@@ -1,6 +1,6 @@
-from flask import current_app
+from flask_sqlalchemy import SQLAlchemy
 
-db = current_app.db
+db = SQLAlchemy()
 
 group_permissions = db.Table('group_permissions',
                              db.Column('group_id', db.Integer, db.ForeignKey('group.id')),
@@ -79,7 +79,7 @@ class Group(db.Model, Permissible):
 
 
 class Permission(db.Model):
-    permission = db.Column(db.String, unique=True)
+    permission = db.Column(db.String, primary_key=True)
 
     def __init__(self, permission):
         self.permission = permission

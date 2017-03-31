@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template
-from flask_sqlalchemy import SQLAlchemy
 from blackbook.api import ContactAPI, SessionAPI, UserAPI
+from blackbook.database import db
 
 __author__ = 'ievans3024'
 
@@ -19,7 +19,8 @@ app.config.from_pyfile('config.py', silent=True)
 # vars can leak in, but a good server op can prevent that.
 app.config.update(**os.environ)
 
-app.db = SQLAlchemy(app)
+db.init_app(app)
+app.db = db
 
 api_root = app.config.get('BLACKBOOK_API_URL_ROOT')
 
