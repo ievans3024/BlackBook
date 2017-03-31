@@ -26,7 +26,6 @@ contacts = db.Table('contacts',
 def init_db(database, app):
     database.init_app(app)
     database.create_all(app=app)
-    # create default user
 
 
 class Permissible(object):
@@ -121,6 +120,7 @@ class Address(db.Model):
     locality = db.Column(db.String)
     postal_code = db.Column(db.String)
     country = db.Column(db.String)
+    address_contact = db.Column(db.Integer, db.ForeignKey('contact.id'))
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -133,6 +133,7 @@ class Email(db.Model):
     date_modified = db.Column(db.DateTime)
     label = db.Column(db.String)
     address = db.Column(db.String)
+    email_contact = db.Column(db.Integer, db.ForeignKey('contact.id'))
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -145,6 +146,7 @@ class PhoneNumber(db.Model):
     date_modified = db.Column(db.DateTime)
     label = db.Column(db.String)
     number = db.Column(db.String)
+    phone_contact = db.Column(db.Integer, db.ForeignKey('contact.id'))
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -157,7 +159,7 @@ class Session(db.Model):
     date_modified = db.Column(db.DateTime)
     expiry = db.Column(db.DateTime)
     token = db.Column(db.String)
-    user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    session_user = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
