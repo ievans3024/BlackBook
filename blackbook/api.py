@@ -1,6 +1,9 @@
 import blackbook.lib.collection_plus_json as collection_json
+from blackbook.database import Contact, Permission, Session, User
+from datetime import datetime
 from flask.views import MethodView
-from flask import session, request, Response
+from flask import session, request, Response, current_app
+from werkzeug import security
 
 __author__ = 'ievans3024'
 
@@ -452,4 +455,38 @@ class UserAPI(API):
         pass
 
     def post(self):
+
+        def create_root_user(app, name, email, password, contact_info=None):
+
+            contact_info = Contact(date_created=datetime.now(), date_modified=datetime.now(), name_prefix='',
+                                   name_first='', name_middle='', name_last='', name_suffix='', addresses=[], emails=[],
+                                   phone_numbers=[])
+            current_app.db.session.add(contact_info)
+            current_app.db.session.commit()
+            permissions = [p.permission for p in Permission.query.all()]
+            password_hash = security.generate_password_hash(password,
+                                                            method=app.config.get('BLACKBOOK_PASSWORD_HASH_METHOD'),
+                                                            salt_length=app.config.get(
+                                                                'BLACKBOOK_PASSWORD_SALT_LENGTH'))
+            root = User(date_created=datetime.now(), date_modified=datetime.now(), email=email,
+                        password_hash=password_hash, display_name=name, permissions=permissions,
+                        contact_info=contact_info.id)
+            current_app.db.session.add(root)
+            current_app.db.session.commit()
+        # get user session, if existent
+        # user must have permission to create accounts
+        # validate form
+        users = User.query.all()
+        # first user created will be "root"
+        if not len(users):
+            create_root_user(current_app, '', '', '')
+        else:
+            # handle public registration if not user session and users exist
+            pass
+        # user must have permission to create admins if admin permissions are supplied
+
+        # create User
+        # attempt commit
+        # catch errors and handle appropriately
+        # return created user in document
         pass
