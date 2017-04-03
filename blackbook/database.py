@@ -26,6 +26,7 @@ contacts = db.Table('contacts',
 def init_db(database, app):
     database.init_app(app)
     database.create_all(app=app)
+    # create all app permissions
 
 
 class Permissible(object):
@@ -52,7 +53,7 @@ class User(db.Model, Permissible):
     email = db.Column(db.String, unique=True)
     password_hash = db.Column(db.String)
     display_name = db.Column(db.String)
-    contact_info = db.Column(db.Integer, db.ForeignKey('contact.id'))
+    contact_info = db.Column(db.Integer, db.ForeignKey('contact.id'), nullable=True)
     sessions = db.relationship('Session', backref='user', lazy='dynamic')
     contacts = db.relationship('Contact', secondary=contacts, backref='user', lazy='dynamic')
     permissions = db.relationship('Permission', secondary=user_permissions, backref='user', lazy='dynamic')
