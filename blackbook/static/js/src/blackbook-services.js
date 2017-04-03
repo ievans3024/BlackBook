@@ -1,36 +1,58 @@
-black_book.services = black_book.services || angular.module('BlackBook.services', []);
+"use strict";
 
-black_book.services.factory(
-    'contacts_service', function($http) {
-        var collection = {};
-
-        return {
-            create: function (data, href) {
-                var request = {
-                    method: 'POST',
-                    url: '/api/entry/',
-                    headers: {'Content-Type': 'application/vnd.collection+json'},
-                    data: data
-                };
-
-                if (href) {
-                    request.url = '/api/entry/';
-                }
-
-                return $http(request);
-            },
-            read: function(href) {
-                var headers = { 'Accept': 'application/vnd.collection+json' };
-                return $http.get(href, { headers: headers }); // please note how this might be insecure
-            },
-            update: function (href, data) {
-
-            },
-            delete: function(href) {
-                return $http.delete(href);
-            },
-            collection: collection
-        }
-
-    }
-);
+;(
+  function () {
+    angular.module('BlackBook')
+      .service(
+        'contacts',
+        [
+          '$http',
+          function ($http) {
+            this.endpoint = '/api/contacts/';
+            this.data = {};
+            this.fetch = function (http_settings) {
+              var self = this;
+              return $http.get(this.endpoint, http_settings)
+                .success(
+                  function (data) {
+                    self.data = data;
+                  }
+                );
+            };
+            this.get = function (href, http_settings) {
+              return $http.get(href, http_settings);
+            };
+            this.post = function (contact, http_settings) {
+              var self = this,
+                  contact_data = '';
+              return $http.post(this.endpoint, contact_data, http_settings)
+                .success(
+                  function () {
+                    self.fetch();
+                  }
+                );
+            };
+            this.patch = function (contact, http_settings) {
+              var self = this,
+                  contact_data = '';
+              return $http.patch(contact.href, contact_data, http_settings)
+                .success(
+                  function () {
+                    self.fetch();
+                  }
+                )
+            };
+            this.delete = function (contact, http_settings) {
+              var self = this;
+              return $http.delete(contact.href, http_settings)
+                .success(
+                  function () {
+                    self.fetch();
+                  }
+                );
+            };
+          }
+        ]
+      )
+  }
+)();
