@@ -9,7 +9,6 @@ SESSION_COOKIE_SECURE = False  # True in https production
 
 # Flask-SQLAlchemy Options
 # see http://flask-sqlalchemy.pocoo.org/config/
-SQLALCHEMY_DATABASE_URI = ''
 
 # Custom Options
 # PASSWORD_HASH_METHOD
