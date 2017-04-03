@@ -1,176 +1,23 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html ng-app="BlackBook">
+  <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}BlackBook{% endblock %}</title>
-    {% block styles %}
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap.min.css') }}">
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap-theme.min.css') }}">
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/blackbook.css') }}">
-    {% endblock %}
-</head>
-{% block body %}
-<body ng-app="BlackBook">
-{% block header %}
-    <div class="navbar navbar-inverse navbar-top" role="navigation">
-        <div class="navbar-header">
-            <a href="/" class="navbar-brand">BlackBook</a>
-        </div>
-        <div class="navbar-form navbar-left">
-            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#new-entry">
-                <span>New Contact</span>
-                <span class="glyphicon glyphicon-plus"></span>
-            </button>
-        </div>
-        {# TODO: On change, populate contact list with search results #}
-        <form id="contact-search" class="navbar-form navbar-right" role="form">
-            <div class="form-group">
-                <input id="search" class="form-control" type="text" placeholder="Search for a contact">
-            </div>
-        </form>
-    </div>
-{% endblock header %}
-    <div class="container-fluid" ng-controller="contact_index">
-        <div class="row">
-{% block entrylist %}
-            <div id="current-entry" class="col-xs-12 col-sm-6 col-md-4 col-lg-3" ng-controller="selected_contact">
-                {# TODO: Make edit form dialog, add edit button #}
-                <div>
-                    <div ng-if="selected">
-                        <h3 class="name">[[selected.data.first_name.value]] [[selected.data.last_name.value]]</h3>
-                        <div class="edit">
-                            <button type="button" class="btn btn-xs btn-link">
-                                <span class="glyphicon glyphicon-pencil"></span> Edit
-                            </button>
-                            <button type="button" class="btn btn-xs btn-link" data-toggle="modal"
-                                    data-target="#delete-confirm">
-                                <span class="glyphicon glyphicon-trash"></span> Delete
-                            </button>
-                        </div>
-                        <span class="address-1">[[selected.data.address_line_1.value]]</span>
-                        <span class="address-2">[[selected.data.address_line_2.value]]</span>
-                        <span class="city">[[selected.data.city.value]]</span>
-                        <span class="state">[[selected.data.state.value]]</span>
-                        <span class="zip">[[selected.data.zip.value]]</span>
-                        <span class="country">[[selected.data.country.value]]</span>
-                        <div class="phone-number">
-                            <h4>Phone:</h4>
-                            <span class="phone-number" ng-repeat="number in selected.data.phone_numbers.value">[[ number.number_type | capitalize ]]: [[ number.number ]]</span>
-                        </div>
-                        <div class="email">
-                            <h4>E-mail:</h4>
-                            <a class="email" ng-repeat="email in selected.data.emails.value" href="mailto:[[ email.email ]]">[[ email.email_type | capitalize ]]</a>
-                        </div>
-                        <div id="delete-confirm" class="modal fade">
-                            <div class="modal-dialog">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                    <h4 class="modal-title">Confirm Delete</h4>
-                                </div>
-                                <div class="modal-body">
-                                    <p>Delete [[ selected.data.first_name.value ]] [[ selected.data.last_name.value ]]?</p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                                    <button type="button" class="btn btn-primary" data-dismiss="modal"
-                                           ng-click="delete(selected.href)">OK</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <hr class="hidden-sm hidden-md hidden-lg col-xs-12">
-            <div id="entries" class="col-xs-12 col-sm-6 col-md-8 col-lg-9">
-                <div class="entry-nav">
-                    <span class="pages col-xs-12">
-                        <a ng-repeat="nav in navigation.links" ng-click="get_contacts(nav.href)" rel="[[nav.rel]]">[[ nav.prompt ]]</a>
-                    </span>
-                    <span class="per-page-container col-xs-12">
-                        Per Page:
-                        <select class="per-page" ng-model="navigation.per_page" ng-pattern="/^\d+$/" ng-change="refresh_index()">
-                            <option value="5" selected>5</option>
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                        </select>
-                    </span>
-                </div>
-                <div class="entry" ng-repeat="contact in index">
-                    <h3 class="name" ng-click="get_detail(contact.href)">
-                        [[contact.data.first_name.value]] [[contact.data.last_name.value]]
-                    </h3>
-                    <p ng-repeat="number in contact.data.phone_numbers.value" ng-if="$first" class="phone">[[number.number]]</p>
-                </div>
-            </div>
-{% endblock entrylist %}
-        </div>
-        <form id="new-contact-entry" ng-controller="new_contact">
-            <div id="new-entry" class="modal fade">
-                <div class="modal-dialog">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title">New Contact</h4>
-                    </div>
-                    <div class="modal-body container-fluid">
-                        <div class="row" ng-repeat="field in template.data.array">
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="field.name !== 'emails' && field.name !== 'phone_numbers'">
-                                <input class="form-control" type="text" placeholder="[[field.prompt]]" maxlength="100" ng-model="field.value">
-                            </div>
-                            <div ng-if="field.name === 'emails' || field.name === 'phone_numbers'">
-                                <h5>
-                                    [[field.prompt]]
-                                </h5>
-                                <button type="button" class="btn btn-success" ng-click="add_fieldset(field.name)">
-                                    Add More <span class="glyphicon glyphicon-plus"></span>
-                                </button>
-                                <div ng-repeat="fieldset in field.value track by $index">
-                                    <div class="col-xs-11 col-xs-offset-1 col-sm-11 col-sm-offset-1 col-md-11 col-md-offset-1 col-lg-11 col-lg-offset-1">
-                                        <div class="col-xs-5 col-sm-5 col-md-5 col-lg-5" ng-repeat="f in fieldset.data">
-                                            <input class="form-control" type="text" placeholder="[[f.prompt]]" maxlength="100" ng-model="f.value">
-                                        </div>
-                                        <button type="button" class="btn btn-danger col-xs-1 col-sm-1 col-md-1 col-lg-1" ng-click="remove_fieldset(field.name, $index)" ng-if="!$first">
-                                            <span class="glyphicon glyphicon-minus"></span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <div class="row">
-                            <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
-                                <button class="form-control btn btn-success" ng-click="create_new()">Create</button>
-                            </div>
-                        </div>
-                        <div id="submit-status-box" class="row">
-                                <span class="[[status.cssclass]] col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-repeat="status in statuses track by $index">[[status.text]]</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-{% block dialog %}
-    <div id="status-dialog" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title"></h4>
-            </div>
-            <div class="modal-body"><p></p></div>
-            <div class="modal-footer"><button type="button" class="btn btn-success" data-dismiss="modal">OK</button></div>
-        </div>
-    </div>
-{% endblock dialog %}
-{% block scripts %}
+    <title>BlackBook</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/blackbook.min.css') }}">
+  </head>
+  <body>
+    <div ng-view></div>
     <script src="{{ url_for('static', filename='js/lib/collection-json.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/lib/jquery-2.1.0.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/lib/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/lib/angular.min.js') }}"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+          integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+          crossorigin="anonymous"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-route.min.js"></script>
     <script src="{{ url_for('static', filename='js/blackbook.min.js') }}"></script>
-{% endblock scripts %}
-</body>
-{% endblock body %}
+  </body>
 </html>
