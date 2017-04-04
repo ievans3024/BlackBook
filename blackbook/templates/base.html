@@ -4,13 +4,33 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>BlackBook</title>
+    <title>{% block title %}BlackBook{% endblock title %}</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/blackbook.min.css') }}">
   </head>
+  {% block body %}
   <body>
+    {% block header %}
+    <div class="navbar navbar-inverse navbar-top" role="navigation">
+      <div class="navbar-header">
+        <a href="/" class="navbar-brand">BlackBook</a>
+      </div>
+      <div class="navbar-form navbar-left">
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#new-entry">
+          <span>New Contact</span>
+          <span class="glyphicon glyphicon-plus"></span>
+        </button>
+      </div>
+      <form id="contact-search" class="navbar-form navbar-right" role="form">
+        <div class="form-group">
+          <input id="search" class="form-control" type="text" placeholder="Search for a contact">
+        </div>
+      </form>
+    </div>
+    {% endblock header %}
     <div ng-view></div>
+    {% block scripts %}
     <script src="{{ url_for('static', filename='js/lib/collection-json.min.js') }}"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
@@ -19,5 +39,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-route.min.js"></script>
     <script src="{{ url_for('static', filename='js/blackbook.min.js') }}"></script>
+    {% endblock scripts %}
   </body>
+  {% endblock body %}
 </html>

@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
-{% block title %}{{ super()}} | {{ error.code }} - {{ error.name }}{% endblock title %}
+{% block title %}{{ super() }} | {{ error.code }} - {{ error.name }}{% endblock title %}
 {% block body %}
-<body>
-{% block header %}{{ super() }}{% endblock header %}}
+  <body>
+    {% block header %}{{ super() }}{% endblock header %}}
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-xs-12 col-sm-6 col-md-8 col-lg-9">
-                <div class="entry">
-                    <h3>{{ error.name }} <span class="label label-danger">{{ error.code }}</span></h3>
-                    <p>{{ error.description }}</p>
-                </div>
-            </div>
+      <div class="row">
+        <div class="col-xs-12 col-sm-6 col-md-8 col-lg-9">
+          <div class="entry">
+            <h3>{{ error.name }} <span class="label label-danger">{{ error.code }}</span></h3>
+            <p>{{ error.description }}</p>
+          </div>
         </div>
+      </div>
     </div>
-{% block scripts %}{{ super() }}{% endblock scripts %}
-</body>
+    {% block scripts %}{{ super() }}{% endblock scripts %}
+  </body>
 {% endblock body %}
