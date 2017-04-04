@@ -4,6 +4,8 @@ __author__ = 'ievans3024'
 
 
 def check_angular_xsrf():
+    # see https://stormpath.com/blog/angular-xsrf
+    # and https://docs.angularjs.org/api/ng/service/$http#security-considerations
     if request.headers['X-XSRF-TOKEN']:
         if not session.get('XSRF-TOKEN'):
             return False
