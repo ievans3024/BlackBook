@@ -9,5 +9,6 @@ setup(
     license="MIT",
     author=blackbook.__author__,
     description="A contact management application",
-    test_suite="tests.test_all"
+    test_suite="tests.test_all",
+    install_requires=['flask', 'flask_sqlalchemy']
 )
