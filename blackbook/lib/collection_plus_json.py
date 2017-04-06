@@ -1,8 +1,8 @@
-from json import dumps, JSONEncoder, loads
-from collections import UserList
-
 __author__ = 'Ian S. Evans'
 __version__ = '0.0.4'
+
+from json import dumps, JSONEncoder, loads
+from collections import UserList
 
 MIMETYPE = "application/vnd.collection+json"
 
@@ -71,7 +71,7 @@ class CollectionField(object):
 class CollectionArrayField(CollectionField):
 
     def __init__(self, cls, contains=object, truthy=False, nullable=True):
-        super().__init__(cls, truthy=truthy, nullable=nullable)
+        super(CollectionArrayField, self).__init__(cls, truthy=truthy, nullable=nullable)
         if not isinstance(contains, type):
             raise TypeError("Parameter 'contains' must be a class.")
         self.contains = contains
@@ -151,11 +151,9 @@ class Array(Serializable, Comparable, UserList):
     See: http://amundsen.com/media-types/collection/format/#arrays
     """
 
-    def __init__(self, iterable, cls=object, *args, **kwargs):
+    def __init__(self, iterable=(), cls=object, *args, **kwargs):
         super(Array, self).__init__(self, iterable, *args, **kwargs)
         self.required_class = cls
-        if iterable is None:
-            iterable = []
         for item in iterable:
             if isinstance(item, cls):
                 self.data.append(item)
@@ -467,8 +465,8 @@ class Collection(Serializable, Comparable):
     def mimetype(self):
         return self.__mimetype
 
-    def __init__(self, href=None, version="1.0", error=None, items=None,
-                 links=None, queries=None, template=None, **kwargs):
+    def __init__(self, href=None, version="1.0", error=None, items=(),
+                 links=(), queries=(), template=None, **kwargs):
         super(Collection, self).__init__()
         # Process like normal, apply restrictions to properties
         # from the standard, allow non-standard properties
@@ -476,25 +474,30 @@ class Collection(Serializable, Comparable):
         self.href = href
         self.version = version
 
-        if error and not isinstance(error, Error):
-            error = Error(**error)  # let the class raise exceptions if something's amiss
+        if error:
+            if not isinstance(error, Error):
+                error = Error(**error)  # let the class raise exceptions if something's amiss
             self.error = error
 
-        if template and not isinstance(template, Template):
-            template = Template(**template)
+        if template:
+            if not isinstance(template, Template):
+                template = Template(**template)
             self.template = template
 
-        if items and not isinstance(items, Array):
-            items = Array(items, cls=Item)
-        self.items = items
+        if items:
+            if not isinstance(items, Array):
+                items = Array(items, cls=Item)
+            self.items = items
 
-        if links and not isinstance(links, Array):
-            links = Array(links, cls=Link)
-        self.links = links
+        if links:
+            if not isinstance(links, Array):
+                links = Array(links, cls=Link)
+            self.links = links
 
-        if queries and not isinstance(queries, Array):
-            queries = Array(queries, cls=Query)
-        self.queries = queries
+        if queries:
+            if not isinstance(queries, Array):
+                queries = Array(queries, cls=Query)
+            self.queries = queries
 
         for k, v in kwargs.items():
             # let the user set whatever non-standard data
