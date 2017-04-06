@@ -8,7 +8,7 @@ from werkzeug import security
 __author__ = 'ievans3024'
 
 
-class APIError(BaseException):
+class APIError(Exception):
     """
     Wrapper class for API Errors
 
@@ -48,6 +48,7 @@ class APIError(BaseException):
                  title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
                          "fulfilling the request.",
+                 endpoint=None,
                  **kwargs):
         """
         APIError Constructor
@@ -60,6 +61,7 @@ class APIError(BaseException):
         self.code = code
         self.message = message
         self.title = title
+        self.endpoint = endpoint
         super(APIError, self).__init__(**kwargs)
 
     def __str__(self):
@@ -347,25 +349,37 @@ class API(MethodView):
         document = collection_json.Collection(href=self.endpoint_root)
         return document
 
-    def _error(self, error):
-        document = self._generate_document()
-        document.error = collection_json.Error(code=error.code, title=error.title, message=error.message)
-        return error.code, str(document)
+    @staticmethod
+    def _get_session():
+        token = session.get('token')
 
-    def _session_ok(self):
-        # get session id and token from cookies
-        # get session from database
-        #   if not exists, raise APINotFoundError
-        # ensure session is unexpired
-        #   if expired, delete from db and raise APIAuthenticationTimeoutError
-        pass
+        if token is None:
+            return None
 
-    def _user_by_session(self):
-        # call _session_ok
-        # allow errors to bubble
-        # get user by session
-        # return user model instance
-        pass
+        user_session = Session.query.filter_by(token=token)
+
+        if not len(user_session):
+            raise APIUnauthorizedError()
+
+        if user_session.expiry <= datetime.now():
+            current_app.db.session.delete(user_session)
+            current_app.db.commit()
+            raise APIAuthenticationTimeoutError()
+
+        return user_session
+
+    def _get_session_user(self):
+        user_session = self._get_session()
+
+        if user_session is None:
+            return None
+
+        user = User.query.filter_by(id=user_session.session_user).first()
+
+        if not user:
+            return None
+
+        return user
 
 
 class ContactAPI(API):
@@ -442,11 +456,51 @@ class UserAPI(API):
     def delete(self):
         pass
 
-    def _generate_document(self, model_instance=None):
-        pass
+    def _generate_document(self, *model_instances):
 
-    def get(self):
-        pass
+        document = super(UserAPI, self)._generate_document()
+        session_user = self._get_session_user()
+
+        if len(model_instances):
+            for instance in model_instances:
+                href = self.endpoint_root + str(instance.id)
+
+                # direct user properties
+                data = collection_json.Array([], collection_json.Data)
+                data.append(collection_json.Data(name='email', prompt='Email', value=instance.email))
+                data.append(collection_json.Data(name='name', prompt='Name', value=instance.name))
+                if session_user is not None and session_user.has_permission('blackbook.user.edit.other'):
+                    for p in instance.permissions:
+                        d = collection_json.Data(name='permission', prompt='Permissions', value=p.permission)
+                        data.append(d)
+
+                # relational user properties (contacts, contact info, etc.)
+                links = collection_json.Array([], collection_json.Link)
+
+                document.items.append(collection_json.Item(href, data, links))
+
+        return document
+
+    def get(self, user_id=None):
+
+        session_user = self._get_session_user()
+
+        if session_user is None:
+            raise APIUnauthorizedError(endpoint=self.endpoint_root)
+
+        if user_id is not None:
+            if (user_id == session_user.id) or (session_user.has_permission('blackbook.user.read.other')):
+                user = User.query.filter_by(id=user_id).first()
+                if not user:
+                    raise APINotFoundError(endpoint=self.endpoint_root)
+                document = self._generate_document(user)
+                return Response(response=str(document), mimetype=document.mimetype)
+
+        if session_user.has_permission('blackbook.user.read.other'):
+            users = User.query.all()
+            # TODO: pagination
+            document = self._generate_document(*users)
+            return Response(response=str(document), mimetype=document.mimetype)
 
     def head(self):
         pass
@@ -473,17 +527,43 @@ class UserAPI(API):
                         contact_info=contact_info.id)
             current_app.db.session.add(root)
             current_app.db.session.commit()
-        # get user session, if existent
-        # user must have permission to create accounts
+            return root
         # validate form
-        users = User.query.all()
+
         # first user created will be "root"
+        users = User.query.all()
         if not len(users):
-            create_root_user(current_app, '', '', '')
-        else:
-            # handle public registration if not user session and users exist
-            pass
-        # user must have permission to create admins if admin permissions are supplied
+            root = create_root_user(current_app, '', '', '')
+            response = self._generate_document(root)
+            return Response(response=str(response), mimetype=response.mimetype)
+
+        if not current_app.config.get('BLACKBOOK_PUBLIC_REGISTRATION'):
+
+            user = self._get_session_user().first()
+
+            if len(user):
+
+                user = user.first()
+
+                # user must have permission to create accounts
+                can_create_users = user.has_permission('blackbook.user.create')
+                if not can_create_users:
+                    raise APIForbiddenError()
+
+                # user must have permission to edit other users if permissions are supplied
+                can_edit_permissions = user.has_permission('blackbook.user.edit.other')
+                if len(request.form.getlist('permissions')) and not can_edit_permissions:
+                    raise APIForbiddenError()
+
+                # user must have permission to edit admins if admin permissions are supplied
+                has_admin_permissions = user.has_permission('blackbook.admin.edit')
+                admin_permissions_supplied = [
+                    p
+                    for p in request.form.getlist('permissions')
+                    if p.startswith('blackbook.admin')
+                ]
+                if len(admin_permissions_supplied) and not has_admin_permissions:
+                    raise APIForbiddenError()
 
         # create User
         # attempt commit

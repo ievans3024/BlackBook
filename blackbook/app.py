@@ -1,6 +1,7 @@
+import blackbook.lib.collection_plus_json as collection_json
 import os
-from flask import Flask, render_template
-from blackbook.api import ContactAPI, SessionAPI, UserAPI
+from flask import Flask, render_template, request, Response
+from blackbook.api import APIError, ContactAPI, SessionAPI, UserAPI
 from blackbook.database import db, init_db
 
 __author__ = 'ievans3024'
@@ -30,6 +31,14 @@ def init_api():
     app.add_url_rule(api_root + 'session/', view_func=SessionAPI.as_view('sessions', app, db, api_root + 'session/'))
     app.add_url_rule(api_root + 'user/', view_func=UserAPI.as_view('users', app, db, api_root + 'user/'))
     app.add_url_rule(api_root + 'user/<user_id>/', view_func=UserAPI.as_view('user', app, db, api_root + 'user/'))
+
+
+@app.errorhandler(APIError)
+def handle_api_error(error):
+    document = collection_json.Collection(href=error.endpoint)
+    document.error = collection_json.Error(code=error.code, title=error.title, message=error.message)
+    response = Response(str(document), status=int(error.code), mimetype=document.mimetype)
+    return response
 
 
 @app.route("/")
