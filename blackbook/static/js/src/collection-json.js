@@ -4,365 +4,424 @@
  * @preserve true
  */
 
-/*
-  TODO: rewrite this so that it actually makes sense
- */
-/**
- * Collection Constructor
- * @param collection The Object or JSON string to construct this Collection from.
- * @throws {Error} If href or version properties are not present in collection.
- */
-function Collection(collection) {
+"use strict";
 
-  var i, collection_props;
+class CollectionArray {
 
-  if (!(this instanceof Collection)) {
-    return new Collection(collection);
-  }
-
-  this.collection = {};
-
-  // Parse from JSON, if necessary.
-  if (typeof collection === 'string') {
-    collection = JSON.parse(collection);
-  }
-
-  // Unwrap collection contents, if necessary.
-  if (collection.hasOwnProperty('collection')) {
-    collection = collection.collection;
-  }
-
-  collection = Collection.prototype.parse(collection);
-  collection_props = Object.getOwnPropertyNames(collection);
-
-  for (i = 0; i < collection_props.length; i++) {
-    this[collection_props[i]] = collection[collection_props[i]];
-  }
-
-}
-
-/**
- * Collection properties with type requirements
- */
-Collection.prototype.property_rules = {
-  error: {construct: CollectionError},
-  href: {type: 'string', required: true},
-  items: {construct: Array, contents: {construct: CollectionItem}},
-  links: {construct: Array, contents: {construct: CollectionLink}},
-  queries: {construct: Array, contents: {construct: CollectionQuery}},
-  template: {construct: CollectionTemplate},
-  version: {type: 'string', required: true}
-};
-
-/**
- * Collection string method
- */
-Collection.prototype.toString = function () {
-
-  var i,
-    acceptable_instance = false;
-
-  for (i = 0; i < Collection.hooked.length; i++) {
-    if (this instanceof Collection.hooked[i]) {
-      acceptable_instance = true;
-      break;
-    }
-  }
-
-  if (acceptable_instance) {
-    return JSON.stringify({collection: this}, this.preJSON);
-  }
-};
-
-/**
- * Property validator and parser
- * @param {Object|string} object The object to parse. May be a JSON string.
- * @return {Object} The parsed form of the object
- */
-Collection.prototype.parse = function (object) {
-  var i,
-    i_2,
-    prop,
-    property,
-    r,
-    rule,
-    rule_object,
-    rules,
-    collection = object;
-
-  function process_array(array, contains) {
-
-    var i,
-      output = [];
-
-    if (!(array instanceof Array)) {
-      throw new TypeError('array parameter must be an Array.');
-    }
+  constructor (contains, ...array) {
+    let i = 0;
 
     if (typeof contains !== 'function') {
-      throw new TypeError('contains parameter must be a function.');
+      throw new Error(
+        'First argument "contains" must be a function.'
+      );
     }
 
-    for (i = 0; i < array.length; i++) {
-      if (array[i] instanceof contains) {
-        output.push(array[i]);
-      } else {
-        output.push(new contains(array[i]));
+    for (i; i < array.length; i++) {
+      if (!(array[i] instanceof contains)) {
+        try {
+          array[i] = contains(array[i]);
+        } catch (e) {
+          throw new Error(
+            'CollectionArray[' + contains.name + '] may only contain instances of ' + contains.name + '.'
+          );
+        }
       }
     }
 
-    if (output.length > 0) {
-      return output;
-    }
+    this.data = array;
+    this.contains = contains;
 
   }
 
-  if (typeof object === 'string') {
-    object = JSON.parse(object);
-  }
-
-  rules = Object.getOwnPropertyNames(this.property_rules);
-
-  for (i = 0; i < rules.length; i++) {
-    prop = rules[i];
-    if (object.hasOwnProperty(prop)) {
-      property = object[prop];
-      rule_object = this.property_rules[prop];
-      rule = Object.getOwnPropertyNames(rule_object);
-      for (i_2 = 0; i_2 < rule.length; i_2++) {
-        r = rule[i_2];
-        if (r === 'required' && rule_object.required) {
-          if (!object.hasOwnProperty(prop)) {
-            throw new Error(prop + ' is a required property.');
-          }
-        }
-
-        if (r === 'construct') {
-          if (rule_object.construct === Array) {
-            property = process_array(property, rule_object.contents.construct);
+  get (property, value) {
+    if (typeof property === 'number') {
+      return this.data[property];
+    } else {
+      return this.data.reduce(
+        function (accumulator, currentValue) {
+          if (currentValue[property] === value) {
+            return currentValue;
           } else {
-            if (!(property instanceof rule_object.construct)) {
-              property = new rule_object.construct(property);
-            }
+            return accumulator;
           }
-        }
-
-        if (r === 'type') {
-          if (typeof property !== rule_object.type) {
-            throw new TypeError(prop + ' must be of type ' + rule_object.type);
-          }
-        }
-      }
-
-      collection[prop] = property;
+        },
+        null
+      );
     }
   }
 
-  return collection;
-};
+  push (...values) {
 
-/**
- * Hook some Collection functions into a collection data constructor's prototype
- * @param {function} construct The constructor whose prototype should receive these functions
- */
-Collection.hook = function (construct) {
-  Collection.hooked.push(construct);
-  construct.prototype.toString = Collection.prototype.toString;
-  construct.prototype.parse = Collection.prototype.parse;
-};
+    let i = 0;
 
-Collection.hooked = [Collection];
+    for (i; i < values.length; i++) {
+      if (!(values[i] instanceof this.contains)) {
+        try {
+          values[i] = new this.contains(values[i]);
+        } catch (e) {
+          console.log(e);
+          throw new Error(
+            'CollectionArray[' + this.contains.name + '] may only contain instances of ' + this.contains.name + '.'
+          )
+        }
+      }
+    }
 
+    return this.data.push(...values);
 
-/**
- * CollectionData Constructor
- * @param {Array} fields The array containing the data fields for this data
- */
-function CollectionData(fields) {
-
-  var i,
-    opts;
-
-  if (!(this instanceof CollectionData)) {
-    return new CollectionData(fields);
   }
 
-  this.array = fields;
+  splice (start, deleteCount, ...values) {
 
-  for (i = 0; i < this.array.length; i++) {
-    opts = CollectionData.prototype.parse(fields[i]); // ensure all data opts with rules are abiding by them.
-    this[opts.name] = this.array[i];
+    let i = 0;
+
+    for (i; i < values.length; i++) {
+      if (!(values[i] instanceof this.contains)) {
+        console.log(values[i]);
+        try {
+          values[i] = new this.contains(values[i]);
+        } catch (e) {
+          console.log(e);
+          throw new Error(
+            'CollectionArray[' + this.contains.name + '] may only contain instances of ' + this.contains.name + '.'
+          );
+        }
+      }
+    }
+
+    return this.data.splice(start, deleteCount, ...values);
+
   }
 
-}
-
-/**
- * CollectionData property rules
- */
-CollectionData.prototype.property_rules = {
-  'name': {type: 'string', required: true},
-  'prompt': {type: 'string'}
-};
-
-CollectionData.prototype.toArray = function () {
-  if (this instanceof CollectionData) {
-    return this.array;
-  }
-};
-
-CollectionData.prototype.preJSON = CollectionData.prototype.toArray;
-
-Collection.hook(CollectionData);
-
-
-/**
- * CollectionError Constructor
- */
-function CollectionError(opts) {
-
-  var i,
-    opts_props;
-
-  if (!(this instanceof CollectionError)) {
-    return new CollectionError(opts);
+  toString () {
+    return this.data.toString();
   }
 
-  opts = CollectionError.prototype.parse(opts);
-  opts_props = Object.getOwnPropertyNames(opts);
+  unshift (...values) {
 
-  for (i = 0; i < opts_props.length; i++) {
-    this[opts_props[i]] = opts[opts_props[i]];
-  }
-}
+    let i = 0;
 
-/**
- * CollectionError property rules
- */
-CollectionError.prototype.property_rules = {
-  title: {type: 'string'},
-  code: {type: 'string'},
-  message: {type: 'string'}
-};
+    for (i; i < values.length; i++) {
+      if (!(values[i] instanceof this.contains)) {
+        try {
+          values[i] = new this.contains(values[i]);
+        } catch (e) {
+          console.log(e);
+          throw new Error(
+            'CollectionArray[' + this.contains.name + '] may only contain instances of ' + this.contains.name + '.'
+          )
+        }
+      }
+    }
 
-Collection.hook(CollectionError);
+    return this.data.unshift(...values);
 
-
-/**
- * CollectionItem Constructor
- */
-function CollectionItem(opts) {
-
-  var i,
-    opts_props;
-
-  if (!(this instanceof CollectionItem)) {
-    return new CollectionItem(opts);
-  }
-
-  opts = CollectionItem.prototype.parse(opts);
-  opts_props = Object.getOwnPropertyNames(opts);
-
-  for (i = 0; i < opts_props.length; i++) {
-    this[opts_props[i]] = opts[opts_props[i]];
   }
 
 }
 
-/**
- * CollectionItem property rules
- */
-CollectionItem.prototype.property_rules = {
-  href: Collection.prototype.property_rules.href,
-  data: {construct: CollectionData},
-  links: Collection.prototype.property_rules.links
-};
+class CollectionData {
 
-Collection.hook(CollectionItem);
+  constructor (data) {
 
+    let property;
 
-/**
- * CollectionLink Constructor
- */
-function CollectionLink(opts) {
+    if (!data.hasOwnProperty('name')) {
+      throw new Error('CollectionData must have a "name" property');
+    }
+    this.name = data.name;
+    delete data.name;
 
-  var i,
-    opts_props;
+    if (data.hasOwnProperty('prompt')) {
+      this.prompt = data.prompt;
+      delete data.prompt;
+    }
 
-  if (!(this instanceof CollectionLink)) {
-    return new CollectionLink(opts);
-  }
+    if (data.hasOwnProperty('value')) {
+      this.value = data.value;
+      delete data.value;
+    }
 
-  opts = CollectionLink.prototype.parse(opts);
-  opts_props = Object.getOwnPropertyNames(opts);
+    // allow extensions
+    for (property in data) {
+      if (data.hasOwnProperty(property)) {
+        this[property] = data[property];
+      }
+    }
 
-  for (i = 0; i < opts_props.length; i++) {
-    this[opts_props[i]] = opts[opts_props[i]];
-  }
-
-}
-
-CollectionLink.prototype.property_rules = {
-  href: Collection.prototype.property_rules.href,
-  rel: {type: 'string', required: true},
-  prompt: {type: 'string'},
-  name: {type: 'string'},
-  render: {type: 'string'}
-};
-
-Collection.hook(CollectionLink);
-
-
-/**
- * CollectionQuery Constructor
- */
-function CollectionQuery(opts) {
-
-  var i,
-    opts_props;
-
-  if (!(this instanceof CollectionQuery)) {
-    return new CollectionQuery(opts);
-  }
-
-  opts = CollectionQuery.prototype.parse(opts);
-  opts_props = Object.getOwnPropertyNames(opts);
-
-  for (i = 0; i < opts_props.length; i++) {
-    this[opts_props[i]] = opts[opts_props[i]];
   }
 
 }
 
-CollectionQuery.prototype.property_rules = CollectionLink.prototype.property_rules;
-delete CollectionQuery.prototype.property_rules.render;
-CollectionQuery.prototype.property_rules.data = CollectionItem.prototype.property_rules.data;
+class CollectionError {
 
-Collection.hook(CollectionQuery);
+  constructor (error) {
 
+    let property;
 
-/**
- * CollectionTemplate Constructor
- */
-function CollectionTemplate(opts) {
+    // a bit wild-westy, but allows extensions and covers spec properties (which are all optional.)
+    for (property in error) {
+      if (error.hasOwnProperty(property)) {
+        this[property] = error[property];
+      }
+    }
 
-  var i,
-    opts_props;
-
-  if (!(this instanceof CollectionTemplate)) {
-    return new CollectionTemplate(opts);
-  }
-
-  opts = CollectionTemplate.prototype.parse(opts);
-  opts_props = Object.getOwnPropertyNames(opts);
-
-  for (i = 0; i < opts_props.length; i++) {
-    this[opts_props[i]] = opts[opts_props[i]];
   }
 
 }
 
-CollectionTemplate.prototype.property_rules = {
-  data: CollectionItem.prototype.property_rules.data
-};
+class CollectionLink {
 
-Collection.hook(CollectionTemplate);
+  constructor (link) {
+
+    let property;
+
+    if (!link.hasOwnProperty('href')) {
+      throw new Error('CollectionLink must have "href" property.');
+    }
+
+    if (!link.hasOwnProperty('rel')) {
+      throw new Error('CollectionLink must have "rel" property.');
+    }
+
+    this.href = link.href;
+    delete link.href;
+
+    this.rel = link.rel;
+    delete link.rel;
+
+    for (property in link) {
+      if (link.hasOwnProperty(property)) {
+        this[property] = link[property];
+      }
+    }
+
+  }
+}
+
+class CollectionItem {
+
+  constructor (item) {
+
+    let property;
+
+    if (!item.hasOwnProperty('href')) {
+      throw new Error('CollectionItem must have "href" property.');
+    }
+    this.href = item.href;
+    delete item.href;
+
+    if (item.hasOwnProperty('data')) {
+      this.data = item.data;
+      delete item.data;
+    }
+
+    if (item.hasOwnProperty('links')) {
+      this.links = item.links;
+      delete item.links;
+    }
+
+    // support extensions
+    for (property in item) {
+      if (item.hasOwnProperty(property)) {
+        this[property] = item[property];
+      }
+    }
+
+  }
+
+  get data () {
+    return super.data;
+  }
+
+  set data (value) {
+    if (!(value instanceof CollectionArray)) {
+      value = new CollectionArray(CollectionData, ...value);
+    }
+    super.data = value;
+  }
+
+  get links () {
+    return super.links;
+  }
+
+  set links (value) {
+    if (!(value instanceof CollectionArray)) {
+      value = new CollectionArray(CollectionLink, ...value);
+    }
+    super.links = value;
+  }
+
+}
+
+class CollectionQuery {
+
+  constructor (query) {
+
+    let property;
+
+    if (!query.hasOwnProperty('href')) {
+      throw new Error(
+        'CollectionQuery must have "href" property.'
+      );
+    }
+
+    if (!query.hasOwnProperty('rel')) {
+      throw new Error(
+        'CollectionQuery must have "rel" property.'
+      );
+    }
+
+    this.href = query.href;
+    delete query.href;
+
+    this.rel = query.rel;
+    delete query.rel;
+
+    for (property in query) {
+      if (query.hasOwnProperty(property)) {
+        this[property] = query[property];
+      }
+    }
+  }
+
+  get data () {
+    return super.data;
+  }
+
+  set data (value) {
+    if (!(value instanceof CollectionArray)) {
+      value = new CollectionArray(CollectionData);
+    }
+    super.data = value;
+  }
+}
+
+class CollectionTemplate {
+
+  constructor (template) {
+
+    if (!template.hasOwnProperty('data')) {
+      throw new Error(
+        'CollectionTemplate must have "data" property.'
+      )
+    }
+
+    this.data = template.data;
+  }
+
+  get data () {
+    return super.data;
+  }
+
+  set data (value) {
+    if (!(value instanceof CollectionArray)) {
+      value = new CollectionArray(CollectionData);
+    }
+    super.data = value;
+  }
+
+}
+
+class Collection {
+
+  constructor (collection) {
+
+    let property;
+
+    if (typeof collection === 'string') {
+      collection = JSON.parse(collection);
+    }
+
+    if (collection.hasOwnProperty('collection')) {
+      collection = collection.collection;
+    }
+
+    if (!collection.hasOwnProperty('href')) {
+      throw new Error('Invalid collection: missing "href" property.');
+    }
+
+    if (!collection.hasOwnProperty('version')) {
+      throw new Error('Invalid collection: missing "version" property.');
+    }
+
+    for (property in collection) {
+      if (collection.hasOwnProperty(property)) {
+        this[property] = collection[property];
+      }
+    }
+
+  }
+
+  toString () {
+    return JSON.stringify({collection: this});
+  }
+
+  get error () {
+    return super.error;
+  }
+
+  set error (value) {
+    if (!(value instanceof CollectionError)) {
+      value = new CollectionError(value);
+    }
+    super.error = value;
+  }
+
+  get items () {
+    return super.items;
+  }
+
+  set items (value) {
+    if (!(value instanceof CollectionArray)) {
+      value = new CollectionArray(CollectionItem, ...value);
+    }
+    super.items = value;
+  }
+
+  get links () {
+    return super.links;
+  }
+
+  set links (value) {
+    if (!(value instanceof CollectionArray)) {
+      value = new CollectionArray(CollectionLink, ...value);
+    }
+    super.links = value;
+  }
+
+  get queries () {
+    return super.queries;
+  }
+
+  set queries (value) {
+    if (!(value instanceof CollectionArray)) {
+      value = new CollectionArray(CollectionQuery, ...value);
+    }
+    super.queries = value;
+  }
+
+  get template () {
+    return super.template;
+  }
+
+  set template (value) {
+    if (!(value instanceof CollectionTemplate)) {
+      value = new CollectionTemplate(value);
+    }
+    super.template = value;
+  }
+
+  get version () {
+    return super.version;
+  }
+
+  set version (value) {
+    if (typeof value !== 'string') {
+      throw new Error('Collection version must be a string.');
+    }
+    super.version = value;
+  }
+
+}
