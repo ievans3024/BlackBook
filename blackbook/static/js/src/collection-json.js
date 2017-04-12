@@ -30,7 +30,12 @@ class CollectionArray {
     }
 
     this.data = array;
-    this.contains = contains;
+
+    Object.defineProperty(this, 'contains',
+      {
+        value: contains
+      }
+    );
 
   }
 
@@ -64,29 +69,25 @@ class CollectionArray {
 
   }
 
-  set (search_property, search_value, set_property, set_value) {
-
-    let i = 0;
-
-    for (i; i < this.data.length; i++) {
-      if (this.data[i][search_property] === search_value) {
-        this.data[i][set_property] = set_value;
-        return this.data[i];
-      }
-    }
-
-  }
-
   indexOf(property, property_value) {
 
     let i = 0;
 
     for (i; i < this.data.length; i++) {
-      if (this.data[i][property] === property_value) {
-        return i
+      if (this.data[i].hasOwnProperty(property)) {
+        if (
+          typeof property_value === 'undefined' ||
+          this.data[i][property] === property_value
+        ) {
+          return i
+        }
       }
     }
 
+  }
+
+  pop () {
+    return this.data.pop();
   }
 
   push (...values) {
@@ -108,6 +109,23 @@ class CollectionArray {
 
     return this.data.push(...values);
 
+  }
+
+  set (search_property, search_value, set_property, set_value) {
+
+    let i = 0;
+
+    for (i; i < this.data.length; i++) {
+      if (this.data[i][search_property] === search_value) {
+        this.data[i][set_property] = set_value;
+        return this.data[i];
+      }
+    }
+
+  }
+
+  shift () {
+    return this.data.shift();
   }
 
   splice (start, deleteCount, ...values) {
