@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -47,9 +48,9 @@ class Permissible(object):
 
 
 class User(db.Model, Permissible):
-    id = db.Column(db.Integer, primary_key=True)
-    date_created = db.Column(db.DateTime)
-    date_modified = db.Column(db.DateTime)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    date_created = db.Column(db.DateTime, default=datetime.now)
+    date_modified = db.Column(db.DateTime, default=datetime.now)
     email = db.Column(db.String, unique=True)
     password_hash = db.Column(db.String)
     display_name = db.Column(db.String)

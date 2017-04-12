@@ -509,33 +509,7 @@ class UserAPI(API):
         pass
 
     def post(self):
-
-        def create_root_user(app, name, email, password, contact_info=None):
-
-            contact_info = Contact(date_created=datetime.now(), date_modified=datetime.now(), name_prefix='',
-                                   name_first='', name_middle='', name_last='', name_suffix='', addresses=[], emails=[],
-                                   phone_numbers=[])
-            current_app.db.session.add(contact_info)
-            current_app.db.session.commit()
-            permissions = [p.permission for p in Permission.query.all()]
-            password_hash = security.generate_password_hash(password,
-                                                            method=app.config.get('BLACKBOOK_PASSWORD_HASH_METHOD'),
-                                                            salt_length=app.config.get(
-                                                                'BLACKBOOK_PASSWORD_SALT_LENGTH'))
-            root = User(date_created=datetime.now(), date_modified=datetime.now(), email=email,
-                        password_hash=password_hash, display_name=name, permissions=permissions,
-                        contact_info=contact_info.id)
-            current_app.db.session.add(root)
-            current_app.db.session.commit()
-            return root
         # validate form
-
-        # first user created will be "root"
-        users = User.query.all()
-        if not len(users):
-            root = create_root_user(current_app, '', '', '')
-            response = self._generate_document(root)
-            return Response(response=str(response), mimetype=response.mimetype)
 
         if not current_app.config.get('BLACKBOOK_PUBLIC_REGISTRATION'):
 
