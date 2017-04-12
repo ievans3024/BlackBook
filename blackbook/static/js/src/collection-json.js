@@ -18,7 +18,7 @@ class CollectionArray {
     }
 
     for (i; i < array.length; i++) {
-      if (!(array[i] instanceof contains)) {
+      if (array[i].constructor !== contains) {
         try {
           array[i] = contains(array[i]);
         } catch (e) {
@@ -95,7 +95,7 @@ class CollectionArray {
     let i = 0;
 
     for (i; i < values.length; i++) {
-      if (!(values[i] instanceof this.contains)) {
+      if (values[i].constructor !== this.contains) {
         try {
           values[i] = new this.contains(values[i]);
         } catch (e) {
@@ -159,7 +159,7 @@ class CollectionArray {
     let i = 0;
 
     for (i; i < values.length; i++) {
-      if (!(values[i] instanceof this.contains)) {
+      if (values[i].constructor !== this.contains) {
         try {
           values[i] = new this.contains(values[i]);
         } catch (e) {
