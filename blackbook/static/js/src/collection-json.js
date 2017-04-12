@@ -34,21 +34,59 @@ class CollectionArray {
 
   }
 
-  get (property, value) {
-    if (typeof property === 'number') {
-      return this.data[property];
+  get (search_property, search_value) {
+
+    if (typeof search_property === 'number') {
+      return this.data[search_property];
     } else {
       return this.data.reduce(
         function (accumulator, currentValue) {
-          if (currentValue[property] === value) {
-            return currentValue;
-          } else {
+
+          if (accumulator !== null) {
             return accumulator;
           }
+
+          if (currentValue.hasOwnProperty(search_property)) {
+            if (
+              typeof search_value === 'undefined' ||
+                currentValue[search_property] === search_value
+            ) {
+              return currentValue;
+            }
+          }
+
+          return accumulator;
+
         },
         null
       );
     }
+
+  }
+
+  set (search_property, search_value, set_property, set_value) {
+
+    let i = 0;
+
+    for (i; i < this.data.length; i++) {
+      if (this.data[i][search_property] === search_value) {
+        this.data[i][set_property] = set_value;
+        return this.data[i];
+      }
+    }
+
+  }
+
+  indexOf(property, property_value) {
+
+    let i = 0;
+
+    for (i; i < this.data.length; i++) {
+      if (this.data[i][property] === property_value) {
+        return i
+      }
+    }
+
   }
 
   push (...values) {
