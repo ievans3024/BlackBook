@@ -24,12 +24,6 @@ contacts = db.Table('contacts',
                     )
 
 
-def init_db(database, app):
-    database.init_app(app)
-    database.create_all(app=app)
-    # create all app permissions
-
-
 class Permissible(object):
 
     def has_permission(self, *permissions, operator='or'):

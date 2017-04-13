@@ -1,5 +1,5 @@
-import blackbook.lib.collection_plus_json as collection_json
-from blackbook.database import Contact, Permission, Session, User
+import lib.collection_plus_json as collection_json
+from database import Contact, Permission, Session, User
 from datetime import datetime
 from flask.views import MethodView
 from flask import session, request, Response, current_app

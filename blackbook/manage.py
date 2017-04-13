@@ -1,65 +1,79 @@
-from flask_script import Manager, prompt, prompt_pass
-from blackbook.app import app
-from blackbook.database import User, db, init_db
+from flask_script import Command, Manager, prompt, prompt_pass, prompt_bool
+from app import app, init_config
+from database import User, db
 from werkzeug import security
 
 manager = Manager(app)
 
 
-@manager.command
-def init_db():
-    init_db(db, app)
+def initialize_db():
+    init_config(app)
+    db.init_app(app)
+    db.create_all(app=app)
 
 
-@manager.command
-def create_root_user():
+class InitDB(Command):
+    """Initializes the configured database."""
 
-    # TODO: check that db is initialized
-    # TODO: check that user table is empty
+    def run(self):
+        initialize_db()
 
-    password = None
-    password_again = None
 
-    def prompt_password():
-        global password
-        global password_again
-        password = prompt('Password: ')
-        password_again = prompt('Verify Password: ')
+class CreateRoot(Command):
+    """Creates a user with all permissions."""
 
-    username = prompt('User Name: ', default='root')
-    email = prompt('User Email: ')
+    def run(self):
 
-    while not email:
-        print('Email cannot be empty.')
+        # Initialized DB if it hasn't been done yet
+        initialize_db()
+
+        # Check if users exist, prompt with warning
+        users = User.query.all()
+        if len(users):
+            user_continue = prompt_bool('Users exist, there should be a root user already. Continue?')
+            if not user_continue:
+                exit('Not creating any users.')
+
+        def prompt_password():
+            passwd = prompt_pass('Password: ')
+            passwd_again = prompt_pass('Verify Password: ')
+            return passwd, passwd_again
+
+        username = prompt('User Name: ', default='root')
         email = prompt('User Email: ')
 
-    prompt_password()
+        while not email:
+            print('Email cannot be empty.')
+            email = prompt('User Email: ')
 
-    while not password:
-        print('Password cannot be empty.')
-        prompt_password()
+        password, password_again = prompt_password()
 
-    while password != password_again:
-        print('Passwords do not match. Please try again.')
-        prompt_password()
+        while not password:
+            print('Password cannot be empty.')
+            prompt_password()
 
-    password_hash = security.generate_password_hash(
-        password,
-        method=app.config.get('BLACKBOOK_PASSWORD_HASH_METHOD'),
-        salt_length=app.config.get('BLACKBOOK_PASSWORD_SALT_LENGTH')
-    )
+        while password != password_again:
+            print('Passwords do not match. Please try again.')
+            prompt_password()
 
-    # TODO: get all permissions from db
+        password_hash = security.generate_password_hash(
+            password,
+            method=app.config.get('BLACKBOOK_PASSWORD_HASH_METHOD'),
+            salt_length=app.config.get('BLACKBOOK_PASSWORD_SALT_LENGTH')
+        )
 
-    permissions = []
+        # TODO: get all permissions from db
 
-    root_user = User(display_name=username, email=email, password_hash=password_hash, permissions=permissions)
+        permissions = []
 
-    db.session.add(root_user)
-    db.session.commit()
+        root_user = User(display_name=username, email=email, password_hash=password_hash, permissions=permissions)
 
-    print('User {0} added (ID: {1})'.format(username, root_user.id))
+        db.session.add(root_user)
+        db.session.commit()
 
+        print('User {0} added (ID: {1})'.format(username, root_user.id))
 
 if __name__ == '__main__':
+    manager.add_command('init-db', InitDB())
+    manager.add_command('create-root', CreateRoot())
     manager.run()
