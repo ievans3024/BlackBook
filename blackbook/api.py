@@ -469,7 +469,7 @@ class UserAPI(API):
                 data = collection_json.Array([], collection_json.Data)
                 data.append(collection_json.Data(name='email', prompt='Email', value=instance.email))
                 data.append(collection_json.Data(name='name', prompt='Name', value=instance.name))
-                if session_user is not None and session_user.has_permission('blackbook.user.edit.other'):
+                if session_user is not None and session_user.has_permission('blackbook.user.edit'):
                     for p in instance.permissions:
                         d = collection_json.Data(name='permission', prompt='Permissions', value=p.permission)
                         data.append(d)
@@ -489,14 +489,14 @@ class UserAPI(API):
             raise APIUnauthorizedError(endpoint=self.endpoint_root)
 
         if user_id is not None:
-            if (user_id == session_user.id) or (session_user.has_permission('blackbook.user.read.other')):
+            if (user_id == session_user.id) or (session_user.has_permission('blackbook.user.read')):
                 user = User.query.filter_by(id=user_id).first()
                 if not user:
                     raise APINotFoundError(endpoint=self.endpoint_root)
                 document = self._generate_document(user)
                 return Response(response=str(document), mimetype=document.mimetype)
 
-        if session_user.has_permission('blackbook.user.read.other'):
+        if session_user.has_permission('blackbook.user.read'):
             users = User.query.all()
             # TODO: pagination
             document = self._generate_document(*users)
@@ -525,7 +525,7 @@ class UserAPI(API):
                     raise APIForbiddenError()
 
                 # user must have permission to edit other users if permissions are supplied
-                can_edit_permissions = user.has_permission('blackbook.user.edit.other')
+                can_edit_permissions = user.has_permission('blackbook.user.edit')
                 if len(request.form.getlist('permissions')) and not can_edit_permissions:
                     raise APIForbiddenError()
 

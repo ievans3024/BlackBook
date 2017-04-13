@@ -1,6 +1,6 @@
 from flask_script import Command, Manager, prompt, prompt_pass, prompt_bool
 from app import app, init_config
-from database import User, db
+from database import User, Permission, db
 from werkzeug import security
 
 manager = Manager(app)
@@ -10,6 +10,26 @@ def initialize_db():
     init_config(app)
     db.init_app(app)
     db.create_all(app=app)
+
+    if not len(Permission.query.all()):
+        permissions = [
+            'blackbook.admin.create',
+            'blackbook.admin.read',
+            'blackbook.admin.edit',
+            'blackbook.user.edit',
+            'blackbook.user.read',
+            'blackbook.user.create',
+            'blackbook.user.contact.create',
+            'blackbook.user.contact.read',
+            'blackbook.user.contact.edit',
+            'blackbook.user.contact.delete'
+        ]
+
+        for p in permissions:
+            permission = Permission(p)
+            db.session.add(permission)
+
+        db.session.commit()
 
 
 class InitDB(Command):
@@ -24,7 +44,7 @@ class CreateRoot(Command):
 
     def run(self):
 
-        # Initialized DB if it hasn't been done yet
+        # Initialize DB if it hasn't been done yet
         initialize_db()
 
         # Check if users exist, prompt with warning
@@ -62,9 +82,7 @@ class CreateRoot(Command):
             salt_length=app.config.get('BLACKBOOK_PASSWORD_SALT_LENGTH')
         )
 
-        # TODO: get all permissions from db
-
-        permissions = []
+        permissions = Permission.query.all()
 
         root_user = User(display_name=username, email=email, password_hash=password_hash, permissions=permissions)
 
