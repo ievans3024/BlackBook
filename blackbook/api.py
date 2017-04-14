@@ -469,7 +469,6 @@ class SessionAPI(API):
         if not security.check_password_hash(user.password_hash, request.form.get('password')):
             raise APIBadRequestError(message='Incorrect credentials')
 
-        token =
         # get user from posted credentials
         # return 400 Bad Request if credential failure
         # generate session token
