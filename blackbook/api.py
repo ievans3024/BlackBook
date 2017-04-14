@@ -1,6 +1,6 @@
 import lib.collection_plus_json as collection_json
 from database import Contact, Permission, Session, User
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask.views import MethodView
 from flask import session, request, Response, current_app
 from werkzeug import security
@@ -418,31 +418,58 @@ class ContactAPI(API):
 class SessionAPI(API):
 
     def delete(self):
-        # call _session_ok
-        # catch errors and return _error code
-        # remove from db and return 200 OK if no errors raise
-        pass
+        user_session = self._get_session()
+        if user_session is not None:
+            current_app.db.session.delete(user_session)
+            current_app.db.commit()
+            return '', 200
+        else:
+            raise APIBadRequestError()
 
     def _generate_document(self, model_instance=None):
-        pass
+        document = super(SessionAPI, self)._generate_document(model_instance=model_instance)
+        template_data = collection_json.Array([], collection_json.Data)
+        template_data.append(collection_json.Data(name='email', prompt='Email', type='text'))
+        template_data.append(collection_json.Data(name='password', prompt='Password', type='password'))
+        template = collection_json.Template(data=template_data)
+        document.template = template
+        return document
 
     def get(self):
-        return self.head()
+        user_session = self._get_session()
+        document = self._generate_document()
+        if user_session is not None:
+            return '', 200
+        else:
+            return Response(response=str(document), mimetype=document.mimetype, status=401)
 
     def head(self):
-        # call _session_ok
-        # catch errors and return _error code
-        # return 200 OK without body if no errors raise
-        pass
+        user_session = self._get_session()
+        if user_session is not None:
+            return '', 200
+        else:
+            raise APIUnauthorizedError()
 
     def patch(self):
-        # call _session_ok
-        # catch errors and return _error code
-        # update session expiry
-        # return 200 OK without body if no errors raise
-        pass
+        user_session = self._get_session()
+        if user_session is not None:
+            user_session.expiry = datetime.now() + current_app.config.get('PERMANENT_SESSION_LIFETIME')
+            current_app.db.session.add(user_session)
+            current_app.db.session.commit()
+            return '', 200
+        else:
+            raise APIBadRequestError()
 
     def post(self):
+        user = User.query.filter_by(email=request.form.get('email'))
+
+        if not user:
+            raise APIBadRequestError(message='Incorrect credentials')
+
+        if not security.check_password_hash(user.password_hash, request.form.get('password')):
+            raise APIBadRequestError(message='Incorrect credentials')
+
+        token =
         # get user from posted credentials
         # return 400 Bad Request if credential failure
         # generate session token
