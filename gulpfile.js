@@ -1,3 +1,5 @@
+"use strict";
+
 const clean_css = require('gulp-clean-css'),
       concat = require('gulp-concat'),
       gulp = require('gulp'),
