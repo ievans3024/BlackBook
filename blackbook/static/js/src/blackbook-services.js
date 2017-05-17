@@ -11,7 +11,7 @@
             this.endpoint = '/api/contacts/';
             this.data = {};
             this.fetch = function (http_settings) {
-              var self = this;
+              const self = this;
               return $http.get(this.endpoint, http_settings)
                 .success(
                   function (data) {
@@ -23,7 +23,7 @@
               return $http.get(href, http_settings);
             };
             this.post = function (contact, http_settings) {
-              var self = this,
+              const self = this,
                   contact_data = '';
               return $http.post(this.endpoint, contact_data, http_settings)
                 .success(
@@ -33,7 +33,7 @@
                 );
             };
             this.patch = function (contact, http_settings) {
-              var self = this,
+              const self = this,
                   contact_data = '';
               return $http.patch(contact.href, contact_data, http_settings)
                 .success(
@@ -43,7 +43,7 @@
                 )
             };
             this.delete = function (contact, http_settings) {
-              var self = this;
+              const self = this;
               return $http.delete(contact.href, http_settings)
                 .success(
                   function () {

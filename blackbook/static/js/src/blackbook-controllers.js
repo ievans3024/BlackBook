@@ -26,7 +26,7 @@
                 contacts.get(href)
                   .success(
                     function (data) {
-                      var collection = new Collection(data);
+                      let collection = new Collection(data);
                       $scope.selected = collection.items[0];
                     }
                   );
