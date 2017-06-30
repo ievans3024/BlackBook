@@ -1,14 +1,16 @@
-var clean_css = require('gulp-clean-css'),
-    concat = require('gulp-concat'),
-    gulp = require('gulp'),
-    path = require('path'),
-    rename = require('gulp-rename'),
-    sass = require('gulp-sass'),
-    sourcemaps = require('gulp-sourcemaps'),
-    uglify = require('gulp-uglify');
+"use strict";
+
+const clean_css = require('gulp-clean-css'),
+      concat = require('gulp-concat'),
+      gulp = require('gulp'),
+      path = require('path'),
+      rename = require('gulp-rename'),
+      sass = require('gulp-sass'),
+      sourcemaps = require('gulp-sourcemaps'),
+      uglify = require('gulp-uglify');
 
 function css_task () {
-  var outfile = path.join('blackbook', 'static', 'css', 'blackbook.min.css'),
+  let outfile = path.join('blackbook', 'static', 'css', 'blackbook.min.css'),
       clean_css_opts = {
         compatibility: ''
       },
