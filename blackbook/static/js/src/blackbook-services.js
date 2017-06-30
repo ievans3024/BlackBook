@@ -8,48 +8,44 @@
         [
           '$http',
           function ($http) {
-            this.endpoint = '/api/contacts/';
-            this.data = {};
-            this.fetch = function (http_settings) {
-              const self = this;
-              return $http.get(this.endpoint, http_settings)
-                .success(
-                  function (data) {
-                    self.data = data;
-                  }
-                );
-            };
-            this.get = function (href, http_settings) {
-              return $http.get(href, http_settings);
-            };
-            this.post = function (contact, http_settings) {
-              const self = this,
-                  contact_data = '';
-              return $http.post(this.endpoint, contact_data, http_settings)
-                .success(
-                  function () {
-                    self.fetch();
-                  }
-                );
-            };
-            this.patch = function (contact, http_settings) {
-              const self = this,
-                  contact_data = '';
-              return $http.patch(contact.href, contact_data, http_settings)
-                .success(
-                  function () {
-                    self.fetch();
-                  }
-                )
-            };
-            this.delete = function (contact, http_settings) {
-              const self = this;
-              return $http.delete(contact.href, http_settings)
-                .success(
-                  function () {
-                    self.fetch();
-                  }
-                );
+            return {
+              endpoint: '/api/contacts/',
+              data: {},
+              fetch (settings) {
+                const self = this;
+                return $http.get(self.endpoint, settings)
+                  .success(
+                    (data) => {
+                      self.data = data;
+                    }
+                  )
+              },
+              get (href, settings) {
+                return $http.get(href, settings);
+              },
+              post (data, settings) {
+                const self = this,
+                      contact_data = '';
+                return $http.post(self.endpoint, contact_data, settings)
+                  .success(
+                    () => self.fetch()
+                  )
+              },
+              patch (data, settings) {
+                const self = this,
+                      contact_data = '';
+                return $http.patch(data.href, contact_data, settings)
+                  .success(
+                    () => self.fetch()
+                  )
+              },
+              delete (data, settings) {
+                const self = this;
+                return $http.delete(data.href, settings)
+                  .success(
+                    () => self.fetch()
+                  )
+              }
             };
           }
         ]
