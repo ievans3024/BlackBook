@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 
@@ -24,6 +25,54 @@ contacts = db.Table('contacts',
                     )
 
 
+class JSONObjectEncoder(json.JSONEncoder):
+
+    def default(self, o):
+        if isinstance(o, JSONObject):
+            return o.serializable
+        else:
+            return super(JSONObjectEncoder, self).default(o)
+
+
+class JSONObject(object):
+
+    @property
+    def mimetype(self):
+        return 'application/json'
+
+    @property
+    def serializable(self):
+        return self.__dict__
+
+    def __init__(self, from_json=None, **props):
+        if from_json and isinstance(from_json, (str, bytes, bytearray)):
+            props = dict(props, **json.loads(from_json))  # allows props to be supplied defaults
+
+        for k, v in props.items():
+            if isinstance(v, dict):
+                v = JSONObject(**v)
+            self.__setattr__(k, v)
+
+    def __str__(self):
+        return json.dumps(self.__dict__, cls=JSONObjectEncoder)
+
+    def __setattr__(self, k, v):
+        if isinstance(v, dict):
+            v = JSONObject(**v)
+        return super(JSONObject, self).__setattr__(k, v)
+
+
+class JSONSerializable(object):
+
+    @property
+    def serializable(self):
+        return JSONObject(**self.__dict__)
+
+    @property
+    def serialized(self):
+        return str(self.serializable)
+
+
 class Permissible(object):
 
     def has_permission(self, *permissions, operator='or'):
@@ -41,7 +90,21 @@ class Permissible(object):
             return any(permission_check)
 
 
-class User(db.Model, Permissible):
+class Resource(JSONSerializable):
+
+    @property
+    def public_document(self):
+        raise NotImplementedError()
+
+
+class ResourcePartial(JSONSerializable):
+
+    @property
+    def public_document(self):
+        raise NotImplementedError()
+
+
+class User(db.Model, Permissible, Resource):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     date_created = db.Column(db.DateTime, default=datetime.now)
     date_modified = db.Column(db.DateTime, default=datetime.now)
@@ -65,6 +128,14 @@ class User(db.Model, Permissible):
                 [g.has_permission(*permissions, operator=operator) for g in self.groups]
             )
 
+    @property
+    def public_document(self):
+        opts = {
+            'contact_info': self.contact_info.serializable,
+            'contacts': [c.serializable for c in self.contacts]
+        }
+        return JSONObject(**opts)
+
 
 class Group(db.Model, Permissible):
     id = db.Column(db.Integer, primary_key=True)
@@ -86,7 +157,7 @@ class Permission(db.Model):
         self.permission = permission
 
 
-class Contact(db.Model):
+class Contact(db.Model, Resource):
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime)
     date_modified = db.Column(db.DateTime)
@@ -103,15 +174,32 @@ class Contact(db.Model):
         for k, v in kwargs.items():
             self.__setattr__(k, v)
 
+    @property
+    def public_document(self):
+        opts = {
+            'name': {
+                'prefix': self.name_prefix,
+                'first': self.name_first,
+                'middle': self.name_middle,
+                'last': self.name_last,
+                'suffix': self.name_suffix
+            },
+            'emails': [e.public_document for e in self.emails],
+            'addresses': [a.public_document for a in self.addresses],
+            'phone_numbers': [ph.public_document for ph in self.phone_numbers]
+        }
+        return JSONObject(**opts)
 
-class Address(db.Model):
+
+class Address(db.Model, ResourcePartial):
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime)
     date_modified = db.Column(db.DateTime)
     label = db.Column(db.String)
     company = db.Column(db.String)
+    name = db.Column(db.String)
     street = db.Column(db.String)
-    apt = db.Column(db.String)
+    unit = db.Column(db.String)
     city = db.Column(db.String)
     locality = db.Column(db.String)
     postal_code = db.Column(db.String)
@@ -122,8 +210,23 @@ class Address(db.Model):
         for k, v in kwargs.items():
             self.__setattr__(k, v)
 
+    @property
+    def public_document(self):
+        opts = {
+            'label': self.label,
+            'company': self.company,
+            'name': self.name,
+            'street': self.street,
+            'unit': self.unit,
+            'city': self.city,
+            'locality': self.locality,
+            'postal_code': self.postal_code,
+            'country': self.country
+        }
+        return JSONObject(**opts)
 
-class Email(db.Model):
+
+class Email(db.Model, ResourcePartial):
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime)
     date_modified = db.Column(db.DateTime)
@@ -135,8 +238,12 @@ class Email(db.Model):
         for k, v in kwargs.items():
             self.__setattr__(k, v)
 
+    @property
+    def public_document(self):
+        return JSONObject(label=self.label, address=self.address)
 
-class PhoneNumber(db.Model):
+
+class PhoneNumber(db.Model, JSONSerializable):
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime)
     date_modified = db.Column(db.DateTime)
@@ -148,8 +255,12 @@ class PhoneNumber(db.Model):
         for k, v in kwargs.items():
             self.__setattr__(k, v)
 
+    @property
+    def public_document(self):
+        return JSONObject(label=self.label, number=self.number)
 
-class Session(db.Model):
+
+class Session(db.Model, Resource):
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime)
     date_modified = db.Column(db.DateTime)
@@ -160,3 +271,7 @@ class Session(db.Model):
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             self.__setattr__(k, v)
+
+    @property
+    def public_document(self):
+        return JSONObject(id=self.id, expiry=self.expiry, token=self.token)
