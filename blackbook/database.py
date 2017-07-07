@@ -205,6 +205,7 @@ class Address(db.Model, ResourcePartial):
     postal_code = db.Column(db.String)
     country = db.Column(db.String)
     address_contact = db.Column(db.Integer, db.ForeignKey('contact.id'))
+    sorting = db.Column(db.Integer)
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -213,6 +214,7 @@ class Address(db.Model, ResourcePartial):
     @property
     def public_document(self):
         opts = {
+            'id': self.id,
             'label': self.label,
             'company': self.company,
             'name': self.name,
@@ -233,6 +235,7 @@ class Email(db.Model, ResourcePartial):
     label = db.Column(db.String)
     address = db.Column(db.String)
     email_contact = db.Column(db.Integer, db.ForeignKey('contact.id'))
+    sorting = db.Column(db.Integer)
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -240,7 +243,7 @@ class Email(db.Model, ResourcePartial):
 
     @property
     def public_document(self):
-        return JSONObject(label=self.label, address=self.address)
+        return JSONObject(id=self.id, label=self.label, address=self.address)
 
 
 class PhoneNumber(db.Model, JSONSerializable):
@@ -250,6 +253,7 @@ class PhoneNumber(db.Model, JSONSerializable):
     label = db.Column(db.String)
     number = db.Column(db.String)
     phone_contact = db.Column(db.Integer, db.ForeignKey('contact.id'))
+    sorting = db.Column(db.Integer)
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -257,7 +261,7 @@ class PhoneNumber(db.Model, JSONSerializable):
 
     @property
     def public_document(self):
-        return JSONObject(label=self.label, number=self.number)
+        return JSONObject(id=self.id, label=self.label, number=self.number)
 
 
 class Session(db.Model, Resource):
