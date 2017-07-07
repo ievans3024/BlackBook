@@ -113,7 +113,8 @@ class User(db.Model, Permissible, Resource):
     display_name = db.Column(db.String)
     contact_info = db.Column(db.Integer, db.ForeignKey('contact.id'), nullable=True)
     sessions = db.relationship('Session', backref='user', lazy='dynamic')
-    contacts = db.relationship('Contact', secondary=contacts, backref='user', lazy='dynamic')
+    contacts = db.relationship('Contact', secondary=contacts, backref='user', lazy='dynamic',
+                               order_by='contact.name_last')
     permissions = db.relationship('Permission', secondary=user_permissions, backref='user', lazy='dynamic')
     groups = db.relationship('Group', secondary=user_groups, backref='user', lazy='dynamic')
 

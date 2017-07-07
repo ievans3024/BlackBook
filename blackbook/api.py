@@ -291,7 +291,6 @@ class APIServiceUnavailableError(APIError):
 
 
 class API(MethodView):
-
     def __init__(self, app, db, endpoint_root):
         self.app = app
         self.db = db
@@ -335,51 +334,54 @@ class API(MethodView):
 
 
 class ContactAPI(API):
+    forms = {
+        'create': [
+            {'label': 'Prefix', 'type': 'text', 'name': 'prefix', 'hint': 'Dr., Mr., Mrs.',
+             'required': False},
+            {'label': 'First Name', 'type': 'text', 'name': 'name_first', 'hint': None, 'required': True},
+            {'label': 'Middle Name', 'type': 'text', 'name': 'name_middle', 'hint': None, 'required': False},
+            {'label': 'Last Name', 'type': 'text', 'name': 'name_last', 'hint': None, 'required': False},
+            {'label': 'Suffix', 'type': 'text', 'name': 'suffix', 'hint': 'Jr., II, III, Esq.',
+             'required': False},
+            {
+                'label': 'Addresses',
+                'type': 'array',
+                'name': 'addresses',
+                'template': [
+                    {'label': 'Label', 'type': 'text', 'name': 'label', 'hint': 'Home, Work, Office',
+                     'required': False},
+                    {'label': 'Company', 'type': 'text', 'name': 'company', 'hint': None, 'required': False},
+                    {'label': 'Name', 'type': 'text', 'name': 'name', 'hint': None, 'required': False},
+                    {'label': 'Street', 'type': 'text', 'name': 'street', 'hint': '123 Example St.',
+                     'required': True},
+                    {'label': 'Unit', 'type': 'text', 'name': 'unit', 'hint': None, 'required': False},
+                    {'label': 'City', 'type': 'text', 'name': 'city', 'hint': 'Exampleton', 'required': True},
+                    {'label': 'Locality', 'type': 'text', 'name': 'locality', 'hint': 'EX', 'required': True},
+                    {'label': 'Postal Code', 'type': 'text', 'name': 'postal_code', 'hint': '12345',
+                     'required': True},
+                    {'label': 'Country', 'type': 'text', 'name': 'country', 'hint': None, 'required': False}
+                ]
+            },
+
+        ]
+    }
 
     def delete(self, contact_id):
         return 'Contact API - DELETE'
 
     def _generate_document(self, *model_instances, **doc_props):
-        forms = {}
-        form = [
-                    {'label': 'Prefix', 'type': 'text', 'name': 'prefix', 'hint': 'Dr., Mr., Mrs.',
-                     'required': False},
-                    {'label': 'First Name', 'type': 'text', 'name': 'name_first', 'hint': None, 'required': True},
-                    {'label': 'Middle Name', 'type': 'text', 'name': 'name_middle', 'hint': None, 'required': False},
-                    {'label': 'Last Name', 'type': 'text', 'name': 'name_last', 'hint': None, 'required': False},
-                    {'label': 'Suffix', 'type': 'text', 'name': 'suffix', 'hint': 'Jr., II, III, Esq.',
-                     'required': False},
-                    {
-                        'label': 'Addresses',
-                        'type': 'array',
-                        'name': 'addresses',
-                        'value': [
-                            {'label': 'Label', 'type': 'text', 'name': 'label', 'hint': 'Home, Work, Office',
-                             'required': False},
-                            {'label': 'Company', 'type': 'text', 'name': 'company', 'hint': None, 'required': False},
-                            {'label': 'Name', 'type': 'text', 'name': 'name', 'hint': None, 'required': False},
-                            {'label': 'Street', 'type': 'text', 'name': 'street', 'hint': '123 Example St.',
-                             'required': True},
-                            {'label': 'Unit', 'type': 'text', 'name': 'unit', 'hint': None, 'required': False},
-                            {'label': 'City', 'type': 'text', 'name': 'city', 'hint': 'Exampleton', 'required': True},
-                            {'label': 'Locality', 'type': 'text', 'name': 'locality', 'hint': 'EX', 'required': True},
-                            {'label': 'Postal Code', 'type': 'text', 'name': 'postal_code', 'hint': '12345',
-                             'required': True},
-                            {'label': 'Country', 'type': 'text', 'name': 'country', 'hint': None, 'required': False}
-                        ]
-                    }
-                ]
-        if not len(model_instances):
-            forms['create'] = form
-        else:
-            forms['update'] = form
         opts = dict(
             {
                 'data': [m.public_document for m in model_instances],
-                'forms': forms
+                'forms': {}
             },
             **doc_props
         )
+        if not len(model_instances):
+            form_key = 'create'
+        else:
+            form_key = 'update'
+        opts['forms'][form_key] = self.forms['create']
         return JSONObject(**opts)
 
     def get(self, contact_id=None):
@@ -412,6 +414,12 @@ class ContactAPI(API):
 
 
 class SessionAPI(API):
+    forms = {
+        'create': [
+            {'label': 'Email', 'type': 'text', 'name': 'email', 'hint': 'username@example.com', 'required': True},
+            {'label': 'Password', 'type': 'password', 'name': 'password', 'hint': None, 'required': True}
+        ]
+    }
 
     def delete(self):
         user_session = self._get_session()
@@ -422,19 +430,15 @@ class SessionAPI(API):
         else:
             raise APIBadRequestError()
 
-    def _generate_document(self, *model_instances, **doc_opts):
-        opts = {
-            'data': [m.public_document for m in model_instances]
-        }
-        forms = {}
-        form = [
-                    {'label': 'Email', 'type': 'text', 'name': 'email', 'value': ''},
-                    {'label': 'Password', 'type': 'text', 'name': 'password', 'value': ''}
-                ]
+    def _generate_document(self, *model_instances, **doc_props):
+        opts = dict(
+            {
+                'data': [m.public_document for m in model_instances]
+            },
+            **doc_props
+        )
         if not len(model_instances):
-            opts['forms'] = {
-                'create': form
-            }
+            opts['forms'] = self.forms
         return super(SessionAPI, self)._generate_document(**opts)
 
     def get(self):
@@ -480,22 +484,51 @@ class SessionAPI(API):
 
 
 class UserAPI(API):
+    forms = {
+        'create': [
+            {'label': 'Display Name', 'type': 'text', 'name': 'display_name',
+             'hint': 'A cosmetic display name to identify yourself.'},
+            {'label': 'Email', 'type': 'text', 'name': 'email', 'hint': 'username@example.com'},
+            {'label': 'Password', 'type': 'password', 'name': 'password', 'hint': None}
+        ],
+        'update': [
+            {'label': 'Display Name', 'type': 'text', 'name': 'display_name',
+             'hint': 'A cosmetic display name to identify yourself.'},
+            {'label': 'Email', 'type': 'text', 'name': 'email', 'hint': 'username@example.com'},
+            {
+                'label': 'Contact Info',
+                'type': 'object',
+                'name': 'contact_info',
+                'template': ContactAPI.forms['create']
+            },
+            {
+                'label': 'Contacts',
+                'type': 'array',
+                'name': 'contacts',
+                'template': ContactAPI.forms['create']
+            }
+        ],
+        'change_password': [
+            {'label': 'Current Password', 'type': 'password', 'name': 'old_password', 'hint': None},
+            {'label': 'New Password', 'type': 'password', 'name': 'new_password', 'hint': None}
+        ]
+    }
 
     def delete(self):
         pass
 
-    def _generate_document(self, *model_instances, **doc_opts):
-        forms = {}
-        form = [
+    def _generate_document(self, *model_instances, **doc_props):
 
-        ]
         opts = {
-            'data': [m.public_document for m in model_instances]
+            'data': [m.public_document for m in model_instances],
+            'forms': {}
         }
         if not len(model_instances):
-            forms['create'] = form
+            opts['forms']['create'] = self.forms['create']
         else:
-            forms['update'] = form
+            opts['forms']['update'] = self.forms['update']
+            opts['forms']['change_password'] = self.forms['change_password']
+
         return super(UserAPI, self)._generate_document(**opts)
 
     def get(self, user_id=None):
