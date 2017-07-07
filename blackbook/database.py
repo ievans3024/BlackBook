@@ -166,9 +166,9 @@ class Contact(db.Model, Resource):
     name_middle = db.Column(db.String)
     name_last = db.Column(db.String)
     name_suffix = db.Column(db.String)
-    addresses = db.relationship('Address', backref='contact', lazy='dynamic')
-    emails = db.relationship('Email', backref='contact', lazy='dynamic')
-    phone_numbers = db.relationship('PhoneNumber', backref='contact', lazy='dynamic')
+    addresses = db.relationship('Address', backref='contact', lazy='dynamic', order_by='address.sorting')
+    emails = db.relationship('Email', backref='contact', lazy='dynamic', order_by='email.sorting')
+    phone_numbers = db.relationship('PhoneNumber', backref='contact', lazy='dynamic', order_by='phone_number.sorting')
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
