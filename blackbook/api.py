@@ -362,6 +362,26 @@ class ContactAPI(API):
                     {'label': 'Country', 'type': 'text', 'name': 'country', 'hint': None, 'required': False}
                 ]
             },
+            {
+                'label': 'Emails',
+                'type': 'array',
+                'name': 'emails',
+                'template': [
+                    {'label': 'Label', 'type': 'text', 'name': 'label', 'hint': 'Home, Work, Office',
+                     'required': False},
+                    {'label': 'Email', 'type': 'text', 'name': 'address', 'hint': None, 'required': True}
+                ]
+            },
+            {
+                'label': 'Phone numbers',
+                'type': 'array',
+                'name': 'phone_numbers',
+                'template': [
+                    {'label': 'Label', 'type': 'text', 'name': 'label', 'hint': 'Home, Work, Office',
+                     'required': False},
+                    {'label': 'Phone Number', 'type': 'text', 'name': 'number', 'hint': None, 'required': True}
+                ]
+            }
 
         ]
     }
