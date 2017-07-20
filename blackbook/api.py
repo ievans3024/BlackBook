@@ -1,20 +1,23 @@
-from .lib import collection_plus_json as collection_json
-from .database import Contact, Permission, Session, User, user_contacts
+from lib import collection_plus_json as collection_json
+from database import Contact, Permission, Session, User, user_contacts
 from datetime import datetime, timedelta
 from flask.views import MethodView
-from flask import request, Response, current_app
+from flask import request, Response, current_app, make_response
 from flask_jwt import JWT, jwt_required, current_identity
+from functools import wraps
 from werkzeug import security
 
 __author__ = 'ievans3024'
 
-jwt = JWT(current_app)
+API_VERSION = '1.0'
+
+jwt = JWT()
 
 
 @jwt.authentication_handler
 def jwt_auth(username, password):
     user = User.query.filter_by(email=username).first()
-    if user and security.check_password_hash(user.password_hash, password):
+    if user is not None and security.check_password_hash(user.password_hash, password):
         now = datetime.now()
         lifetime = current_app.config.get('JWT_EXPIRATION_DELTA')
         expiry = now + lifetime
@@ -26,8 +29,14 @@ def jwt_auth(username, password):
 
 @jwt.identity_handler
 def jwt_identity(payload):
-    session_id = payload['session_id']
+
+    session_id = payload.get('session_id')
+
+    if session_id is None:
+        raise APIUnauthorizedError()
+
     session = Session.query.get(session_id)
+
     if session is None:
         raise APIUnauthorizedError()
     elif session.expiry > datetime.now():
@@ -52,6 +61,19 @@ def jwt_error(error):
             message='An error occurred while validating session information.',
             endpoint=request.path
         )
+
+
+def jwt_required_refresh(realm=None):
+    def wrapper(fn):
+        @wraps(fn)
+        @jwt_required(realm=realm)
+        def decorator(*args, **kwargs):
+            token = jwt.jwt_encode_callback(current_identity)
+            resp = make_response(fn(*args, **kwargs))
+            resp.headers['Fresh-Token'] = token
+            return resp
+        return decorator
+    return wrapper
 
 
 class APIError(Exception):
@@ -118,7 +140,7 @@ class APIBadRequestError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APIBadRequestError Constructor
         :param code: The HTTP error code
@@ -126,7 +148,7 @@ class APIBadRequestError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APIBadRequestError, self).__init__(*args, code=code, title=title, message=message)
+        super(APIBadRequestError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APIUnauthorizedError(APIError):
@@ -134,7 +156,7 @@ class APIUnauthorizedError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APIUnauthorizedError Constructor
         :param code: The HTTP error code
@@ -142,7 +164,7 @@ class APIUnauthorizedError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APIUnauthorizedError, self).__init__(*args, code=code, title=title, message=message)
+        super(APIUnauthorizedError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APIForbiddenError(APIError):
@@ -150,7 +172,7 @@ class APIForbiddenError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APIForbiddenError Constructor
         :param code: The HTTP error code
@@ -158,7 +180,7 @@ class APIForbiddenError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APIForbiddenError, self).__init__(*args, code=code, title=title, message=message)
+        super(APIForbiddenError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APINotFoundError(APIError):
@@ -166,7 +188,7 @@ class APINotFoundError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APINotFoundError Constructor
         :param code: The HTTP error code
@@ -174,7 +196,7 @@ class APINotFoundError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APINotFoundError, self).__init__(*args, code=code, title=title, message=message)
+        super(APINotFoundError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APIMethodNotAllowedError(APIError):
@@ -182,7 +204,7 @@ class APIMethodNotAllowedError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APIMethodNotAllowedError Constructor
         :param code: The HTTP error code
@@ -190,7 +212,7 @@ class APIMethodNotAllowedError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APIMethodNotAllowedError, self).__init__(*args, code=code, title=title, message=message)
+        super(APIMethodNotAllowedError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APINotAcceptableError(APIError):
@@ -198,7 +220,7 @@ class APINotAcceptableError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APINotAcceptableError Constructor
         :param code: The HTTP error code
@@ -206,7 +228,7 @@ class APINotAcceptableError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APINotAcceptableError, self).__init__(*args, code=code, title=title, message=message)
+        super(APINotAcceptableError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APIConflictError(APIError):
@@ -214,7 +236,7 @@ class APIConflictError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APIConflictError Constructor
         :param code: The HTTP error code
@@ -222,7 +244,7 @@ class APIConflictError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APIConflictError, self).__init__(*args, code=code, title=title, message=message)
+        super(APIConflictError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APIGoneError(APIError):
@@ -230,7 +252,7 @@ class APIGoneError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APIGoneError Constructor
         :param code: The HTTP error code
@@ -238,7 +260,7 @@ class APIGoneError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APIGoneError, self).__init__(*args, code=code, title=title, message=message)
+        super(APIGoneError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APIUnsupportableMediaTypeError(APIError):
@@ -246,7 +268,7 @@ class APIUnsupportableMediaTypeError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APIUnsupportableMediaTypeError Constructor
         :param code: The HTTP error code
@@ -254,7 +276,7 @@ class APIUnsupportableMediaTypeError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APIUnsupportableMediaTypeError, self).__init__(*args, code=code, title=title, message=message)
+        super(APIUnsupportableMediaTypeError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APIAuthenticationTimeoutError(APIError):
@@ -262,7 +284,7 @@ class APIAuthenticationTimeoutError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APIAuthenticationTimeoutError Constructor
         :param code: The HTTP error code
@@ -270,7 +292,7 @@ class APIAuthenticationTimeoutError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APIAuthenticationTimeoutError, self).__init__(*args, code=code, title=title, message=message)
+        super(APIAuthenticationTimeoutError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APITooManyRequestsError(APIError):
@@ -278,7 +300,7 @@ class APITooManyRequestsError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APITooManyRequestsError Constructor
         :param code: The HTTP error code
@@ -286,7 +308,7 @@ class APITooManyRequestsError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APITooManyRequestsError, self).__init__(*args, code=code, title=title, message=message)
+        super(APITooManyRequestsError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APIInternalServerError(APIError):
@@ -294,7 +316,7 @@ class APIInternalServerError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APIInternalServerError Constructor
         :param code: The HTTP error code
@@ -302,7 +324,7 @@ class APIInternalServerError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APIInternalServerError, self).__init__(*args, code=code, title=title, message=message)
+        super(APIInternalServerError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APINotImplementedError(APIError):
@@ -310,7 +332,7 @@ class APINotImplementedError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APINotImplementedError Constructor
         :param code: The HTTP error code
@@ -318,7 +340,7 @@ class APINotImplementedError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APINotImplementedError, self).__init__(*args, code=code, title=title, message=message)
+        super(APINotImplementedError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class APIServiceUnavailableError(APIError):
@@ -326,7 +348,7 @@ class APIServiceUnavailableError(APIError):
 
     def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request."):
+                         "fulfilling the request.", **kwargs):
         """
         APIServiceUnavailableError Constructor
         :param code: The HTTP error code
@@ -334,7 +356,7 @@ class APIServiceUnavailableError(APIError):
         :param message: The detailed error description
         :return:
         """
-        super(APIServiceUnavailableError, self).__init__(*args, code=code, title=title, message=message)
+        super(APIServiceUnavailableError, self).__init__(*args, code=code, title=title, message=message, **kwargs)
 
 
 class API(MethodView):
@@ -345,7 +367,7 @@ class API(MethodView):
         super(API, self).__init__()
 
     def _generate_document(self, *args, **kwargs):
-        return JSONObject(**kwargs)
+        return collection_json.Collection(href=request.path)
 
 
 class ContactAPI(API):
@@ -354,11 +376,37 @@ class ContactAPI(API):
     def delete(self, contact_id):
         return 'Contact API - DELETE'
 
-    def _generate_document(self, model_instance=None):
+    def _generate_document(self, *model_instances):
         document = super(ContactAPI, self)._generate_document()
         # add endpoint specific features (template, queries, etc.)
-        # read model instance values and put them in document.items
-        #
+        for contact in model_instances:
+            href = '/'.join([request.path, str(contact.id), ''])
+            item = {
+                'href': href,
+                'data': [
+                    {'name': 'name_prefix', 'prompt': 'Prefix', 'hint': 'Dr.', 'value': contact.name_prefix},
+                    {'name': 'name_first', 'prompt': 'First Name', 'hint': 'Seymour', 'value': contact.name_first},
+                    {
+                        'name': 'name_middle',
+                        'prompt': 'Middle Name',
+                        'hint': 'Gluteus',
+                        'value': contact.name_middle
+                    },
+                    {'name': 'name_last', 'prompt': 'Last Name', 'hint': 'Maximus', 'value': contact.name_last},
+                    {'name': 'name_suffix', 'prompt': 'Suffix', 'hint': 'III', 'value': contact.name_suffix}
+                ],
+                'links': [
+                    {'href': href + '/addresses/', 'rel': 'more', 'name': 'addresses', 'prompt': 'Addresses'},
+                    {'href': href + '/emails/', 'rel': 'more', 'name': 'emails', 'prompt': 'Emails'},
+                    {
+                        'href': href + '/phone-numbers/',
+                        'rel': 'more',
+                        'name': 'phone_numbers',
+                        'prompt': 'Phone Numbers'
+                    }
+                ]
+            }
+            document.items.append(collection_json.Item(**item))
         return document
 
     @jwt_required
@@ -368,6 +416,7 @@ class ContactAPI(API):
 
         if contact_id is not None:
             contact = Contact.query.get(contact_id)
+            contacts = [contact]
 
             if contact is None:
                 raise APINotFoundError()
@@ -375,41 +424,14 @@ class ContactAPI(API):
             # get is contact owner or has permission to see others' contacts
 
             if (
-                (not current_identity.user.contact_info.id == contact.id) or
+                (not current_identity.session_user.contact_info.id == contact.id) or
                 (not user_contacts.select(User, Contact).where(
-                    User.id == current_identity.user.id and Contact.id == contact.id)) or
-                (not current_identity.user.has_permission('blackbook.contact.read.other'))
+                    User.id == current_identity.session_user.id and Contact.id == contact.id)) or
+                (not current_identity.session_user.has_permission('blackbook.user.contact.read'))
             ):
                 raise APIForbiddenError()
         else:
-            for contact in current_identity.user.contacts:
-                href = '/'.join([request.path, contact.id, ''])
-                item = {
-                    'href': href,
-                    'data': [
-                        {'name': 'name_prefix', 'prompt': 'Prefix', 'hint': 'Dr.', 'value': contact.name_prefix},
-                        {'name': 'name_first', 'prompt': 'First Name', 'hint': 'Seymour', 'value': contact.name_first},
-                        {
-                            'name': 'name_middle',
-                            'prompt': 'Middle Name',
-                            'hint': 'Gluteus',
-                            'value': contact.name_middle
-                        },
-                        {'name': 'name_last', 'prompt': 'Last Name', 'hint': 'Maximus', 'value': contact.name_last},
-                        {'name': 'name_suffix', 'prompt': 'Suffix', 'hint': 'III', 'value': contact.name_suffix}
-                    ],
-                    'links': [
-                        {'href': href + '/addresses/', 'rel': 'more', 'name': 'addresses', 'prompt': 'Addresses'},
-                        {'href': href + '/emails/', 'rel': 'more', 'name': 'emails', 'prompt': 'Emails'},
-                        {
-                            'href': href + '/phone-numbers/',
-                            'rel': 'more',
-                            'name': 'phone_numbers',
-                            'prompt': 'Phone Numbers'
-                        }
-                    ]
-                }
-                document.items.append(collection_json.Item(**item))
+            self._generate_document(*current_identity.session_user.contacts)
         return Response(response=str(document), mimetype=document.mimetype)
 
     @jwt_required
@@ -437,7 +459,7 @@ class SessionAPI(API):
             raise APIBadRequestError()
 
     def _generate_document(self, model_instance=None):
-        document = super(SessionAPI, self)._generate_document(model_instance=model_instance)
+        document = super(SessionAPI, self)._generate_document()
         template = {
             'data': [
                 {'name': 'email', 'prompt': 'Email', 'hint': 'user@example.com', 'type': 'text'},
@@ -447,29 +469,31 @@ class SessionAPI(API):
         document.template = collection_json.Template(**template)
         return document
 
+    @jwt_required
     def get(self):
-        user_session = self._get_session()
-        if user_session is not None:
-            return Response(response='', status=200, mimetype=JSONObject.mimetype)
-        else:
-            document = self._generate_document(user_session)
+        if current_identity is None:
+            document = self._generate_document()
+            document.error = collection_json.Error(**APIUnauthorizedError().serializable)
             return Response(response=str(document), status=401, mimetype=document.mimetype)
+        else:
+            document = self._generate_document()
+            del document.template
+            return Response(response=str(document), status=200, mimetype=document.mimetype)
 
+    @jwt_required
     def head(self):
-        user_session = self._get_session()
-        if user_session is not None:
-            return Response(response='', status=200, mimetype=JSONObject.mimetype)
+        if current_identity is not None:
+            return Response(response='', status=200, mimetype=collection_json.MIMETYPE)
         else:
             raise APIUnauthorizedError()
 
-    @jwt_required
+    @jwt_required_refresh()
     def patch(self):
-        user_session = self._get_session()
-        if user_session is not None:
-            user_session.expiry = datetime.now() + current_app.config.get('PERMANENT_SESSION_LIFETIME')
-            current_app.db.session.add(user_session)
+        if current_identity is not None:
+            current_identity.expiry = datetime.now() + current_app.config.get('PERMANENT_SESSION_LIFETIME')
+            current_app.db.session.add(current_identity)
             current_app.db.session.commit()
-            return Response(response='', status=200, mimetype=JSONObject.mimetype)
+            return Response(response='', status=200, mimetype=collection_json.MIMETYPE)
         else:
             raise APIBadRequestError()
 
@@ -499,25 +523,19 @@ class UserAPI(API):
     def _generate_document(self, *model_instances):
 
         document = super(UserAPI, self)._generate_document()
-        session_user = self._get_session_user()
 
         if len(model_instances):
             for instance in model_instances:
-                href = self.endpoint_root + str(instance.id)
+                item = {
+                    'href': self.endpoint_root + str(instance.id),
+                    'data': [
+                        {'name': 'email', 'prompt': 'Email', 'value': instance.email},
+                        {'name': 'name', 'prompt': 'Name', 'value': instance.name}
+                    ],
+                    'links': []
+                }
 
-                # direct user properties
-                data = collection_json.Array([], collection_json.Data)
-                data.append(collection_json.Data(name='email', prompt='Email', value=instance.email))
-                data.append(collection_json.Data(name='name', prompt='Name', value=instance.name))
-                if session_user is not None and session_user.has_permission('blackbook.user.edit'):
-                    for p in instance.permissions:
-                        d = collection_json.Data(name='permission', prompt='Permissions', value=p.permission)
-                        data.append(d)
-
-                # relational user properties (contacts, contact info, etc.)
-                links = collection_json.Array([], collection_json.Link)
-
-                document.items.append(collection_json.Item(href, data, links))
+                document.items.append(collection_json.Item(**item))
 
         return document
 
@@ -525,41 +543,41 @@ class UserAPI(API):
         pass
 
     def _create_user_public(self):
-        pass
+        self._create_user()
 
     @jwt_required
     def _create_user_protected(self):
+        user = current_identity.session_user
 
-        user = self._get_session_user().first()
+        # user must have permission to create accounts
+        can_create_users = user.has_permission('blackbook.user.create')
 
-        if len(user):
+        if not can_create_users:
+            raise APIForbiddenError()
 
-            user = user.first()
+        # user must have permission to edit other users if permissions are supplied
+        can_edit_permissions = user.has_permission('blackbook.user.edit')
 
-            # user must have permission to create accounts
-            can_create_users = user.has_permission('blackbook.user.create')
-            if not can_create_users:
-                raise APIForbiddenError()
+        if len(request.form.getlist('permissions')) and not can_edit_permissions:
+            raise APIForbiddenError()
 
-            # user must have permission to edit other users if permissions are supplied
-            can_edit_permissions = user.has_permission('blackbook.user.edit')
-            if len(request.form.getlist('permissions')) and not can_edit_permissions:
-                raise APIForbiddenError()
+        # user must have permission to edit admins if admin permissions are supplied
+        has_admin_permissions = user.has_permission('blackbook.admin.edit')
+        admin_permissions_supplied = [
+            p
+            for p in request.form.getlist('permissions')
+            if p.startswith('blackbook.admin')
+        ]
 
-            # user must have permission to edit admins if admin permissions are supplied
-            has_admin_permissions = user.has_permission('blackbook.admin.edit')
-            admin_permissions_supplied = [
-                p
-                for p in request.form.getlist('permissions')
-                if p.startswith('blackbook.admin')
-            ]
-            if len(admin_permissions_supplied) and not has_admin_permissions:
-                raise APIForbiddenError()
+        if len(admin_permissions_supplied) and not has_admin_permissions:
+            raise APIForbiddenError()
+
+        self._create_user()
 
     @jwt_required
     def get(self, user_id=None):
 
-        session_user = self._get_session_user()
+        session_user = current_identity.session_user
 
         if session_user is None:
             raise APIUnauthorizedError(endpoint=self.endpoint_root)
@@ -575,6 +593,7 @@ class UserAPI(API):
         if session_user.has_permission('blackbook.user.read'):
             users = User.query.all()
             # TODO: pagination
+            # See http://flask-sqlalchemy.pocoo.org/2.1/api/#flask.ext.sqlalchemy.BaseQuery.paginate
             document = self._generate_document(*users)
             return Response(response=str(document), mimetype=document.mimetype)
 

@@ -1,7 +1,7 @@
 import lib.collection_plus_json as collection_json
 import os
 from flask import Flask, render_template, request, Response
-from api import APIError, JSONObject, ContactAPI, SessionAPI, UserAPI
+from api import jwt, APIError, ContactAPI, SessionAPI, UserAPI
 from database import db
 
 __author__ = 'ievans3024'
@@ -11,6 +11,8 @@ app = Flask('blackbook')
 
 
 def init_api():
+
+    jwt.init_app(app)
 
     api_root = app.config.get('BLACKBOOK_API_URL_ROOT')
 
@@ -39,7 +41,7 @@ def init_config(app):
 @app.errorhandler(APIError)
 def handle_api_error(error):
     if request.method not in {'HEAD', 'OPTIONS'}:
-        document = JSONObject(**error.serializable)
+        document = collection_json.Collection(href=request.path, error=error.serializable)
     else:
         document = ''
     response = Response(str(document), status=int(error.code), mimetype=document.mimetype)

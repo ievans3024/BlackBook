@@ -158,7 +158,7 @@ class Session(db.Model):
     date_created = db.Column(db.DateTime)
     date_modified = db.Column(db.DateTime)
     expiry = db.Column(db.DateTime)
-    user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    session_user = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
