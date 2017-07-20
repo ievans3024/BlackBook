@@ -18,27 +18,31 @@ user_permissions = db.Table('user_permissions',
                             db.Column('permission', db.String, db.ForeignKey('permission.permission'))
                             )
 
-contacts = db.Table('contacts',
-                    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-                    db.Column('contact_id', db.Integer, db.ForeignKey('contact.id'))
-                    )
+user_contacts = db.Table('contacts',
+                         db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+                         db.Column('contact_id', db.Integer, db.ForeignKey('contact.id'))
+                         )
 
 
 class Permissible(object):
 
     def has_permission(self, *permissions, operator='or'):
 
-        ops = {'and', 'or'}
+        if hasattr(self, 'permissions'):
 
-        if operator not in ops:
-            operator = 'or'
+            ops = {'and', 'or'}
 
-        permission_check = [p.permission in permissions for p in self.permissions]
+            if operator not in ops:
+                operator = 'or'
 
-        if operator == 'and':
-            return all(permission_check)
+            permission_check = [p.permission in permissions for p in self.permissions]
+
+            if operator == 'and':
+                return all(permission_check)
+            else:
+                return any(permission_check)
         else:
-            return any(permission_check)
+            return False
 
 
 class User(db.Model, Permissible):
@@ -50,7 +54,7 @@ class User(db.Model, Permissible):
     display_name = db.Column(db.String)
     contact_info = db.Column(db.Integer, db.ForeignKey('contact.id'), nullable=True)
     sessions = db.relationship('Session', backref='user', lazy='dynamic')
-    contacts = db.relationship('Contact', secondary=contacts, backref='user', lazy='dynamic')
+    contacts = db.relationship('Contact', secondary=user_contacts, backref='user', lazy='dynamic')
     permissions = db.relationship('Permission', secondary=user_permissions, backref='user', lazy='dynamic')
     groups = db.relationship('Group', secondary=user_groups, backref='user', lazy='dynamic')
 
@@ -154,8 +158,7 @@ class Session(db.Model):
     date_created = db.Column(db.DateTime)
     date_modified = db.Column(db.DateTime)
     expiry = db.Column(db.DateTime)
-    token = db.Column(db.String)
-    session_user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():

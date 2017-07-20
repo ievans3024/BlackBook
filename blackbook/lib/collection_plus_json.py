@@ -89,30 +89,6 @@ class CollectionArrayField(CollectionField):
         instance.__dict__[self.get_own_name(type(instance))] = value
 
 
-class RequiresProperties(object):
-    """
-    Abstract class for classes that require certain properties to exist and be of certain types.
-    """
-    # TODO: delete me once descriptors prove bug-free
-
-    __should__ = {}
-
-    def __setattr__(self, key, value):
-        if key in self.__should__:
-            if not isinstance(value, self.__should__[key]["type"]):
-                raise TypeError(
-                    "The value of {k} must be a {type}.".format(
-                        cls=self.__class__.__name__, k=key, type=self.__should__[key]["type"].__name__
-                    )
-                )
-            if self.__should__[key]["truthy"]:
-                if not value:
-                    raise TypeError(
-                        "The value of {k} cannot evaluate to False.".format(cls=self.__class__.__name__, k=key)
-                    )
-        super(RequiresProperties, self).__setattr__(key, value)
-
-
 class Serializable(object):
     """
     An object that needs to be JSON serializable.
@@ -275,10 +251,6 @@ class Data(Serializable, Comparable):
     prompt = CollectionField(str)
     value = CollectionField(object)
 
-    '''
-    __should__ = {"name": {"type": str, "truthy": True}}
-    '''
-
     def __init__(self, name=None, prompt=None, value=None, **kwargs):
 
         super(Data, self).__init__()
@@ -326,13 +298,6 @@ class Link(Serializable, Comparable):
     prompt = CollectionField(str)
     render = CollectionField(str)
 
-    '''
-    __should__ = {
-        "href": {"type": str, "truthy": True},
-        "rel": {"type": str, "truthy": True}
-    }
-    '''
-
     def __init__(self, href=None, rel=None, name=None, prompt=None, render=None, **kwargs):
 
         super(Link, self).__init__()
@@ -358,13 +323,6 @@ class Query(Serializable, Comparable):
     rel = CollectionField(str, truthy=True)
     name = CollectionField(str)
     prompt = CollectionField(str)
-
-    '''
-    __should__ = {
-        "href": {"type": str, "truthy": True},
-        "rel": {"type": str, "truthy": True}
-    }
-    '''
 
     def __init__(self, href=None, rel=None, data=None, name=None, prompt=None, **kwargs):
 
@@ -393,10 +351,6 @@ class Item(Serializable, Comparable):
     data = CollectionArrayField(Array, contains=Data)
     links = CollectionArrayField(Array, contains=Link)
 
-    '''
-    __should__ = {"href": {"type": str, "truthy": True}}
-    '''
-
     def __init__(self, href=None, data=(), links=(), **kwargs):
 
         super(Item, self).__init__()
@@ -422,10 +376,6 @@ class Template(Serializable, Comparable):
     """
 
     data = CollectionArrayField(Array, contains=Data)
-
-    '''
-    __should__ = {"data": {"type": (list, UserList), "truthy": False}}
-    '''
 
     def __init__(self, data=(), **kwargs):
 
@@ -454,12 +404,6 @@ class Collection(Serializable, Comparable):
     items = CollectionArrayField(Array, contains=Item)
     links = CollectionArrayField(Array, contains=Link)
     queries = CollectionArrayField(Array, contains=Query)
-    '''
-    __should__ = {
-        "href": {"type": str, "truthy": True},
-        "version": {"type": str, "truthy": True}
-    }
-    '''
 
     @property
     def mimetype(self):

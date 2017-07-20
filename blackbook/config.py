@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 # Flask Builtin Options
 # see http://flask.pocoo.org/docs/config/#builtin-configuration-values
 DEBUG = True
@@ -9,6 +11,10 @@ SESSION_COOKIE_SECURE = False  # True in https production
 
 # Flask-SQLAlchemy Options
 # see http://flask-sqlalchemy.pocoo.org/config/
+
+# Flask-JWT Options
+# see https://pythonhosted.org/Flask-JWT/#configuration-options
+JWT_EXPIRATION_DELTA = timedelta(weeks=1)
 
 # Custom Options
 # PASSWORD_HASH_METHOD

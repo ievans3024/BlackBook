@@ -1,11 +1,57 @@
-import lib.collection_plus_json as collection_json
-from database import Contact, Permission, Session, User
+from .lib import collection_plus_json as collection_json
+from .database import Contact, Permission, Session, User, user_contacts
 from datetime import datetime, timedelta
 from flask.views import MethodView
-from flask import session, request, Response, current_app
+from flask import request, Response, current_app
+from flask_jwt import JWT, jwt_required, current_identity
 from werkzeug import security
 
 __author__ = 'ievans3024'
+
+jwt = JWT(current_app)
+
+
+@jwt.authentication_handler
+def jwt_auth(username, password):
+    user = User.query.filter_by(email=username).first()
+    if user and security.check_password_hash(user.password_hash, password):
+        now = datetime.now()
+        lifetime = current_app.config.get('JWT_EXPIRATION_DELTA')
+        expiry = now + lifetime
+        session = Session(date_created=now, date_modified=now, expiry=expiry)
+        current_app.db.session.add(session)
+        current_app.db.commit()
+        return session
+
+
+@jwt.identity_handler
+def jwt_identity(payload):
+    session_id = payload['session_id']
+    session = Session.query.get(session_id)
+    if session is None:
+        raise APIUnauthorizedError()
+    elif session.expiry > datetime.now():
+        current_app.db.session.delete(session)
+        current_app.db.commit()
+        raise APIAuthenticationTimeoutError()
+    else:
+        return session
+
+
+@jwt.jwt_payload_handler
+def jwt_payload(identity):
+    return {'session_id': identity.id}
+
+
+@jwt.jwt_error_handler
+def jwt_error(error):
+    if isinstance(error, APIError):
+        raise error
+    else:
+        raise APIInternalServerError(
+            message='An error occurred while validating session information.',
+            endpoint=request.path
+        )
 
 
 class APIError(Exception):
@@ -349,41 +395,10 @@ class API(MethodView):
         document = collection_json.Collection(href=self.endpoint_root)
         return document
 
-    @staticmethod
-    def _get_session():
-        token = session.get('token')
-
-        if token is None:
-            return None
-
-        user_session = Session.query.filter_by(token=token)
-
-        if not len(user_session):
-            raise APIUnauthorizedError()
-
-        if user_session.expiry <= datetime.now():
-            current_app.db.session.delete(user_session)
-            current_app.db.commit()
-            raise APIAuthenticationTimeoutError()
-
-        return user_session
-
-    def _get_session_user(self):
-        user_session = self._get_session()
-
-        if user_session is None:
-            return None
-
-        user = User.query.filter_by(id=user_session.session_user).first()
-
-        if not user:
-            return None
-
-        return user
-
 
 class ContactAPI(API):
 
+    @jwt_required
     def delete(self, contact_id):
         return 'Contact API - DELETE'
 
@@ -394,33 +409,76 @@ class ContactAPI(API):
         #
         return document
 
+    @jwt_required
     def get(self, contact_id=None):
+
         document = self._generate_document()
+
         if contact_id is not None:
-            data_array = collection_json.Array([], cls=collection_json.Data)
-            data = collection_json.Data(name='id', prompt='ID Number', value=contact_id)
-            data_array.append(data)
-            item = collection_json.Item(href=request.path, data=data_array)
-            document.items = collection_json.Array([], cls=collection_json.Item)
-            document.items.append(item)
+            contact = Contact.query.get(contact_id)
+
+            if contact is None:
+                raise APINotFoundError()
+
+            # get is contact owner or has permission to see others' contacts
+
+            if (
+                (not current_identity.user.contact_info.id == contact.id) or
+                (not user_contacts.select(User, Contact).where(
+                    User.id == current_identity.user.id and Contact.id == contact.id)) or
+                (not current_identity.user.has_permission('blackbook.contact.read.other'))
+            ):
+                raise APIForbiddenError()
+        else:
+            for contact in current_identity.user.contacts:
+                href = '/'.join([request.path, contact.id, ''])
+                item = {
+                    'href': href,
+                    'data': [
+                        {'name': 'name_prefix', 'prompt': 'Prefix', 'hint': 'Dr.', 'value': contact.name_prefix},
+                        {'name': 'name_first', 'prompt': 'First Name', 'hint': 'Seymour', 'value': contact.name_first},
+                        {
+                            'name': 'name_middle',
+                            'prompt': 'Middle Name',
+                            'hint': 'Gluteus',
+                            'value': contact.name_middle
+                        },
+                        {'name': 'name_last', 'prompt': 'Last Name', 'hint': 'Maximus', 'value': contact.name_last},
+                        {'name': 'name_suffix', 'prompt': 'Suffix', 'hint': 'III', 'value': contact.name_suffix}
+                    ],
+                    'links': [
+                        {'href': href + '/addresses/', 'rel': 'more', 'name': 'addresses', 'prompt': 'Addresses'},
+                        {'href': href + '/emails/', 'rel': 'more', 'name': 'emails', 'prompt': 'Emails'},
+                        {
+                            'href': href + '/phone-numbers/',
+                            'rel': 'more',
+                            'name': 'phone_numbers',
+                            'prompt': 'Phone Numbers'
+                        }
+                    ]
+                }
+                document.items.append(collection_json.Item(**item))
         return Response(response=str(document), mimetype=document.mimetype)
 
+    @jwt_required
     def head(self, contact_id=None):
         return ''
 
+    @jwt_required
     def patch(self, contact_id):
         return 'Contact API - PATCH'
 
+    @jwt_required
     def post(self):
         return 'Contact API - POST'
 
 
 class SessionAPI(API):
 
+    @jwt_required
     def delete(self):
-        user_session = self._get_session()
-        if user_session is not None:
-            current_app.db.session.delete(user_session)
+        if current_identity is not None:
+            current_app.db.session.delete(current_identity)
             current_app.db.commit()
             return '', 200
         else:
@@ -428,11 +486,13 @@ class SessionAPI(API):
 
     def _generate_document(self, model_instance=None):
         document = super(SessionAPI, self)._generate_document(model_instance=model_instance)
-        template_data = collection_json.Array([], collection_json.Data)
-        template_data.append(collection_json.Data(name='email', prompt='Email', type='text'))
-        template_data.append(collection_json.Data(name='password', prompt='Password', type='password'))
-        template = collection_json.Template(data=template_data)
-        document.template = template
+        template = {
+            'data': [
+                {'name': 'email', 'prompt': 'Email', 'hint': 'user@example.com', 'type': 'text'},
+                {'name': 'password', 'prompt': 'Password', 'hint': None, 'type': 'password'}
+            ]
+        }
+        document.template = collection_json.Template(**template)
         return document
 
     def get(self):
@@ -450,6 +510,7 @@ class SessionAPI(API):
         else:
             raise APIUnauthorizedError()
 
+    @jwt_required
     def patch(self):
         user_session = self._get_session()
         if user_session is not None:
@@ -479,6 +540,7 @@ class SessionAPI(API):
 
 class UserAPI(API):
 
+    @jwt_required
     def delete(self):
         pass
 
@@ -507,6 +569,42 @@ class UserAPI(API):
 
         return document
 
+    def _create_user(self):
+        pass
+
+    def _create_user_public(self):
+        pass
+
+    @jwt_required
+    def _create_user_protected(self):
+
+        user = self._get_session_user().first()
+
+        if len(user):
+
+            user = user.first()
+
+            # user must have permission to create accounts
+            can_create_users = user.has_permission('blackbook.user.create')
+            if not can_create_users:
+                raise APIForbiddenError()
+
+            # user must have permission to edit other users if permissions are supplied
+            can_edit_permissions = user.has_permission('blackbook.user.edit')
+            if len(request.form.getlist('permissions')) and not can_edit_permissions:
+                raise APIForbiddenError()
+
+            # user must have permission to edit admins if admin permissions are supplied
+            has_admin_permissions = user.has_permission('blackbook.admin.edit')
+            admin_permissions_supplied = [
+                p
+                for p in request.form.getlist('permissions')
+                if p.startswith('blackbook.admin')
+            ]
+            if len(admin_permissions_supplied) and not has_admin_permissions:
+                raise APIForbiddenError()
+
+    @jwt_required
     def get(self, user_id=None):
 
         session_user = self._get_session_user()
@@ -528,9 +626,11 @@ class UserAPI(API):
             document = self._generate_document(*users)
             return Response(response=str(document), mimetype=document.mimetype)
 
+    @jwt_required
     def head(self):
         pass
 
+    @jwt_required
     def patch(self):
         pass
 
@@ -539,31 +639,11 @@ class UserAPI(API):
 
         if not current_app.config.get('BLACKBOOK_PUBLIC_REGISTRATION'):
 
-            user = self._get_session_user().first()
+            return self._create_user_protected()
 
-            if len(user):
+        else:
 
-                user = user.first()
-
-                # user must have permission to create accounts
-                can_create_users = user.has_permission('blackbook.user.create')
-                if not can_create_users:
-                    raise APIForbiddenError()
-
-                # user must have permission to edit other users if permissions are supplied
-                can_edit_permissions = user.has_permission('blackbook.user.edit')
-                if len(request.form.getlist('permissions')) and not can_edit_permissions:
-                    raise APIForbiddenError()
-
-                # user must have permission to edit admins if admin permissions are supplied
-                has_admin_permissions = user.has_permission('blackbook.admin.edit')
-                admin_permissions_supplied = [
-                    p
-                    for p in request.form.getlist('permissions')
-                    if p.startswith('blackbook.admin')
-                ]
-                if len(admin_permissions_supplied) and not has_admin_permissions:
-                    raise APIForbiddenError()
+            return self._create_user_protected()
 
         # create User
         # attempt commit
