@@ -89,302 +89,255 @@ class APIError(Exception):
 
     """
 
-    def __init__(self,
-                 code="500",
-                 title="Internal Server Error",
+    def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request.",
-                 endpoint=None,
-                 **kwargs):
+                         "fulfilling the request.", endpoint=None):
         """
         APIError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
         self.code = code
         self.message = message
         self.title = title
         self.endpoint = endpoint
-        super(APIError, self).__init__(**kwargs)
+        super(APIError, self).__init__(*args)
 
     def __str__(self):
         return 'HTTP {0} {1}: {2}'.format(self.code, self.title, self.message)
+
+    @property
+    def serializable(self):
+        return self.__dict__
 
 
 class APIBadRequestError(APIError):
     """Convenience class for HTTP 400 errors"""
 
-    def __init__(self,
-                 code="400",
-                 title="Bad Request",
-                 message="The request could not be understood by the server due to malformed syntax.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APIBadRequestError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIBadRequestError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APIBadRequestError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APIUnauthorizedError(APIError):
     """Convenience class for HTTP 401 errors"""
 
-    def __init__(self,
-                 code="401",
-                 title="Unauthorized",
-                 message="The request requires user authentication.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APIUnauthorizedError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIUnauthorizedError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APIUnauthorizedError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APIForbiddenError(APIError):
     """Convenience class for HTTP 403 errors"""
 
-    def __init__(self,
-                 code="403",
-                 title="Forbidden",
-                 message="The server understood the request, but is refusing to fulfill it.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APIForbiddenError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIForbiddenError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APIForbiddenError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APINotFoundError(APIError):
     """Convenience class for HTTP 404 errors"""
 
-    def __init__(self,
-                 code="404",
-                 title="Not Found",
-                 message="The server could not find the requested resource.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APINotFoundError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APINotFoundError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APINotFoundError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APIMethodNotAllowedError(APIError):
     """Convenience class for HTTP 405 errors"""
 
-    def __init__(self,
-                 code="405",
-                 title="Method Not Allowed",
-                 message="The HTTP method specified in the request is not allowed for the requested resource.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APIMethodNotAllowedError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIMethodNotAllowedError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APIMethodNotAllowedError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APINotAcceptableError(APIError):
     """Convenience class for HTTP 406 errors"""
 
-    def __init__(self,
-                 code="406",
-                 title="Not Acceptable",
-                 message="The requested resource cannot generate content deemed acceptable by the request.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APINotAcceptableError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APINotAcceptableError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APINotAcceptableError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APIConflictError(APIError):
     """Convenience class for HTTP 409 errors"""
 
-    def __init__(self,
-                 code="409",
-                 title="Conflict",
-                 message="The request could not be completed due to a conflict with the current state of the resource.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APIConflictError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIConflictError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APIConflictError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APIGoneError(APIError):
     """Convenience class for HTTP 410 errors"""
 
-    def __init__(self,
-                 code="410",
-                 title="Gone",
-                 message="The requested resource is no longer available and no forwarding address is known.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APIGoneError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIGoneError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APIGoneError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APIUnsupportableMediaTypeError(APIError):
     """Convenience class for HTTP 415 errors"""
 
-    def __init__(self,
-                 code="415",
-                 title="Unsupportable Media Type",
-                 message="The content supplied in the request is not a type supported by the requested resource.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APIUnsupportableMediaTypeError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIUnsupportableMediaTypeError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APIUnsupportableMediaTypeError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APIAuthenticationTimeoutError(APIError):
     """Convenience class for HTTP 419 errors"""
 
-    def __init__(self,
-                 code="419",
-                 title="Authentication Timeout",
-                 message="Previously valid authentication has expired. Please re-authenticate and try again.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APIAuthenticationTimeoutError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIAuthenticationTimeoutError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APIAuthenticationTimeoutError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APITooManyRequestsError(APIError):
     """Convenience class for HTTP 429 errors"""
 
-    def __init__(self,
-                 code="429",
-                 title="Too Many Requests",
-                 message="The server is temporarily refusing to service requests made by the client " +
-                         "due to too many requests being made by the client too frequently.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APITooManyRequestsError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APITooManyRequestsError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APITooManyRequestsError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APIInternalServerError(APIError):
     """Convenience class for HTTP 500 errors"""
 
-    def __init__(self,
-                 code="500",
-                 title="Internal Server Error",
+    def __init__(self, *args, code="500", title="Internal Server Error",
                  message="The server encountered an unexpected condition which prevented it from " +
-                         "fulfilling the request.",
-                 **kwargs):
+                         "fulfilling the request."):
         """
         APIInternalServerError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIInternalServerError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APIInternalServerError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APINotImplementedError(APIError):
     """Convenience class for HTTP 501 errors"""
 
-    def __init__(self,
-                 code="501",
-                 title="Not Implemented",
-                 message="The server does not support the functionality required to fulfill the request.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APINotImplementedError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APINotImplementedError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APINotImplementedError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class APIServiceUnavailableError(APIError):
     """Convenience class for HTTP 503 errors"""
 
-    def __init__(self,
-                 code="503",
-                 title="Service Unavailable",
-                 message="The server is currently unable to handle the request due to a temporary " +
-                         "overloading or maintenance of the server.",
-                 **kwargs):
+    def __init__(self, *args, code="500", title="Internal Server Error",
+                 message="The server encountered an unexpected condition which prevented it from " +
+                         "fulfilling the request."):
         """
         APIServiceUnavailableError Constructor
         :param code: The HTTP error code
         :param title: The title of the error
         :param message: The detailed error description
-        :param kwargs: Other nonstandard error information
         :return:
         """
-        super(APIServiceUnavailableError, self).__init__(code=code, title=title, message=message, **kwargs)
+        super(APIServiceUnavailableError, self).__init__(*args, code=code, title=title, message=message)
 
 
 class API(MethodView):
-
     def __init__(self, app, db, endpoint_root):
         self.app = app
         self.db = db
@@ -392,8 +345,7 @@ class API(MethodView):
         super(API, self).__init__()
 
     def _generate_document(self, *args, **kwargs):
-        document = collection_json.Collection(href=self.endpoint_root)
-        return document
+        return JSONObject(**kwargs)
 
 
 class ContactAPI(API):
@@ -497,16 +449,16 @@ class SessionAPI(API):
 
     def get(self):
         user_session = self._get_session()
-        document = self._generate_document()
         if user_session is not None:
-            return '', 200
+            return Response(response='', status=200, mimetype=JSONObject.mimetype)
         else:
-            return Response(response=str(document), mimetype=document.mimetype, status=401)
+            document = self._generate_document(user_session)
+            return Response(response=str(document), status=401, mimetype=document.mimetype)
 
     def head(self):
         user_session = self._get_session()
         if user_session is not None:
-            return '', 200
+            return Response(response='', status=200, mimetype=JSONObject.mimetype)
         else:
             raise APIUnauthorizedError()
 
@@ -517,7 +469,7 @@ class SessionAPI(API):
             user_session.expiry = datetime.now() + current_app.config.get('PERMANENT_SESSION_LIFETIME')
             current_app.db.session.add(user_session)
             current_app.db.session.commit()
-            return '', 200
+            return Response(response='', status=200, mimetype=JSONObject.mimetype)
         else:
             raise APIBadRequestError()
 

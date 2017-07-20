@@ -22,7 +22,7 @@
               contacts.patch(selected);
             };
             $scope.$on(
-              'select', function (event, href) {
+              'blackbook.contact.select', function (event, href) {
                 contacts.get(href)
                   .success(
                     function (data) {
@@ -49,7 +49,7 @@
               contacts.patch(contact);
             };
             $scope.select = function (contact) {
-              $scope.$broadcast(contact.href);
+              $scope.$broadcast('blackbook.contact.select', contact.href);
             };
             contacts.fetch();
           }
@@ -61,7 +61,10 @@
           'contacts',
           '$scope',
           function (contacts, $scope) {
-
+            $scope.contact = {};
+            $scope.create = function () {
+              contacts.post($scope.contact);
+            };
           }
         ]
       )

@@ -1,7 +1,7 @@
 import lib.collection_plus_json as collection_json
 import os
 from flask import Flask, render_template, request, Response
-from api import APIError, ContactAPI, SessionAPI, UserAPI
+from api import APIError, JSONObject, ContactAPI, SessionAPI, UserAPI
 from database import db
 
 __author__ = 'ievans3024'
@@ -38,8 +38,10 @@ def init_config(app):
 
 @app.errorhandler(APIError)
 def handle_api_error(error):
-    document = collection_json.Collection(href=error.endpoint)
-    document.error = collection_json.Error(code=error.code, title=error.title, message=error.message)
+    if request.method not in {'HEAD', 'OPTIONS'}:
+        document = JSONObject(**error.serializable)
+    else:
+        document = ''
     response = Response(str(document), status=int(error.code), mimetype=document.mimetype)
     return response
 
